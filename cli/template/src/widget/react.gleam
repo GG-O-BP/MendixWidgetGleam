@@ -23,7 +23,11 @@ pub type Props
 
 /// 범용 HTML 요소 생성
 @external(javascript, "./react_ffi.mjs", "create_element")
-pub fn el(tag: String, props: Props, children: List(ReactElement)) -> ReactElement
+pub fn el(
+  tag: String,
+  props: Props,
+  children: List(ReactElement),
+) -> ReactElement
 
 /// props 없이 자식만으로 요소 생성
 @external(javascript, "./react_ffi.mjs", "create_element_no_props")
