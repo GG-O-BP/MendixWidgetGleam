@@ -1,10 +1,10 @@
 # MendixWidgetGleam
 
-Gleam 언어로 Mendix Pluggable Widget을 개발하여 "Hello World"를 화면에 렌더링하는 실험적 프로젝트.
+Gleam 언어로 Mendix Pluggable Widget을 개발하는 프로젝트.
 
 ## Goal
 
-**JSX를 사용하지 않고, 오직 Gleam으로만** 위젯을 작성한다. Gleam 코드를 JavaScript로 컴파일하고, 컴파일된 JS가 곧 Mendix Pluggable Widget의 진입점이 된다. 최종 목표는 화면에 "Hello World"를 표시하는 위젯 완성.
+**JSX를 사용하지 않고, 오직 Gleam으로만** 위젯을 작성한다. Gleam 코드를 JavaScript로 컴파일하고, 컴파일된 JS가 곧 Mendix Pluggable Widget의 진입점이 된다.
 
 ## Tech Stack
 
@@ -133,7 +133,7 @@ Mendix 공식 문서 사이트(docs.mendix.com)는 접근 불가. 대신 GitHub 
 - Mendix 위젯 이름은 영문자(a-zA-Z)만 허용된다
 - `.mpk` 파일은 `dist/` 디렉토리에 생성된다
 - 테스트 프로젝트 경로: `./tests/testProject`
-- 이 프로젝트는 실험적이다. Gleam→JS→Mendix Widget 파이프라인은 공식 지원되지 않는 조합이므로, 빌드 설정 커스터마이징이 필요할 수 있다
+- Gleam→JS→Mendix Widget 파이프라인은 공식 지원되지 않는 조합이므로, 빌드 설정 커스터마이징이 필요할 수 있다
 - **JSX/JS 파일을 직접 작성하지 않는다.** 모든 위젯 로직과 UI는 Gleam으로 작성하고 JS로 컴파일한다. 유일한 JS 파일은 Gleam FFI 어댑터(`.ffi.mjs`)뿐이다
 - Mendix 빌드 도구가 요구하는 JS 파일(진입점, editorConfig 등)은 Gleam 컴파일 출력으로 생성한다
 - Redraw 등 외부 Gleam React 라이브러리는 사용하지 않는다. Gleam FFI로 React API를 직접 바인딩한다

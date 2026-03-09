@@ -1,6 +1,6 @@
 # MendixWidgetGleam
 
-**Gleam 언어로 Mendix Pluggable Widget을 개발하는 실험적 프로젝트.**
+**Gleam 언어로 Mendix Pluggable Widget을 개발하는 프로젝트.**
 
 JSX를 사용하지 않고, Gleam 코드만으로 React 컴포넌트를 작성하여 Mendix Studio Pro에서 동작하는 위젯을 만든다. Gleam을 JavaScript로 컴파일하고, Gleam FFI로 React API를 직접 바인딩하는 방식이다.
 
@@ -110,7 +110,7 @@ gleam run -m scripts/start     # Mendix 테스트 프로젝트와 연동 개발
 
 ## 제약사항
 
-- Gleam → JS → Mendix Widget 파이프라인은 공식 지원되지 않는 실험적 조합이다
+- Gleam → JS → Mendix Widget 파이프라인은 공식 지원되지 않는 조합이므로 빌드 설정 커스터마이징이 필요할 수 있다
 - JSX 파일을 사용하지 않는다 — 모든 React 로직은 Gleam + FFI로 구현
 - Redraw 등 외부 Gleam React 라이브러리는 사용하지 않는다
 - FFI 파일에는 React API 노출만 작성하고, 비즈니스 로직은 반드시 Gleam으로 작성

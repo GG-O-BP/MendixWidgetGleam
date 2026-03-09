@@ -15,6 +15,9 @@
 *.gitattributes eol=lf
 *.gitignore eol=lf
 
+# CLI 스캐폴딩 도구는 위젯 코드가 아니므로 언어 통계에서 제외
+cli/** linguist-vendored
+
 # Denote all files that are truly binary and should not be modified.
 *.png binary
 *.jpg binary

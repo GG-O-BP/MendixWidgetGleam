@@ -30,7 +30,10 @@
       "Bash(chmod +x:*)",
       "Read(//c/tmp/**)",
       "Bash(rm -rf test-output)",
-      "Bash(node \"C:/Users/dohye/workspace/mendixWidgetGleam/cli/bin/create-mendix-widget-gleam.mjs\":*)"
+      "Bash(node \"C:/Users/dohye/workspace/mendixWidgetGleam/cli/bin/create-mendix-widget-gleam.mjs\":*)",
+      "Bash(find:*)",
+      "Bash(wc:*)",
+      "Bash(ls:*)"
     ]
   }
 }
