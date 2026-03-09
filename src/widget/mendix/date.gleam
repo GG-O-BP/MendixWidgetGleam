@@ -78,3 +78,15 @@ pub fn milliseconds(date: JsDate) -> Int
 /// 요일 (0=일요일, 1=월요일, ..., 6=토요일)
 @external(javascript, "../mendix_ffi.mjs", "date_get_day")
 pub fn day_of_week(date: JsDate) -> Int
+
+// === HTML input[type="date"] 변환 ===
+
+import gleam/option.{type Option}
+
+/// JsDate → "YYYY-MM-DD" 변환 (로컬 시간 기준, input[type="date"] 용)
+@external(javascript, "../mendix_ffi.mjs", "date_to_input_value")
+pub fn to_input_value(date: JsDate) -> String
+
+/// "YYYY-MM-DD" → Option(JsDate) 변환 (빈 문자열 → None)
+@external(javascript, "../mendix_ffi.mjs", "input_value_to_date")
+pub fn from_input_value(date_string: String) -> Option(JsDate)

@@ -352,6 +352,21 @@ export function date_get_day(d) {
   return d.getDay();
 }
 
+// === Date 변환 (JS Date ↔ HTML input[type="date"]) ===
+
+export function date_to_input_value(jsDate) {
+  const year = jsDate.getFullYear();
+  const month = String(jsDate.getMonth() + 1).padStart(2, "0");
+  const day = String(jsDate.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function input_value_to_date(dateString) {
+  if (!dateString) return new None();
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Some(new Date(year, month - 1, day));
+}
+
 // === Big.js ===
 
 import Big from "big.js";
