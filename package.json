@@ -16,15 +16,7 @@
   },
   "packagePath": "mendix",
   "scripts": {
-    "gleam:build": "gleam build --target javascript",
-    "gleam:deps": "gleam deps download",
-    "start": "gleam build --target javascript && pluggable-widgets-tools start:server",
-    "dev": "gleam build --target javascript && pluggable-widgets-tools start:web",
-    "build": "gleam build --target javascript && pluggable-widgets-tools build:web",
-    "lint": "pluggable-widgets-tools lint",
-    "lint:fix": "pluggable-widgets-tools lint:fix",
-    "prerelease": "echo skipping lint",
-    "release": "gleam build --target javascript && pluggable-widgets-tools release:web"
+    "prerelease": "echo skipping lint"
   },
   "devDependencies": {
     "@mendix/pluggable-widgets-tools": "^11.8.0"

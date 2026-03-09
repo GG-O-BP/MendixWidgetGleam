@@ -19,6 +19,13 @@ src/
     mendix_widget_gleam.gleam         #   위젯 메인 모듈 (컴포넌트 로직)
     mendix_widget_gleam_ffi.mjs       #   React FFI 어댑터 (createElement 등)
     editor_config.gleam               #   Studio Pro 속성 패널 설정
+  scripts/                            # 빌드/개발 스크립트 (gleam run -m으로 실행)
+    cmd.gleam + cmd_ffi.mjs           #   셸 명령어 실행 유틸리티
+    install.gleam                     #   npm 의존성 설치
+    build.gleam                       #   프로덕션 빌드
+    dev.gleam / start.gleam           #   개발 서버 / Mendix 연동
+    release.gleam                     #   릴리즈 빌드
+    lint.gleam / lint_fix.gleam       #   ESLint
   MendixWidgetGleam.js                # 브릿지 (Gleam 출력 → Mendix 진입점)
   MendixWidgetGleam.editorConfig.js   # 브릿지 (editorConfig)
   MendixWidgetGleam.xml               # 위젯 속성 정의
@@ -29,7 +36,7 @@ src/
 
 ```
 Gleam 소스 (.gleam) + FFI 어댑터 (.ffi.mjs)
-    ↓  gleam build --target javascript
+    ↓  gleam run -m scripts/build (Gleam 컴파일 자동 수행)
 ES 모듈 (.mjs) — build/dev/javascript/...
     ↓  브릿지 JS가 import
     ↓  Rollup (pluggable-widgets-tools)
@@ -53,20 +60,19 @@ pub fn widget(props: JsProps) -> ReactElement {
 ### 사전 요구사항
 
 - [Gleam](https://gleam.run/getting-started/installing/) (v1.0+)
-- [Bun](https://bun.sh/) (패키지 매니저)
+- [Node.js](https://nodejs.org/) (v16+)
 - [Mendix Studio Pro](https://marketplace.mendix.com/link/studiopro/) (위젯 테스트용)
 
 ### 설치
 
 ```bash
-bun install        # Node 의존성 설치
-gleam deps download  # Gleam 의존성 다운로드
+gleam run -m scripts/install   # Gleam 의존성 자동 다운로드 + npm 의존성 설치
 ```
 
 ### 빌드
 
 ```bash
-bun run build      # Gleam 컴파일 + 위젯 빌드 (.mpk 생성)
+gleam run -m scripts/build     # Gleam 컴파일 + 위젯 빌드 (.mpk 생성)
 ```
 
 빌드 결과물은 `dist/` 디렉토리에 `.mpk` 파일로 생성된다.
@@ -74,30 +80,32 @@ bun run build      # Gleam 컴파일 + 위젯 빌드 (.mpk 생성)
 ### 개발
 
 ```bash
-bun run dev        # Gleam 컴파일 + 개발 서버 (HMR, port 3000)
-bun run start      # Mendix 테스트 프로젝트와 연동 개발
+gleam run -m scripts/dev       # Gleam 컴파일 + 개발 서버 (HMR, port 3000)
+gleam run -m scripts/start     # Mendix 테스트 프로젝트와 연동 개발
 ```
 
 ## 명령어 모음
 
+모든 명령어는 `gleam`으로 통일. `gleam run -m`은 Gleam 컴파일을 자동 수행한 뒤 스크립트를 실행한다.
+
 | 명령어 | 설명 |
 |--------|------|
-| `bun install` | 의존성 설치 |
-| `bun run build` | 프로덕션 빌드 (.mpk 생성) |
-| `bun run dev` | 개발 서버 (HMR) |
-| `bun run start` | Mendix 테스트 프로젝트 연동 |
-| `bun run lint` | ESLint 실행 |
-| `bun run lint:fix` | ESLint 자동 수정 |
-| `bun run release` | 릴리즈 빌드 |
-| `gleam build --target javascript` | Gleam → JS 컴파일 |
+| `gleam run -m scripts/install` | 의존성 설치 (Gleam + npm) |
+| `gleam run -m scripts/build` | 프로덕션 빌드 (.mpk 생성) |
+| `gleam run -m scripts/dev` | 개발 서버 (HMR, port 3000) |
+| `gleam run -m scripts/start` | Mendix 테스트 프로젝트 연동 |
+| `gleam run -m scripts/lint` | ESLint 실행 |
+| `gleam run -m scripts/lint_fix` | ESLint 자동 수정 |
+| `gleam run -m scripts/release` | 릴리즈 빌드 |
+| `gleam build --target javascript` | Gleam → JS 컴파일만 |
 | `gleam test` | Gleam 테스트 실행 |
+| `gleam format` | Gleam 코드 포맷팅 |
 
 ## 기술 스택
 
-- **Gleam** — 위젯 로직 및 UI (JavaScript 타겟 컴파일)
+- **Gleam** — 위젯 로직, UI, 빌드 스크립트 (JavaScript 타겟 컴파일)
 - **Gleam FFI** — React API 바인딩 (`@external` + `.ffi.mjs`)
 - **React 19** — Mendix Pluggable Widget 런타임
-- **Bun** — 패키지 매니저
 - **Rollup** — `@mendix/pluggable-widgets-tools` 기반 번들링
 
 ## 제약사항
