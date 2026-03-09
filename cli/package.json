@@ -4,9 +4,7 @@
   "description": "Scaffold a Mendix Pluggable Widget powered by Gleam",
   "type": "module",
   "license": "Apache-2.0",
-  "bin": {
-    "create-mendix-widget-gleam": "./bin/create-mendix-widget-gleam.mjs"
-  },
+  "bin": "bin/create-mendix-widget-gleam.mjs",
   "files": [
     "bin/",
     "src/",

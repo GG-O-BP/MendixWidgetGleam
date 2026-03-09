@@ -23,8 +23,12 @@ async function walkDir(dir) {
   return files;
 }
 
-/** 파일명에서 플레이스홀더 치환 */
+// npm publish 시 제외되는 dotfile을 언더스코어 접두사로 보관하고 복원
+const DOTFILE_MAP = { _gitignore: ".gitignore" };
+
+/** 파일명에서 플레이스홀더 치환 + dotfile 복원 */
 function replaceFileName(name, names) {
+  if (DOTFILE_MAP[name]) return DOTFILE_MAP[name];
   return name
     .replace(/__WidgetName__/g, names.pascalCase)
     .replace(/__widget_name__/g, names.snakeCase);
