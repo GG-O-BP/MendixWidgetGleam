@@ -1,0 +1,32 @@
+# 의존성
+node_modules/
+
+# Gleam 컴파일 출력
+build/
+
+# Mendix 위젯 빌드 출력
+dist/
+
+# 환경 변수
+.env
+
+# 로그
+*.log
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.launch
+
+# Mendix 테스트 프로젝트
+tests/testProject/
+
+# 테스트 산출물
+coverage/
+**/e2e/diffs/
+**/screenshot/
+**/screenshot-results/
+**/artifacts/

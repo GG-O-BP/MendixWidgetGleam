@@ -1,0 +1,133 @@
+# MendixWidgetGleam
+
+Gleam 언어로 Mendix Pluggable Widget을 개발하여 "Hello World"를 화면에 렌더링하는 실험적 프로젝트.
+
+## Goal
+
+**JSX를 사용하지 않고, 오직 Gleam으로만** 위젯을 작성한다. Gleam 코드를 JavaScript로 컴파일하고, 컴파일된 JS가 곧 Mendix Pluggable Widget의 진입점이 된다. 최종 목표는 화면에 "Hello World"를 표시하는 위젯 완성.
+
+## Tech Stack
+
+- **Gleam** → JavaScript 컴파일 (target: javascript)
+- **Gleam FFI** (`@external` 어노테이션 + `.ffi.mjs` 파일) — React API를 Gleam에서 직접 호출. 별도의 Gleam React 라이브러리(Redraw 등) 없이, 최소한의 FFI 어댑터로 React.createElement와 hooks를 바인딩
+- **Mendix Pluggable Widget** (React 19)
+- **Package Manager**: Bun
+- **Build**: `@mendix/pluggable-widgets-tools` (Rollup 기반)
+- **Package**: `.mpk` (ZIP 아카이브) → Mendix Studio Pro에 배포
+
+## Architecture
+
+```
+src/
+  widget/                             # 핵심 Gleam 코드 (개발자가 작업하는 곳)
+    mendix_widget_gleam.gleam         #   위젯 메인 모듈
+    mendix_widget_gleam_ffi.mjs       #   React FFI 어댑터
+    editor_config.gleam               #   Studio Pro 속성 패널 설정
+  MendixWidgetGleam.js                # 브릿지 진입점 (Mendix 빌드 도구 요구)
+  MendixWidgetGleam.editorConfig.js   # 브릿지 (editorConfig → Gleam 출력 연결)
+  MendixWidgetGleam.xml               # 위젯 속성 정의 (Mendix Studio Pro용)
+  package.xml                         # Mendix 패키지 매니페스트
+  ui/
+    MendixWidgetGleam.css             # 위젯 스타일시트
+gleam.toml                            # Gleam 프로젝트 설정
+docs/
+  gleam_language_tour.md              # Gleam 언어 레퍼런스 (문법 전체)
+```
+
+## Integration Strategy: Gleam + FFI → Mendix Widget
+
+JSX 파일 없이 Gleam + FFI로 위젯을 구현한다. React API(createElement, hooks 등)를 얇은 FFI 어댑터(`react_ffi.mjs`)로 노출하고, Gleam에서 `@external` 어노테이션으로 바인딩하여 React 컴포넌트를 작성한다. `gleam build --target javascript`로 ES 모듈을 생성하고, 이를 Mendix 빌드 도구의 진입점으로 연결한다.
+
+핵심 원리:
+- Gleam 함수 `fn(JsProps) -> ReactElement`는 React 함수형 컴포넌트와 동일한 시그니처
+- FFI 파일은 React 원시 함수를 노출하는 얇은 어댑터일 뿐, 위젯 로직과 UI 구조는 전부 Gleam 코드
+- Mendix가 전달하는 props(순수 JS 객체)를 Gleam에서 FFI를 통해 직접 접근
+
+핵심 제약사항:
+- Mendix 위젯의 진입점은 MUST React 컴포넌트여야 한다 (`pluginWidget="true"`)
+- Gleam 컴파일 출력은 ES 모듈 형식이므로 Rollup 번들링과 호환된다
+- 위젯 ID 형식: `mendix.mendixwidgetgleam.MendixWidgetGleam`
+- JSX 파일을 작성하지 않는다. 모든 React 로직은 Gleam + FFI로 구현한다
+- FFI 파일(`.ffi.mjs`)은 Gleam의 공식 FFI 메커니즘이며, React 원시 함수 노출만 담당한다. 비즈니스 로직을 FFI 파일에 작성하지 않는다
+- Gleam 컴파일 출력이 Mendix 빌드 도구의 진입점으로 연결되도록 빌드 설정 커스터마이징이 필요하다
+
+## Build Pipeline
+
+```
+[src/widget/mendix_widget_gleam.gleam] + [src/widget/mendix_widget_gleam_ffi.mjs]
+    ↓  gleam build --target javascript
+[build/dev/javascript/mendix_widget_gleam/widget/mendix_widget_gleam.mjs]
+[build/dev/javascript/mendix_widget_gleam/widget/mendix_widget_gleam_ffi.mjs]
+    ↓  src/MendixWidgetGleam.js (브릿지)가 import
+    ↓  Rollup (pluggable-widgets-tools build:web)
+[dist/1.0.0/mendix.mendixwidgetgleam.MendixWidgetGleam.mpk]
+```
+
+## Commands
+
+```bash
+bun install            # 의존성 설치
+bun run build          # 위젯 프로덕션 빌드 (.mpk 생성)
+bun run dev            # 개발 서버 (HMR, port 3000)
+bun run start          # Mendix 테스트 프로젝트와 연동 개발
+bun run lint           # ESLint 실행
+bun run lint:fix       # ESLint 자동 수정
+bun run release        # 릴리즈 빌드
+gleam build --target javascript  # Gleam → JS 컴파일
+gleam test             # Gleam 테스트 실행
+```
+
+## Gleam Language Reference
+
+`docs/gleam_language_tour.md` 파일에 Gleam 문법 전체가 수록되어 있다. 주요 특징:
+- 정적 타입, 불변 데이터, 패턴 매칭
+- `pub fn` 으로 외부 공개 함수 선언
+- `import gleam/모듈` 로 표준 라이브러리 사용
+- JavaScript 타겟 시 `@external(javascript, "모듈", "함수")` 로 JS 함수 호출 가능
+- Result 타입(`Ok`, `Error`)으로 에러 처리
+- `use` 키워드로 콜백 체이닝 간소화
+
+## Gleam FFI Convention
+
+- FFI 파일명: `<module_name>_ffi.mjs` (Gleam 공식 관례)
+- FFI 파일 위치: Gleam 소스와 같은 디렉토리 (`src/widget/`)
+- `@external(javascript, "./<module>_ffi.mjs", "<function>")` 형식으로 바인딩
+- FFI 파일에는 React API 래핑만 작성. 위젯 로직은 반드시 Gleam으로 작성
+- Gleam의 opaque type (`pub type ReactElement`, `pub type JsProps`)으로 JS 값을 타입 안전하게 다룸
+
+## Mendix Widget Conventions
+
+- `src/MendixWidgetGleam.xml`: 위젯 속성 정의. `<property>` 추가 시 빌드 도구가 자동으로 타입 생성
+- `src/package.xml`: 패키지 매니페스트. `widgetFile` 경로와 컴파일 출력 경로 지정
+- 위젯 컴포넌트는 `default export` 또는 `named export` 함수형 React 컴포넌트
+- `needsEntityContext="true"` → 위젯이 Mendix 데이터 컨텍스트 필요
+- `offlineCapable="true"` → 오프라인 지원
+- `editorConfig.js`도 Gleam으로 작성하여 JS로 컴파일한다
+
+## Mendix Documentation
+
+Mendix 공식 문서 사이트(docs.mendix.com)는 접근 불가. 대신 GitHub raw 소스를 사용:
+- Base: `https://github.com/mendix/docs/blob/development/content/en/docs`
+- Pluggable Widgets API: `apidocs-mxsdk/apidocs/pluggable-widgets/`
+- How-to: `howto/extensibility/`
+- Widget 빌드 도구 소스: `https://github.com/mendix/widgets-tools`
+- 공식 위젯 예제: `https://github.com/mendix/web-widgets`
+
+## Important Notes
+
+- Gleam 컴파일 출력 경로와 Rollup 번들링 입력 경로가 MUST 일치해야 한다
+- `package.json`의 `packagePath: "mendix"`가 위젯 배포 경로를 결정한다
+- Mendix 위젯 이름은 영문자(a-zA-Z)만 허용된다
+- `.mpk` 파일은 `dist/` 디렉토리에 생성된다
+- 테스트 프로젝트 경로: `./tests/testProject`
+- 이 프로젝트는 실험적이다. Gleam→JS→Mendix Widget 파이프라인은 공식 지원되지 않는 조합이므로, 빌드 설정 커스터마이징이 필요할 수 있다
+- **JSX/JS 파일을 직접 작성하지 않는다.** 모든 위젯 로직과 UI는 Gleam으로 작성하고 JS로 컴파일한다. 유일한 JS 파일은 Gleam FFI 어댑터(`.ffi.mjs`)뿐이다
+- Mendix 빌드 도구가 요구하는 JS 파일(진입점, editorConfig 등)은 Gleam 컴파일 출력으로 생성한다
+- Redraw 등 외부 Gleam React 라이브러리는 사용하지 않는다. Gleam FFI로 React API를 직접 바인딩한다
+
+## Code Style
+
+- Gleam 파일: `gleam format` 사용
+- Gleam 컴파일 출력 JS: 수동 편집하지 않는다
+- FFI 파일(`.ffi.mjs`): React API 노출만 담당, 최소한으로 유지
+- 한국어 주석 사용

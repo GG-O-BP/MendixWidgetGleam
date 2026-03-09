@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebSearch",
+      "WebFetch(domain:api.github.com)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:docs.mendix.com)",
+      "WebFetch(domain:www.humanlayer.dev)",
+      "WebFetch(domain:www.builder.io)",
+      "WebFetch(domain:claude.com)",
+      "WebFetch(domain:uxplanet.org)",
+      "WebFetch(domain:dometrain.com)",
+      "WebFetch(domain:dev.to)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:blog.devgenius.io)",
+      "WebFetch(domain:www.gend.co)",
+      "WebFetch(domain:serenitiesai.com)",
+      "Bash(grep:*)",
+      "WebFetch(domain:hexdocs.pm)",
+      "WebFetch(domain:hex.pm)",
+      "WebFetch(domain:gleam.run)",
+      "Bash(then ls:*)",
+      "Bash(gh auth:*)",
+      "WebFetch(domain:tour.gleam.run)",
+      "Bash(gleam:*)",
+      "Bash(bun:*)",
+      "Bash(node:*)"
+    ]
+  }
+}
