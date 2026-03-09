@@ -1,0 +1,26 @@
+{
+  "name": "create-mendix-widget-gleam",
+  "version": "1.0.0",
+  "description": "Scaffold a Mendix Pluggable Widget powered by Gleam",
+  "type": "module",
+  "license": "Apache-2.0",
+  "bin": {
+    "create-mendix-widget-gleam": "./bin/create-mendix-widget-gleam.mjs"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "template/"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mendix",
+    "gleam",
+    "widget",
+    "pluggable-widget",
+    "scaffold",
+    "create"
+  ]
+}

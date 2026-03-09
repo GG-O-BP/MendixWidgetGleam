@@ -26,7 +26,11 @@
       "WebFetch(domain:tour.gleam.run)",
       "Bash(gleam:*)",
       "Bash(bun:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(chmod +x:*)",
+      "Read(//c/tmp/**)",
+      "Bash(rm -rf test-output)",
+      "Bash(node \"C:/Users/dohye/workspace/mendixWidgetGleam/cli/bin/create-mendix-widget-gleam.mjs\":*)"
     ]
   }
 }
