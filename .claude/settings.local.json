@@ -38,7 +38,8 @@
       "Bash(cd \"C:/Users/dohye/workspace/mendixWidgetGleam\" && gleam run -m glendix/build 2>&1; echo \"EXIT_CODE=$?\")",
       "Bash(cd \"C:/Users/dohye/workspace/mendixWidgetGleam\" && mv src/widget/mendix_widget_gleam.gleam src/mendix_widget_gleam.gleam && mv src/widget/editor_config.gleam src/editor_config.gleam && rmdir src/widget/)",
       "Bash(cd \"C:/Users/dohye/workspace/mendixWidgetGleam\" && mv cli/template/src/widget/__widget_name__.gleam cli/template/src/__widget_name__.gleam && mv cli/template/src/widget/editor_config.gleam cli/template/src/editor_config.gleam && rmdir cli/template/src/widget/)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(gh search:*)"
     ]
   }
 }
