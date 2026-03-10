@@ -102,6 +102,51 @@ export async function main(args) {
     // git이 없어도 계속 진행
   }
 
+  // Gleam → JS 컴파일
+  console.log(`\n${BOLD}Gleam 컴파일 중...${RESET}\n`);
+  try {
+    execSync("gleam build --target javascript", {
+      cwd: targetDir,
+      stdio: "inherit",
+    });
+    console.log(`\n${GREEN}✓${RESET} Gleam 컴파일 완료`);
+  } catch {
+    console.error(
+      `\n${YELLOW}⚠ Gleam 컴파일 실패. 프로젝트 디렉토리에서 직접 실행하세요:${RESET}`,
+    );
+    console.error(`  ${CYAN}gleam build --target javascript${RESET}\n`);
+  }
+
+  // 의존성 설치
+  console.log(`\n${BOLD}의존성 설치 중...${RESET}\n`);
+  try {
+    execSync("gleam run -m glendix/install", {
+      cwd: targetDir,
+      stdio: "inherit",
+    });
+    console.log(`\n${GREEN}✓${RESET} 의존성 설치 완료`);
+  } catch {
+    console.error(
+      `\n${YELLOW}⚠ 의존성 설치 실패. 프로젝트 디렉토리에서 직접 실행하세요:${RESET}`,
+    );
+    console.error(`  ${CYAN}gleam run -m glendix/install${RESET}\n`);
+  }
+
+  // 프로덕션 빌드
+  console.log(`\n${BOLD}위젯 빌드 중...${RESET}\n`);
+  try {
+    execSync("gleam run -m glendix/build", {
+      cwd: targetDir,
+      stdio: "inherit",
+    });
+    console.log(`\n${GREEN}✓${RESET} 위젯 빌드 완료`);
+  } catch {
+    console.error(
+      `\n${YELLOW}⚠ 빌드 실패. 프로젝트 디렉토리에서 직접 실행하세요:${RESET}`,
+    );
+    console.error(`  ${CYAN}gleam run -m glendix/build${RESET}\n`);
+  }
+
   // 완료 메시지
   console.log(`
 ${GREEN}${BOLD}프로젝트가 생성되었습니다!${RESET}
@@ -109,7 +154,6 @@ ${GREEN}${BOLD}프로젝트가 생성되었습니다!${RESET}
 ${BOLD}다음 단계:${RESET}
 
   ${CYAN}cd ${names.kebabCase}${RESET}
-  ${CYAN}gleam run -m glendix/install${RESET}   ${DIM}# 의존성 설치${RESET}
   ${CYAN}gleam run -m glendix/dev${RESET}       ${DIM}# 개발 서버 시작${RESET}
   ${CYAN}gleam run -m glendix/build${RESET}     ${DIM}# 프로덕션 빌드${RESET}
 `);
