@@ -46,3 +46,6 @@ coverage/
 **/screenshot/
 **/screenshot-results/
 **/artifacts/
+
+# 자동 생성 브릿지 파일 (glendix가 빌드 시 생성/삭제)
+src/*.js

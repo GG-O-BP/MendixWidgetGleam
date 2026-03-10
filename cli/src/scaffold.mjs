@@ -42,8 +42,7 @@ function replaceContent(content, names, pmConfig) {
     .replace(/\{\{LOWERCASE\}\}/g, names.lowerCase)
     .replace(/\{\{DISPLAY_NAME\}\}/g, names.displayName)
     .replace(/\{\{KEBAB_CASE\}\}/g, names.kebabCase)
-    .replace(/\{\{INSTALL_COMMAND\}\}/g, pmConfig.install)
-    .replace(/\{\{RUNNER\}\}/g, pmConfig.runner);
+;
 }
 
 /**

@@ -22,11 +22,12 @@ npx create-mendix-widget-gleam my-widget
 ```
 my-widget/
   src/
-    widget/                    # Gleam 위젯 코드
-      my_widget.gleam          #   메인 위젯 모듈
-      editor_config.gleam      #   Studio Pro 속성 패널
-    scripts/                   #   빌드/개발 스크립트
-  gleam.toml                   # Gleam 프로젝트 설정 (glendix >= 1.0.0 의존성 포함)
+    my_widget.gleam            # 메인 위젯 모듈
+    editor_config.gleam        # Studio Pro 속성 패널
+    editor_preview.gleam       # Studio Pro 디자인 뷰 미리보기
+    components/
+      hello_world.gleam      # Hello World 공유 컴포넌트
+  gleam.toml                   # Gleam 프로젝트 설정 (glendix >= 1.1.0 의존성 포함)
   CLAUDE.md                    # AI 어시스턴트용 프로젝트 컨텍스트
 ```
 
@@ -36,9 +37,9 @@ React/Mendix FFI 바인딩은 프로젝트에 포함되지 않으며, [glendix](
 
 ```bash
 cd my-widget
-gleam run -m scripts/install   # 의존성 설치
-gleam run -m scripts/dev       # 개발 서버 시작
-gleam run -m scripts/build     # 프로덕션 빌드 (.mpk 생성)
+gleam run -m glendix/install   # 의존성 설치
+gleam run -m glendix/dev       # 개발 서버 시작
+gleam run -m glendix/build     # 프로덕션 빌드 (.mpk 생성)
 ```
 
 ## glendix — React + Mendix 바인딩
