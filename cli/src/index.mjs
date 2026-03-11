@@ -117,10 +117,10 @@ export async function main(args) {
     console.error(`  ${CYAN}gleam build --target javascript${RESET}\n`);
   }
 
-  // 의존성 설치
-  console.log(`\n${BOLD}의존성 설치 중...${RESET}\n`);
+  // 의존성 설치 (사용자가 선택한 패키지 매니저 사용)
+  console.log(`\n${BOLD}의존성 설치 중... (${pm})${RESET}\n`);
   try {
-    execSync("gleam run -m glendix/install", {
+    execSync(pmConfig.install, {
       cwd: targetDir,
       stdio: "inherit",
     });
@@ -129,7 +129,7 @@ export async function main(args) {
     console.error(
       `\n${YELLOW}⚠ 의존성 설치 실패. 프로젝트 디렉토리에서 직접 실행하세요:${RESET}`,
     );
-    console.error(`  ${CYAN}gleam run -m glendix/install${RESET}\n`);
+    console.error(`  ${CYAN}${pmConfig.install}${RESET}\n`);
   }
 
   // 프로덕션 빌드
