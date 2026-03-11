@@ -344,47 +344,48 @@ my_widget/
 
 install 시 두 가지가 자동 수행됩니다:
 - `.mpk` 내부의 `.mjs`와 `.css`가 추출되고, `widget_ffi.mjs`가 생성됩니다
-- `.mpk` XML의 `<property>` 정의가 부모 위젯 XML(`src/{WidgetName}.xml`)에 `<propertyGroup caption="{위젯명}">` 으로 자동 주입됩니다 (동일 caption이 이미 있으면 건너뜀)
+- `.mpk` XML의 `<property>` 정의를 파싱하여 `src/widgets/`에 바인딩 `.gleam` 파일이 자동 생성됩니다 (이미 존재하면 건너뜀)
 
-예를 들어 `Switch.mpk`를 설치하면, 부모 위젯 XML에 다음이 자동 추가됩니다:
-
-```xml
-<propertyGroup caption="Switch">
-    <property key="booleanAttribute" type="attribute">
-        <caption>Boolean attribute</caption>
-        <description>Attribute to toggle</description>
-        <attributeTypes>
-            <attributeType name="Boolean" />
-        </attributeTypes>
-    </property>
-    <property key="action" type="action" required="false">
-        <caption>On change</caption>
-        <description>Action to be performed when the switch is toggled</description>
-    </property>
-</propertyGroup>
-```
-
-**3단계: Gleam 코드에서 사용**
+예를 들어 `Switch.mpk`를 설치하면, `src/widgets/switch.gleam`이 자동 생성됩니다:
 
 ```gleam
+// src/widgets/switch.gleam (자동 생성)
 import glendix/mendix
-import glendix/widget
-import glendix/react
+import glendix/react.{type JsProps, type ReactElement}
 import glendix/react/attribute
+import glendix/widget
 
-// props에서 자동 주입된 속성을 읽어 위젯에 전달
-let boolean_attr = mendix.get_prop_required(props, "booleanAttribute")
-let action = mendix.get_prop_required(props, "action")
+/// Switch 위젯 렌더링 - props에서 속성을 읽어 위젯에 전달
+pub fn render(props: JsProps) -> ReactElement {
+  let boolean_attribute = mendix.get_prop_required(props, "booleanAttribute")
+  let action = mendix.get_prop_required(props, "action")
 
-// widgets/Switch.mpk의 Switch 컴포넌트 사용
-let switch_comp = widget.component("Switch")
-react.component_el(switch_comp, [
-  attribute.attribute("booleanAttribute", boolean_attr),
-  attribute.attribute("action", action),
-], [])
+  let comp = widget.component("Switch")
+  react.component_el(
+    comp,
+    [
+      attribute.attribute("booleanAttribute", boolean_attribute),
+      attribute.attribute("action", action),
+    ],
+    [],
+  )
+}
 ```
 
-위젯의 Props는 기존 `attribute.attribute(key, value)` 범용 함수로 전달합니다. 위젯 이름은 `.mpk` 내부 XML의 `<name>` 태그 값(PascalCase)을, property key는 `.mpk` XML의 원본 key를 그대로 사용합니다.
+optional 속성이 있으면 `optional_attr` 헬퍼와 `gleam/option` import가 자동 추가됩니다. Gleam 예약어(`type` 등)는 접미사 `_`로 회피합니다.
+
+**3단계: 위젯에서 사용**
+
+생성된 `src/widgets/*.gleam` 파일을 import하여 사용합니다. 필요에 따라 자유롭게 수정할 수 있습니다.
+
+```gleam
+import widgets/switch
+
+// 컴포넌트 내부에서
+switch.render(props)
+```
+
+위젯의 Props는 기존 `attribute.attribute(key, value)` 범용 함수로 전달합니다. 위젯 이름은 `.mpk` 내부 XML의 `<name>` 태그 값을, property key는 `.mpk` XML의 원본 key를 그대로 사용합니다.
 
 > `binding` 모듈과 달리 `widget` 모듈은 1 mpk = 1 컴포넌트이므로 `module` + `resolve` 2단계 없이 `component("Name")` 한 번에 가져옵니다.
 

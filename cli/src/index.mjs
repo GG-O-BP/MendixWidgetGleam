@@ -463,28 +463,46 @@ gleam run -m glendix/install
 
 실행 시 다음이 자동 처리된다:
 - \`.mpk\`에서 \`.mjs\`/\`.css\`를 추출하고 \`widget_ffi.mjs\`가 생성된다
-- \`.mpk\` XML의 \`<property>\` 정의가 부모 위젯 XML에 자동 주입된다
+- \`.mpk\` XML의 \`<property>\` 정의를 파싱하여 \`src/widgets/\`에 바인딩 \`.gleam\` 파일이 자동 생성된다 (이미 존재하면 건너뜀)
 
-### 3단계: Gleam에서 사용
+### 3단계: 자동 생성된 \`src/widgets/*.gleam\` 파일 확인
 
 \`\`\`gleam
+// src/widgets/switch.gleam (자동 생성)
 import glendix/mendix
-import glendix/widget
-import glendix/react
+import glendix/react.{type JsProps, type ReactElement}
 import glendix/react/attribute
+import glendix/widget
 
-// props에서 자동 주입된 속성을 읽어 위젯에 전달
-let boolean_attr = mendix.get_prop_required(props, "booleanAttribute")
-let action = mendix.get_prop_required(props, "action")
+/// Switch 위젯 렌더링 - props에서 속성을 읽어 위젯에 전달
+pub fn render(props: JsProps) -> ReactElement {
+  let boolean_attribute = mendix.get_prop_required(props, "booleanAttribute")
+  let action = mendix.get_prop_required(props, "action")
 
-let switch_comp = widget.component("Switch")
-react.component_el(switch_comp, [
-  attribute.attribute("booleanAttribute", boolean_attr),
-  attribute.attribute("action", action),
-], [])
+  let comp = widget.component("Switch")
+  react.component_el(
+    comp,
+    [
+      attribute.attribute("booleanAttribute", boolean_attribute),
+      attribute.attribute("action", action),
+    ],
+    [],
+  )
+}
 \`\`\`
 
-위젯 이름은 \`.mpk\` 내부 XML의 \`<name>\` 값(PascalCase)을, property key는 \`.mpk\` XML의 원본 key를 그대로 사용한다.
+required/optional 속성이 자동 구분되며, 필요에 따라 생성된 파일을 자유롭게 수정할 수 있다.
+
+### 4단계: 위젯에서 사용
+
+\`\`\`gleam
+import widgets/switch
+
+// 컴포넌트 내부에서
+switch.render(props)
+\`\`\`
+
+위젯 이름은 \`.mpk\` 내부 XML의 \`<name>\` 값을, property key는 \`.mpk\` XML의 원본 key를 그대로 사용한다.
 
 ## 기술 스택
 
