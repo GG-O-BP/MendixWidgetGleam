@@ -154,8 +154,9 @@ ${GREEN}${BOLD}프로젝트가 생성되었습니다!${RESET}
 ${BOLD}다음 단계:${RESET}
 
   ${CYAN}cd ${names.kebabCase}${RESET}
-  ${CYAN}gleam run -m glendix/dev${RESET}       ${DIM}# 개발 서버 시작${RESET}
-  ${CYAN}gleam run -m glendix/build${RESET}     ${DIM}# 프로덕션 빌드${RESET}
+  ${CYAN}gleam run -m glendix/dev${RESET}             ${DIM}# 개발 서버 시작${RESET}
+  ${CYAN}gleam run -m glendix/build${RESET}           ${DIM}# 프로덕션 빌드${RESET}
+  ${CYAN}gleam run -m glendix/marketplace${RESET}     ${DIM}# Marketplace 위젯 다운로드${RESET}
 `);
 }
 
@@ -225,6 +226,7 @@ gleam run -m glendix/start     # Mendix 테스트 프로젝트와 연동 개발
 gleam run -m glendix/lint      # ESLint 실행
 gleam run -m glendix/lint_fix  # ESLint 자동 수정
 gleam run -m glendix/release   # 릴리즈 빌드
+gleam run -m glendix/marketplace  # Mendix Marketplace 위젯 검색/다운로드
 gleam build --target javascript  # Gleam → JS 컴파일만
 gleam test                       # Gleam 테스트 실행
 gleam format                     # Gleam 코드 포맷팅
@@ -237,6 +239,7 @@ gleam format                     # Gleam 코드 포맷팅
 - 핵심 개념: opaque 타입, undefined ↔ Option 변환, Attribute 리스트 API
 - React 바인딩: 엘리먼트 생성, Attribute 리스트, HTML 태그 함수, Hooks, 이벤트 처리, 조건부/리스트 렌더링, 스타일, 외부 React 컴포넌트 바인딩, .mpk 위젯 바인딩
 - Mendix 바인딩: Props 접근, ValueStatus, EditableValue, ActionValue, DynamicValue, ListValue, ListAttribute, Selection, Reference, Filter, JsDate, Big 등
+- Marketplace 연동: Mendix Marketplace에서 위젯 검색/다운로드 (\`glendix/marketplace\`)
 - 실전 패턴: 폼 입력 위젯, 데이터 테이블, 검색 가능 리스트, 컴포넌트 합성
 - 트러블슈팅
 
@@ -252,6 +255,7 @@ React:
 - \`glendix/react/svg_attribute\` — 97+ SVG 전용 속성 함수
 - \`glendix/binding\` — 외부 React 컴포넌트 바인딩
 - \`glendix/widget\` — .mpk 위젯 컴포넌트 바인딩
+- \`glendix/marketplace\` — Mendix Marketplace 위젯 검색/다운로드
 
 Mendix:
 - \`glendix/mendix\` — \`ValueStatus\`, \`ObjectItem\`, Props 접근자
@@ -368,6 +372,7 @@ gleam run -m glendix/start      # Mendix 테스트 프로젝트 연동
 gleam run -m glendix/lint       # ESLint 실행
 gleam run -m glendix/lint_fix   # ESLint 자동 수정
 gleam run -m glendix/release    # 릴리즈 빌드
+gleam run -m glendix/marketplace # Marketplace 위젯 검색/다운로드
 gleam build --target javascript # Gleam → JS 컴파일만
 gleam test                      # 테스트 실행
 gleam format                    # 코드 포맷팅
@@ -439,6 +444,28 @@ pub fn tooltip(attrs: List(Attribute)) -> ReactElement {
 \`\`\`
 
 \`html.div\`와 동일한 호출 패턴으로 외부 React 컴포넌트를 사용할 수 있다.
+
+## Mendix Marketplace 위젯 다운로드
+
+Mendix Marketplace에서 위젯(.mpk)을 인터랙티브하게 검색하고 다운로드할 수 있다. 다운로드 완료 후 바인딩 \`.gleam\` 파일이 자동 생성되어 바로 사용 가능하다.
+
+### 사전 준비
+
+\`.env\` 파일에 Mendix Personal Access Token을 설정한다:
+
+\`\`\`
+MENDIX_PAT=your_personal_access_token
+\`\`\`
+
+> PAT는 [Mendix Developer Settings](https://user-settings.mendix.com/link/developersettings)에서 **Personal Access Tokens** 섹션의 **New Token**을 클릭하여 발급. 필요한 scope: \`mx:marketplace-content:read\`
+
+### 실행
+
+\`\`\`bash
+gleam run -m glendix/marketplace
+\`\`\`
+
+인터랙티브 TUI에서 위젯을 검색/선택하면 \`widgets/\` 디렉토리에 \`.mpk\`가 다운로드되고, \`src/widgets/\`에 바인딩 \`.gleam\` 파일이 자동 생성된다.
 
 ## .mpk 위젯 컴포넌트 사용
 

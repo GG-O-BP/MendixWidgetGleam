@@ -44,7 +44,7 @@ React FFI와 Mendix API 바인딩은 별도 Hex 패키지 [glendix](https://hexd
 ```toml
 # gleam.toml
 [dependencies]
-glendix = ">= 2.0.3 and < 3.0.0"
+glendix = ">= 2.0.4 and < 3.0.0"
 ```
 
 glendix가 제공하는 모듈:
@@ -86,6 +86,7 @@ Mendix:
 - `glendix/release` — 릴리즈 빌드 (`gleam run -m glendix/release`)
 - `glendix/lint` — ESLint 실행 (`gleam run -m glendix/lint`)
 - `glendix/lint_fix` — ESLint 자동 수정 (`gleam run -m glendix/lint_fix`)
+- `glendix/marketplace` — Mendix Marketplace 위젯 검색/다운로드 (`gleam run -m glendix/marketplace`)
 
 ## Integration Strategy: Gleam + glendix → Mendix Widget
 
@@ -134,6 +135,7 @@ gleam run -m glendix/start     # Mendix 테스트 프로젝트와 연동 개발
 gleam run -m glendix/lint      # ESLint 실행
 gleam run -m glendix/lint_fix  # ESLint 자동 수정
 gleam run -m glendix/release   # 릴리즈 빌드
+gleam run -m glendix/marketplace  # Mendix Marketplace 위젯 검색/다운로드
 gleam build --target javascript  # Gleam → JS 컴파일만 (스크립트 없이)
 gleam test                       # Gleam 테스트 실행
 gleam format                     # Gleam 코드 포맷팅
@@ -146,6 +148,7 @@ gleam format                     # Gleam 코드 포맷팅
 - 핵심 개념: opaque 타입, undefined ↔ Option 변환, Attribute 리스트 API
 - React 바인딩: 엘리먼트 생성(`element`/`element_`/`void_element`/`component_el`), Attribute 리스트, HTML 태그 함수, Hooks(`useState`/`useEffect`/`useMemo`/`useCallback`/`useRef` 등), 이벤트 처리, 조건부/리스트 렌더링, 스타일, 외부 React 컴포넌트 바인딩(`bindings.json`), .mpk 위젯 바인딩(`widgets/`)
 - Mendix 바인딩: Props 접근, ValueStatus, EditableValue, ActionValue, DynamicValue, ListValue(페이지네이션/정렬), ListAttribute, Selection, Reference, Filter 빌더, JsDate, Big, FileValue/WebIcon/ValueFormatter
+- Marketplace 연동: Mendix Marketplace에서 위젯 검색/다운로드 (`glendix/marketplace`)
 - 실전 패턴: 폼 입력 위젯, 데이터 테이블, 검색 가능 리스트, 컴포넌트 합성
 - 트러블슈팅: 빌드/런타임 에러, Hook 규칙
 

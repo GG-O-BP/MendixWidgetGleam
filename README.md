@@ -25,7 +25,7 @@ src/
 widgets/                                # .mpk 위젯 파일 (glendix/widget로 바인딩)
 bindings.json                           # 외부 React 컴포넌트 바인딩 설정
 package.json                            # npm 의존성 (React, 외부 라이브러리 등)
-gleam.toml                            # glendix >= 2.0.3 의존성 포함
+gleam.toml                            # glendix >= 2.0.4 의존성 포함
 ```
 
 React/Mendix FFI 바인딩은 이 프로젝트에 포함되지 않으며, [glendix](https://hexdocs.pm/glendix/) Hex 패키지로 제공된다.
@@ -121,6 +121,7 @@ gleam run -m glendix/start     # Mendix 테스트 프로젝트와 연동 개발
 | `gleam run -m glendix/lint` | ESLint 실행 |
 | `gleam run -m glendix/lint_fix` | ESLint 자동 수정 |
 | `gleam run -m glendix/release` | 릴리즈 빌드 |
+| `gleam run -m glendix/marketplace` | Mendix Marketplace 위젯 검색/다운로드 |
 | `gleam build --target javascript` | Gleam → JS 컴파일만 |
 | `gleam test` | Gleam 테스트 실행 |
 | `gleam format` | Gleam 코드 포맷팅 |
@@ -174,6 +175,28 @@ pub fn tooltip(attrs: List(Attribute)) -> ReactElement {
 ```
 
 `html.div`와 동일한 호출 패턴으로 외부 React 컴포넌트를 사용할 수 있다.
+
+## Mendix Marketplace 위젯 다운로드
+
+Mendix Marketplace에서 위젯(.mpk)을 인터랙티브하게 검색하고 다운로드할 수 있다. 다운로드 완료 후 바인딩 `.gleam` 파일이 자동 생성되어 바로 사용 가능하다.
+
+### 사전 준비
+
+`.env` 파일에 Mendix Personal Access Token을 설정한다:
+
+```
+MENDIX_PAT=your_personal_access_token
+```
+
+> PAT는 [Mendix Developer Settings](https://user-settings.mendix.com/link/developersettings)에서 **Personal Access Tokens** 섹션의 **New Token**을 클릭하여 발급. 필요한 scope: `mx:marketplace-content:read`
+
+### 실행
+
+```bash
+gleam run -m glendix/marketplace
+```
+
+인터랙티브 TUI에서 위젯을 검색/선택하면 `widgets/` 디렉토리에 `.mpk`가 다운로드되고, `src/widgets/`에 바인딩 `.gleam` 파일이 자동 생성된다.
 
 ## .mpk 위젯 컴포넌트 사용
 

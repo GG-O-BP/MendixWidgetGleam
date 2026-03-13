@@ -344,48 +344,47 @@ my_widget/
 
 install 시 두 가지가 자동 수행됩니다:
 - `.mpk` 내부의 `.mjs`와 `.css`가 추출되고, `widget_ffi.mjs`가 생성됩니다
-- `.mpk` XML의 `<property>` 정의를 파싱하여 `src/widgets/`에 바인딩 `.gleam` 파일이 자동 생성됩니다 (이미 존재하면 건너뜀)
+- `.mpk` XML의 `<property>` 정의가 부모 위젯 XML(`src/{WidgetName}.xml`)에 `<propertyGroup caption="{위젯명}">` 으로 자동 주입됩니다 (동일 caption이 이미 있으면 건너뜀)
 
-예를 들어 `Switch.mpk`를 설치하면, `src/widgets/switch.gleam`이 자동 생성됩니다:
+예를 들어 `Switch.mpk`를 설치하면, 부모 위젯 XML에 다음이 자동 추가됩니다:
+
+```xml
+<propertyGroup caption="Switch">
+    <property key="booleanAttribute" type="attribute">
+        <caption>Boolean attribute</caption>
+        <description>Attribute to toggle</description>
+        <attributeTypes>
+            <attributeType name="Boolean" />
+        </attributeTypes>
+    </property>
+    <property key="action" type="action" required="false">
+        <caption>On change</caption>
+        <description>Action to be performed when the switch is toggled</description>
+    </property>
+</propertyGroup>
+```
+
+**3단계: Gleam 코드에서 사용**
 
 ```gleam
-// src/widgets/switch.gleam (자동 생성)
 import glendix/mendix
-import glendix/react.{type JsProps, type ReactElement}
-import glendix/react/attribute
 import glendix/widget
+import glendix/react
+import glendix/react/attribute
 
-/// Switch 위젯 렌더링 - props에서 속성을 읽어 위젯에 전달
-pub fn render(props: JsProps) -> ReactElement {
-  let boolean_attribute = mendix.get_prop_required(props, "booleanAttribute")
-  let action = mendix.get_prop_required(props, "action")
+// props에서 자동 주입된 속성을 읽어 위젯에 전달
+let boolean_attr = mendix.get_prop_required(props, "booleanAttribute")
+let action = mendix.get_prop_required(props, "action")
 
-  let comp = widget.component("Switch")
-  react.component_el(
-    comp,
-    [
-      attribute.attribute("booleanAttribute", boolean_attribute),
-      attribute.attribute("action", action),
-    ],
-    [],
-  )
-}
+// widgets/Switch.mpk의 Switch 컴포넌트 사용
+let switch_comp = widget.component("Switch")
+react.component_el(switch_comp, [
+  attribute.attribute("booleanAttribute", boolean_attr),
+  attribute.attribute("action", action),
+], [])
 ```
 
-optional 속성이 있으면 `optional_attr` 헬퍼와 `gleam/option` import가 자동 추가됩니다. Gleam 예약어(`type` 등)는 접미사 `_`로 회피합니다.
-
-**3단계: 위젯에서 사용**
-
-생성된 `src/widgets/*.gleam` 파일을 import하여 사용합니다. 필요에 따라 자유롭게 수정할 수 있습니다.
-
-```gleam
-import widgets/switch
-
-// 컴포넌트 내부에서
-switch.render(props)
-```
-
-위젯의 Props는 기존 `attribute.attribute(key, value)` 범용 함수로 전달합니다. 위젯 이름은 `.mpk` 내부 XML의 `<name>` 태그 값을, property key는 `.mpk` XML의 원본 key를 그대로 사용합니다.
+위젯의 Props는 기존 `attribute.attribute(key, value)` 범용 함수로 전달합니다. 위젯 이름은 `.mpk` 내부 XML의 `<name>` 태그 값(PascalCase)을, property key는 `.mpk` XML의 원본 key를 그대로 사용합니다.
 
 > `binding` 모듈과 달리 `widget` 모듈은 1 mpk = 1 컴포넌트이므로 `module` + `resolve` 2단계 없이 `component("Name")` 한 번에 가져옵니다.
 
@@ -1963,6 +1962,135 @@ fn check_icon(size: String) -> ReactElement {
 }
 ```
 
+### 5.6 Marketplace 위젯 다운로드
+
+Mendix Marketplace에서 위젯(.mpk)을 인터랙티브하게 검색하고 다운로드할 수 있습니다. 다운로드 완료 후 바인딩 `.gleam` 파일이 자동 생성되어, 별도의 수동 설정 없이 바로 사용할 수 있습니다.
+
+#### 사전 준비
+
+`.env` 파일에 Mendix Personal Access Token을 설정합니다:
+
+```
+MENDIX_PAT=your_personal_access_token
+```
+
+> PAT는 [Mendix Developer Settings](https://user-settings.mendix.com/link/developersettings)에서 **Personal Access Tokens** 섹션의 **New Token**을 클릭하여 발급합니다.
+> 필요한 scope: `mx:marketplace-content:read`
+
+#### 실행
+
+```bash
+gleam run -m glendix/marketplace
+```
+
+#### 인터랙티브 TUI
+
+실행하면 Content API(`GET /content`)로 위젯 목록을 로드하고, 인터랙티브 TUI가 표시됩니다:
+
+```
+  ── 페이지 1/5+ ──
+
+  [0] Star Rating (54611) v3.2.2 — Mendix
+  [1] Switch (50324) v4.0.0 — Mendix
+  [2] Progress Bar (48019) v3.1.0 — Mendix
+  ...
+
+  번호: 다운로드 | 검색어: 이름 검색 | n: 다음 | p: 이전 | r: 초기화 | q: 종료
+
+>
+```
+
+**주요 명령어:**
+
+| 입력 | 동작 |
+|------|------|
+| `0` | 0번 위젯 다운로드 |
+| `0,1,3` | 여러 위젯 동시 다운로드 (쉼표 구분) |
+| `star` | 이름/퍼블리셔로 검색 필터링 |
+| `n` / `p` | 다음/이전 페이지 |
+| `r` | 검색 초기화 (전체 목록 복귀) |
+| `q` | 종료 |
+
+#### 버전 선택
+
+위젯을 선택하면 버전 목록이 표시됩니다. Pluggable/Classic 타입이 자동 구분됩니다:
+
+```
+  Star Rating — 버전 선택:
+
+    [0] v3.2.2 (2024-01-15) (Mendix ≥9.24.0) [Pluggable]  ← 기본
+    [1] v3.1.0 (2023-08-20) (Mendix ≥9.18.0) [Pluggable]
+    [2] v2.5.1 (2022-03-10) (Mendix ≥8.0.0) [Classic]
+
+  버전 번호 (Enter=최신):
+```
+
+Enter를 누르면 최신 버전이 다운로드됩니다.
+
+#### 동작 흐름
+
+1. **첫 배치 로드** — Content API에서 첫 40개 아이템을 직접 로드하여 즉시 표시
+2. **백그라운드 로드** — 나머지 아이템을 별도 프로세스에서 비동기 로드 (`.marketplace-cache/`에 캐시)
+3. **위젯 선택 시** — Playwright(headless chromium)로 Marketplace 페이지에서 S3 다운로드 URL 추출
+4. **다운로드** — S3에서 `.mpk` 파일을 `widgets/` 디렉토리에 저장
+5. **바인딩 생성** — `cmd.generate_widget_bindings()`가 자동 호출되어 `src/widgets/`에 바인딩 `.gleam` 파일 생성
+
+> 버전 정보 조회에 Playwright를 사용하므로, 첫 다운로드 시 브라우저 로그인이 필요합니다. 세션은 `.marketplace-cache/session.json`에 저장되어 이후 재사용됩니다.
+
+#### 다운로드 후 사용
+
+다운로드된 위젯은 자동으로 바인딩이 생성됩니다. Pluggable 위젯과 Classic 위젯은 각각 다른 패턴으로 사용합니다:
+
+**Pluggable 위젯** (`glendix/widget` 사용):
+
+```gleam
+// src/widgets/star_rating.gleam (자동 생성)
+import glendix/mendix
+import glendix/react.{type JsProps, type ReactElement}
+import glendix/react/attribute
+import glendix/widget
+
+pub fn render(props: JsProps) -> ReactElement {
+  let rate_attribute = mendix.get_prop_required(props, "rateAttribute")
+  let comp = widget.component("StarRating")
+  react.component_el(
+    comp,
+    [attribute.attribute("rateAttribute", rate_attribute)],
+    [],
+  )
+}
+```
+
+**Classic (Dojo) 위젯** (`glendix/classic` 사용):
+
+```gleam
+// src/widgets/camera_widget.gleam (자동 생성)
+import gleam/dynamic
+import glendix/classic
+import glendix/mendix
+import glendix/react.{type JsProps, type ReactElement}
+
+pub fn render(props: JsProps) -> ReactElement {
+  let mf_to_execute = mendix.get_prop_required(props, "mfToExecute")
+  classic.render("CameraWidget.widget.CameraWidget", [
+    #("mfToExecute", dynamic.from(mf_to_execute)),
+  ])
+}
+```
+
+**위젯에서 import:**
+
+```gleam
+import widgets/star_rating
+import widgets/camera_widget
+
+// 컴포넌트 내부에서
+star_rating.render(props)
+camera_widget.render(props)
+```
+
+생성된 `src/widgets/*.gleam` 파일은 자유롭게 수정할 수 있으며, 이미 존재하는 파일은 재생성 시 덮어쓰지 않습니다.
+
 ---
 
 ## 6. 트러블슈팅
@@ -1988,6 +2116,11 @@ fn check_icon(size: String) -> ReactElement {
 | `could not be resolved – treating it as an external dependency` | `bindings.json`에 등록한 패키지가 `node_modules`에 없음 | `npm install <패키지명>` 등으로 설치 후 재빌드 |
 | `바인딩에 등록되지 않은 모듈` | `bindings.json`에 해당 패키지 미등록 | `bindings.json`에 패키지와 컴포넌트 추가 후 재설치 |
 | `모듈에 없는 컴포넌트` | `bindings.json`의 `components`에 해당 컴포넌트 미등록 | `components` 배열에 추가 후 재설치 |
+| `.env 파일에 MENDIX_PAT가 필요합니다` | marketplace 실행 시 PAT 미설정 | `.env`에 `MENDIX_PAT=...` 추가 (scope: `mx:marketplace-content:read`) — [Developer Settings](https://user-settings.mendix.com/link/developersettings)에서 발급 |
+| `인증 실패 — MENDIX_PAT를 확인하세요` | PAT가 잘못되었거나 만료됨 | [Developer Settings](https://user-settings.mendix.com/link/developersettings)에서 새 PAT 발급 |
+| `위젯을 불러올 수 없습니다` | Content API 접근 실패 | 네트워크 및 PAT 확인 |
+| `Playwright 오류` | chromium 미설치 또는 세션 만료 | `npx playwright install chromium` 실행, 또는 브라우저 재로그인 |
+| `저장된 세션이 만료되었습니다` | Mendix 로그인 세션 만료 | 브라우저 로그인 팝업에서 재로그인 |
 
 ### 일반적인 실수
 
