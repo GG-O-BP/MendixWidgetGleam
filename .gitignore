@@ -56,3 +56,6 @@ src/*.js
 # AI
 .claude/
 
+# Mendix marketplace 캐시/설정
+.marketplace-cache/
+
