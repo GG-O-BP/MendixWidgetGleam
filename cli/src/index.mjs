@@ -136,15 +136,17 @@ export async function main(args) {
     // git not available — continue
   }
 
-  // Gleam → JS compilation
-  console.log(`\n${BOLD}${t(lang, "progress.gleamCompiling")}${RESET}\n`);
+  // Gleam → JS compilation (pipe로 Erlang 관련 Unused value warning 숨김)
+  console.log(`\n${BOLD}${t(lang, "progress.gleamCompiling")}${RESET}`);
   try {
     execSync("gleam build --target javascript", {
       cwd: targetDir,
-      stdio: "inherit",
+      stdio: "pipe",
     });
-    console.log(`\n${GREEN}✓${RESET} ${t(lang, "progress.gleamCompiled")}`);
-  } catch {
+    console.log(`${GREEN}✓${RESET} ${t(lang, "progress.gleamCompiled")}`);
+  } catch (e) {
+    const output = (e.stderr || e.stdout || "").toString();
+    if (output) console.error(output);
     console.error(
       `\n${YELLOW}${t(lang, "error.gleamCompileFail")}${RESET}`,
     );
@@ -223,4 +225,7 @@ ${BOLD}${t(lang, "done.nextSteps")}${RESET}
   ${CYAN}gleam run -m glendix/build${RESET}           ${DIM}${t(lang, "done.prodBuild")}${RESET}
   ${CYAN}gleam run -m glendix/marketplace${RESET}     ${DIM}${t(lang, "done.marketplace")}${RESET}
 `);
+
+  // etch TUI 이벤트 서버의 stdin 리스너가 이벤트 루프를 유지하므로 명시적 종료
+  process.exit(0);
 }
