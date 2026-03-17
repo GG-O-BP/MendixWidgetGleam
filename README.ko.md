@@ -27,7 +27,7 @@ src/
 widgets/                                # .mpk 위젯 파일 (glendix/widget로 바인딩)
 bindings.json                           # 외부 React 컴포넌트 바인딩 설정
 package.json                            # npm 의존성 (React, 외부 라이브러리 등)
-gleam.toml                            # glendix >= 2.0.17 의존성 포함
+gleam.toml                            # glendix >= 2.0.18 의존성 포함
 ```
 
 React/Mendix FFI 및 JS Interop 바인딩은 이 프로젝트에 포함되지 않으며, [glendix](https://hexdocs.pm/glendix/) Hex 패키지로 제공된다.
@@ -124,6 +124,7 @@ gleam run -m glendix/start     # Mendix 테스트 프로젝트와 연동 개발
 | `gleam run -m glendix/lint_fix` | ESLint 자동 수정 |
 | `gleam run -m glendix/release` | 릴리즈 빌드 |
 | `gleam run -m glendix/marketplace` | Mendix Marketplace 위젯 검색/다운로드 |
+| `gleam run -m glendix/define` | 위젯 프로퍼티 정의 TUI 에디터 |
 | `gleam build --target javascript` | Gleam → JS 컴파일만 |
 | `gleam test` | Gleam 테스트 실행 |
 | `gleam format` | Gleam 코드 포맷팅 |

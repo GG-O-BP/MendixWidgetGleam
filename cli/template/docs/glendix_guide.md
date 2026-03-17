@@ -2116,7 +2116,7 @@ Enter를 누르면 최신 버전이 다운로드됩니다.
 #### 동작 흐름
 
 1. **첫 배치 로드** — Content API에서 첫 40개 아이템을 직접 로드하여 즉시 표시
-2. **백그라운드 로드** — 나머지 아이템을 별도 프로세스에서 비동기 로드 (`.marketplace-cache/`에 캐시)
+2. **백그라운드 로드** — 나머지 아이템을 별도 프로세스(fork)에서 비동기 로드, IPC로 메인 프로세스에 전달
 3. **위젯 선택 시** — Playwright(headless chromium)로 Marketplace 페이지에서 S3 다운로드 URL 추출
 4. **다운로드** — S3에서 `.mpk` 파일을 `widgets/` 디렉토리에 저장
 5. **바인딩 생성** — `cmd.generate_widget_bindings()`가 자동 호출되어 `src/widgets/`에 바인딩 `.gleam` 파일 생성
@@ -2379,6 +2379,40 @@ hook.use_effect_once_cleanup(fn() {
 | `js/promise` | Promise 체이닝/병렬/에러 처리 | promise_ffi.mjs |
 | `js/dom` | DOM 포커스/클릭/스크롤/쿼리 | dom_ffi.mjs |
 | `js/timer` | setTimeout/setInterval | timer_ffi.mjs |
+
+---
+
+## 위젯 프로퍼티 정의 (TUI 에디터)
+
+`gleam run -m glendix/define`을 실행하면 터미널에서 위젯의 프로퍼티 정의를 인터랙티브하게 편집할 수 있습니다.
+
+### 기능
+
+- **프로퍼티 그룹 관리**: 그룹 추가/삭제/이름 변경
+- **프로퍼티 편집**: key, type, caption, description, required 등 모든 필드를 TUI에서 편집
+- **타입 선택**: Mendix가 지원하는 모든 프로퍼티 타입(string, boolean, integer, enumeration, object, action 등) 중 선택
+- **열거형(Enum) 관리**: 열거형 타입의 key/caption 값 추가/삭제/편집
+- **위젯 메타 편집**: 위젯 이름, 설명, Studio Pro 카테고리 등 메타 정보 편집
+- **시스템 프로퍼티**: Mendix 시스템 프로퍼티(Label, Name, TabIndex, Visibility, Editability) 토글
+- **XML 자동 생성**: 편집 결과를 Mendix Pluggable Widget XML 형식으로 저장
+
+### 사용법
+
+```bash
+gleam run -m glendix/define
+```
+
+TUI가 실행되면 방향키, Enter, Escape, Tab 등으로 탐색하고 편집합니다:
+
+- **방향키(↑↓)**: 트리 뷰에서 그룹/프로퍼티 탐색
+- **Enter**: 선택한 항목 편집 또는 확인
+- **Escape**: 이전 화면으로 돌아가기
+- **a**: 새 프로퍼티 추가
+- **g**: 새 그룹 추가
+- **d**: 선택한 항목 삭제 (확인 프롬프트)
+- **m**: 위젯 메타 정보 편집
+- **s**: 시스템 프로퍼티 편집
+- **Ctrl+C / q**: 종료 (저장 확인)
 
 ---
 

@@ -27,7 +27,7 @@ src/
 widgets/                                # .mpk widget files (used via glendix/widget)
 bindings.json                           # External React component binding configuration
 package.json                            # npm dependencies (React, external libraries, etc.)
-gleam.toml                            # Includes glendix >= 2.0.17 dependency
+gleam.toml                            # Includes glendix >= 2.0.18 dependency
 ```
 
 React/Mendix FFI and JS Interop bindings are not included in this project — they are provided by the [glendix](https://hexdocs.pm/glendix/) Hex package.
@@ -124,6 +124,7 @@ All commands are unified under `gleam`. `gleam run -m` automatically compiles Gl
 | `gleam run -m glendix/lint_fix` | ESLint auto-fix |
 | `gleam run -m glendix/release` | Release build |
 | `gleam run -m glendix/marketplace` | Search/download Mendix Marketplace widgets |
+| `gleam run -m glendix/define` | Widget property definition TUI editor |
 | `gleam build --target javascript` | Gleam to JS compilation only |
 | `gleam test` | Run Gleam tests |
 | `gleam format` | Format Gleam code |

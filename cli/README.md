@@ -30,7 +30,7 @@ my-widget/
   widgets/                       # .mpk 위젯 파일 (glendix/widget로 바인딩)
   bindings.json                  # 외부 React 컴포넌트 바인딩 설정
   package.json                   # npm 의존성 (React, 외부 라이브러리 등)
-  gleam.toml                   # Gleam 프로젝트 설정 (glendix >= 2.0.17 의존성 포함)
+  gleam.toml                   # Gleam 프로젝트 설정 (glendix >= 2.0.18 의존성 포함)
   CLAUDE.md                    # AI 어시스턴트용 프로젝트 컨텍스트
 ```
 
@@ -44,6 +44,7 @@ gleam run -m glendix/install   # 의존성 설치
 gleam run -m glendix/dev       # 개발 서버 시작
 gleam run -m glendix/build     # 프로덕션 빌드 (.mpk 생성)
 gleam run -m glendix/marketplace  # Marketplace 위젯 검색/다운로드
+gleam run -m glendix/define      # 위젯 프로퍼티 정의 TUI 에디터
 ```
 
 ## glendix — React + Mendix 바인딩

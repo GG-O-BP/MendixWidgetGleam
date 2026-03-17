@@ -105,6 +105,7 @@ gleam run -m glendix/lint       # Run ESLint
 gleam run -m glendix/lint_fix   # ESLint auto-fix
 gleam run -m glendix/release    # Release build
 gleam run -m glendix/marketplace # Search/download Marketplace widgets
+gleam run -m glendix/define     # Widget property definition TUI editor
 gleam build --target javascript # Gleam → JS compilation only
 gleam test                      # Run tests
 gleam format                    # Format code
@@ -359,6 +360,7 @@ gleam run -m glendix/lint       # ESLint 실행
 gleam run -m glendix/lint_fix   # ESLint 자동 수정
 gleam run -m glendix/release    # 릴리즈 빌드
 gleam run -m glendix/marketplace # Marketplace 위젯 검색/다운로드
+gleam run -m glendix/define     # 위젯 프로퍼티 정의 TUI 에디터
 gleam build --target javascript # Gleam → JS 컴파일만
 gleam test                      # 테스트 실행
 gleam format                    # 코드 포맷팅
@@ -613,6 +615,7 @@ gleam run -m glendix/lint       # ESLint実行
 gleam run -m glendix/lint_fix   # ESLint自動修正
 gleam run -m glendix/release    # リリースビルド
 gleam run -m glendix/marketplace # Marketplaceウィジェット検索/ダウンロード
+gleam run -m glendix/define     # ウィジェットプロパティ定義TUIエディター
 gleam build --target javascript # Gleam → JSコンパイルのみ
 gleam test                      # テスト実行
 gleam format                    # コードフォーマット
