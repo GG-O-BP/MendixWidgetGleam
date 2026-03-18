@@ -49,8 +49,14 @@ glendix = ">= 3.0.0 and < 4.0.0"
 Peer dependency (위젯 프로젝트 `package.json`):
 
 ```json
-{ "dependencies": { "react": "^19.0.0", "react-dom": "^19.0.0", "big.js": "^6.0.0" } }
+{
+  "dependencies": { "big.js": "^6.0.0" },
+  "overrides": { "@types/react": "19.0.0", "@types/react-dom": "19.0.0" },
+  "resolutions": { "@types/react": "19.0.0", "@types/react-dom": "19.0.0" }
+}
 ```
+
+> `react`/`react-dom`은 `dependencies`에 넣지 않는다. `pluggable-widgets-tools`가 자동 제공하며, 직접 선언하면 마이그레이션 충돌이 발생한다.
 
 ```bash
 gleam run -m glendix/install   # 의존성 설치 + 바인딩 생성

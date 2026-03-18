@@ -24,16 +24,14 @@
   },
   "dependencies": {
     "classnames": "^2.5.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
     "big.js": "^6.0.0"
   },
   "resolutions": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0"
   },
   "overrides": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0"
   }
 }
