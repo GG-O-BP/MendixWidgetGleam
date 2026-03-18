@@ -21,6 +21,18 @@ export function is_valid_name(name) {
   return /^[a-zA-Z][a-zA-Z0-9\-_]*$/.test(name);
 }
 
+export function get_current_year() {
+  return String(new Date().getFullYear());
+}
+
+export function is_valid_version(v) {
+  return /^\d+\.\d+\.\d+$/.test(v);
+}
+
+export function is_valid_org(v) {
+  return /^[a-z][a-z0-9\-]*$/.test(v);
+}
+
 export function split_words(input) {
   let result = input.replace(/([a-z])([A-Z])/g, "$1 $2");
   result = result.replace(/([0-9])([a-zA-Z])/g, "$1 $2");

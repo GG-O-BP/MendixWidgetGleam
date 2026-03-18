@@ -10,13 +10,95 @@ import { None, Some } from "../../gleam_stdlib/gleam/option.mjs";
 import * as $string from "../../gleam_stdlib/gleam/string.mjs";
 import { Ok, Error, toList, Empty as $Empty } from "../gleam.mjs";
 
+function draw_banner_lines(loop$lines) {
+  while (true) {
+    let lines = loop$lines;
+    if (lines instanceof $Empty) {
+      return undefined;
+    } else {
+      let rest = lines.tail;
+      let glendi = lines.head[0];
+      let lucy = lines.head[1];
+      $stdout.execute(
+        toList([
+          new $command.SetForegroundColor(new $style.Cyan()),
+          new $command.SetAttributes(toList([new $style.Bold()])),
+          new $command.Print(glendi),
+          new $command.ResetStyle(),
+          new $command.SetForegroundColor(new $style.Magenta()),
+          new $command.Println(lucy),
+          new $command.ResetStyle(),
+        ]),
+      );
+      loop$lines = rest;
+    }
+  }
+}
+
+function banner_lines() {
+  return toList([
+    [
+      "                   ████                                               ████   ████",
+      "",
+    ],
+    [
+      "                   ████                                               ████  ██████",
+      "",
+    ],
+    [
+      "                   ████                                               ████   ████",
+      "",
+    ],
+    [
+      "                   ████                                               ████",
+      "           █▓█",
+    ],
+    [
+      "   ████████ ████   ████      ████████     ████ ███████        ███████ ████   ████",
+      "    ▓░▓█",
+    ],
+    [
+      " ███████████████   ████    ████████████   ██████████████    ██████████████   ████",
+      "    ▓░░▓▓▓▓",
+    ],
+    [
+      "█████     ██████   ████   ████     █████  █████     ████   █████     █████   ████",
+      "  ▓▓░░░░░░▓",
+    ],
+    [
+      "████       █████   ████  ████       ████  █████     ████   ████      █████   ████",
+      " ▓░░░░░▒░▒█",
+    ],
+    [
+      "████        ████   ████  ███████████████  █████     ████   ████       ████   ████",
+      " █▓░▒░▒░░▓",
+    ],
+    [
+      "█████      █████   ████  ████             █████     ████   ████      █████   ████",
+      "  █▓░░▒░░▓",
+    ],
+    [
+      " ███████████████   ████   █████     ██    █████     ████   █████    ██████   ████",
+      "   ▓░░░░░▓",
+    ],
+    [
+      "  █████████ ████   ████    ████████████   █████     ████    ██████████████   ████",
+      "   ▓░▒▓█▓▓",
+    ],
+    [
+      "            ████   ████      ████████     █████     ████      ██████  ████   ████",
+      "   █▓█",
+    ],
+    ["   █       ████", ""],
+    ["  █████████████", ""],
+    ["   ██████████", ""],
+  ]);
+}
+
 export function draw_header() {
+  draw_banner_lines(banner_lines());
   return $stdout.execute(
     toList([
-      new $command.SetForegroundColor(new $style.Cyan()),
-      new $command.SetAttributes(toList([new $style.Bold()])),
-      new $command.Println("  create-mendix-widget-gleam"),
-      new $command.ResetStyle(),
       new $command.Println(""),
     ]),
   );
@@ -102,9 +184,11 @@ function render_select(completed, title, items, selected, hint) {
   clear_screen();
   draw_header();
   draw_completed(completed);
+  if (!(completed instanceof $Empty)) {
+    $stdout.execute(toList([new $command.Println("")]));
+  }
   $stdout.execute(
     toList([
-      new $command.Println(""),
       new $command.SetAttributes(toList([new $style.Bold()])),
       new $command.Println("  " + title),
       new $command.ResetStyle(),
@@ -261,7 +345,7 @@ function render_input(completed, title, value, error, preview_lines, hint) {
     }
   }
   draw_hint(hint);
-  let input_row = (2 + $list.length(completed)) + 1;
+  let input_row = (17 + $list.length(completed)) + 1;
   let input_col = $string.length(prefix) + $string.length(value);
   return $stdout.execute(
     toList([

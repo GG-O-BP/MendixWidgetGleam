@@ -35,13 +35,23 @@ function replaceFileName(name, names) {
 }
 
 /** 파일 내용에서 플레이스홀더 치환 */
-function replaceContent(content, names, pmConfig, templateComments) {
+function replaceContent(content, names, pmConfig, templateComments, options) {
   let result = content
     .replace(/\{\{PASCAL_CASE\}\}/g, names.pascalCase)
     .replace(/\{\{SNAKE_CASE\}\}/g, names.snakeCase)
     .replace(/\{\{LOWERCASE\}\}/g, names.lowerCase)
     .replace(/\{\{DISPLAY_NAME\}\}/g, names.displayName)
     .replace(/\{\{KEBAB_CASE\}\}/g, names.kebabCase);
+
+  if (options) {
+    result = result
+      .replace(/\{\{ORGANIZATION\}\}/g, options.organization)
+      .replace(/\{\{COPYRIGHT\}\}/g, options.copyright)
+      .replace(/\{\{LICENSE_ID\}\}/g, options.license)
+      .replace(/\{\{VERSION\}\}/g, options.version)
+      .replace(/\{\{AUTHOR\}\}/g, options.author)
+      .replace(/\{\{PROJECT_PATH\}\}/g, options.projectPath);
+  }
 
   if (templateComments) {
     result = result.replace(/\{\{I18N:(\w+)\}\}/g, (_, key) => {
@@ -59,8 +69,9 @@ function replaceContent(content, names, pmConfig, templateComments) {
  * @param {object} names - 이름 변환 결과
  * @param {object} pmConfig - 패키지 매니저 설정
  * @param {object} [templateComments] - i18n 템플릿 주석 ({{I18N:*}} 치환용)
+ * @param {object} [options] - 추가 옵션 (organization, copyright, license, version, author, projectPath)
  */
-export async function scaffold(templateDir, targetDir, names, pmConfig, templateComments) {
+export async function scaffold(templateDir, targetDir, names, pmConfig, templateComments, options) {
   const files = await walkDir(templateDir);
   const created = [];
 
@@ -86,7 +97,7 @@ export async function scaffold(templateDir, targetDir, names, pmConfig, template
     } else {
       // 텍스트 파일은 내용 치환
       const content = await readFile(srcPath, "utf-8");
-      const replaced = replaceContent(content, names, pmConfig, templateComments);
+      const replaced = replaceContent(content, names, pmConfig, templateComments, options);
       await writeFile(destPath, replaced, "utf-8");
     }
 

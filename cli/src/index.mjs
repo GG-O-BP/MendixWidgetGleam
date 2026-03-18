@@ -15,6 +15,7 @@ import { t, getTemplateComments, getLangLabel } from "./i18n.mjs";
 import { generateClaudeMdContent } from "./templates/claude_md.mjs";
 import { generateReadmeContent } from "./templates/readme_md.mjs";
 import { generateWidgetsReadmeContent } from "./templates/widgets_readme.mjs";
+import { generateLicenseContent } from "./licenses.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_DIR = resolve(__dirname, "..", "template");
@@ -25,6 +26,7 @@ const GREEN = "\x1b[32m";
 const CYAN = "\x1b[36m";
 const DIM = "\x1b[2m";
 const YELLOW = "\x1b[33m";
+const MAGENTA = "\x1b[35m";
 
 const VERSION = "1.0.0";
 
@@ -43,6 +45,29 @@ ${BOLD}Examples:${RESET}
   npx create-mendix-widget-gleam MyCoolWidget
 `;
 
+const BANNER_LINES = [
+  ["                   ████                                               ████   ████", ""],
+  ["                   ████                                               ████  ██████", ""],
+  ["                   ████                                               ████   ████", ""],
+  ["                   ████                                               ████", "           █▓█"],
+  ["   ████████ ████   ████      ████████     ████ ███████        ███████ ████   ████", "    ▓░▓█"],
+  [" ███████████████   ████    ████████████   ██████████████    ██████████████   ████", "    ▓░░▓▓▓▓"],
+  ["█████     ██████   ████   ████     █████  █████     ████   █████     █████   ████", "  ▓▓░░░░░░▓"],
+  ["████       █████   ████  ████       ████  █████     ████   ████      █████   ████", " ▓░░░░░▒░▒█"],
+  ["████        ████   ████  ███████████████  █████     ████   ████       ████   ████", " █▓░▒░▒░░▓"],
+  ["█████      █████   ████  ████             █████     ████   ████      █████   ████", "  █▓░░▒░░▓"],
+  [" ███████████████   ████   █████     ██    █████     ████   █████    ██████   ████", "   ▓░░░░░▓"],
+  ["  █████████ ████   ████    ████████████   █████     ████    ██████████████   ████", "   ▓░▒▓█▓▓"],
+  ["            ████   ████      ████████     █████     ████      ██████  ████   ████", "   █▓█"],
+  ["   █       ████", ""],
+  ["  █████████████", ""],
+  ["   ██████████", ""],
+];
+
+const header = '\n' + BANNER_LINES.map(([g, l]) =>
+  `${CYAN}${BOLD}${g}${RESET}${MAGENTA}${l}${RESET}`
+).join('\n') + `\n${DIM}         create-mendix-widget-gleam v${VERSION}${RESET}\n`;
+
 export async function main(args) {
   // Flag handling
   if (args.includes("--help") || args.includes("-h")) {
@@ -59,14 +84,19 @@ export async function main(args) {
   const cliProjectName = positional[0] || "";
 
   // Collect options — etch TUI (TTY) with readline fallback (non-TTY/pipe)
-  const header = `\n${BOLD}${CYAN}create-mendix-widget-gleam${RESET} ${DIM}v${VERSION}${RESET}\n`;
-  let projectName, pm, lang;
+  let projectName, pm, lang, organization, copyright, license, version, author, projectPath;
   let usedFallback = false;
   try {
     const options = await collect_options(cliProjectName);
     projectName = options.project_name;
     pm = options.pm;
     lang = options.lang;
+    organization = options.organization;
+    copyright = options.copyright;
+    license = options.license;
+    version = options.version;
+    author = options.author;
+    projectPath = options.project_path;
   } catch {
     // Fallback: readline prompts (non-TTY, CI, pipe, etc.)
     usedFallback = true;
@@ -75,6 +105,12 @@ export async function main(args) {
     projectName = result.projectName;
     pm = result.pm;
     lang = result.lang;
+    organization = result.organization;
+    copyright = result.copyright;
+    license = result.license;
+    version = result.version;
+    author = result.author;
+    projectPath = result.projectPath;
   }
 
   if (!usedFallback) console.log(header);
@@ -94,6 +130,12 @@ export async function main(args) {
   console.log(`  ${t(lang, "summary.directory")}       ${CYAN}${names.kebabCase}/${RESET}`);
   console.log(`  ${t(lang, "summary.widgetName")}      ${names.pascalCase}`);
   console.log(`  ${t(lang, "summary.gleamModule")}     ${names.snakeCase}`);
+  console.log(`  ${t(lang, "summary.organization")}   ${organization}`);
+  console.log(`  ${t(lang, "summary.version")}        ${version}`);
+  console.log(`  ${t(lang, "summary.license")}        ${license}`);
+  console.log(`  ${t(lang, "summary.author")}         ${author}`);
+  console.log(`  ${t(lang, "summary.copyright")}      ${copyright}`);
+  console.log(`  ${t(lang, "summary.projectPath")}    ${projectPath}`);
   console.log(`  ${t(lang, "summary.packageManager")}  ${pm}`);
   console.log(`  ${t(lang, "summary.language")}        ${getLangLabel(lang)}`);
   console.log();
@@ -107,15 +149,26 @@ export async function main(args) {
     widgets_readme: generateWidgetsReadmeContent(lang),
   };
 
+  // Scaffold options
+  const scaffoldOptions = { organization, copyright, license, version, author, projectPath };
+
   // Scaffold templates
   console.log(`${DIM}${t(lang, "progress.generatingFiles")}${RESET}`);
-  const created = await scaffold(TEMPLATE_DIR, targetDir, names, pmConfig, templateComments);
+  const created = await scaffold(TEMPLATE_DIR, targetDir, names, pmConfig, templateComments, scaffoldOptions);
   console.log(`${GREEN}✓${RESET} ${t(lang, "progress.filesCreated", { count: created.length })}`);
+
+  // Generate LICENSE
+  await writeFile(
+    join(targetDir, "LICENSE"),
+    generateLicenseContent(license, copyright),
+    "utf-8",
+  );
+  console.log(`${GREEN}✓${RESET} ${t(lang, "progress.licenseCreated")}`);
 
   // Generate CLAUDE.md (always English, comment lang instruction varies)
   await writeFile(
     join(targetDir, "CLAUDE.md"),
-    generateClaudeMdContent(lang, names, pm, pmConfig),
+    generateClaudeMdContent(lang, names, pm, pmConfig, organization),
     "utf-8",
   );
   console.log(`${GREEN}✓${RESET} ${t(lang, "progress.claudeMdCreated")}`);
@@ -123,7 +176,7 @@ export async function main(args) {
   // Generate README.md
   await writeFile(
     join(targetDir, "README.md"),
-    generateReadmeContent(lang, names, pm, pmConfig),
+    generateReadmeContent(lang, names, pm, pmConfig, license),
     "utf-8",
   );
   console.log(`${GREEN}✓${RESET} ${t(lang, "progress.readmeCreated")}`);

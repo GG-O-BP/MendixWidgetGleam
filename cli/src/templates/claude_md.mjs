@@ -9,7 +9,7 @@ const COMMENT_LANG_INSTRUCTIONS = {
   ja: "Use Japanese comments",
 };
 
-export function generateClaudeMdContent(lang, names, pm, pmConfig) {
+export function generateClaudeMdContent(lang, names, pm, pmConfig, organization) {
   const commentInstruction =
     COMMENT_LANG_INSTRUCTIONS[lang] ?? COMMENT_LANG_INSTRUCTIONS["en"];
 
@@ -72,8 +72,8 @@ src/*.gleam → gleam build → build/dev/javascript/**/*.mjs → Bridge JS (aut
 
 ## Mendix Widget Conventions
 
-- Widget ID: \`mendix.${names.lowerCase}.${names.pascalCase}\`
-- \`packagePath: "mendix"\` in \`package.json\` determines the deployment path
+- Widget ID: \`${organization}.${names.lowerCase}.${names.pascalCase}\`
+- \`packagePath: "${organization}"\` in \`package.json\` determines the deployment path
 - \`needsEntityContext="true"\` → Requires Mendix data context
 - \`offlineCapable="true"\` → Offline support
 - \`.mpk\` output: \`dist/\` directory

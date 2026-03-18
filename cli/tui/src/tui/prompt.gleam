@@ -13,13 +13,49 @@ import gleam/string
 // ── 공통 렌더링 ──────────────────────────────────────────────
 
 pub fn draw_header() {
+  draw_banner_lines(banner_lines())
   stdout.execute([
-    command.SetForegroundColor(style.Cyan),
-    command.SetAttributes([style.Bold]),
-    command.Println("  create-mendix-widget-gleam"),
-    command.ResetStyle,
     command.Println(""),
   ])
+}
+
+fn draw_banner_lines(lines: List(#(String, String))) {
+  case lines {
+    [] -> Nil
+    [#(glendi, lucy), ..rest] -> {
+      stdout.execute([
+        command.SetForegroundColor(style.Cyan),
+        command.SetAttributes([style.Bold]),
+        command.Print(glendi),
+        command.ResetStyle,
+        command.SetForegroundColor(style.Magenta),
+        command.Println(lucy),
+        command.ResetStyle,
+      ])
+      draw_banner_lines(rest)
+    }
+  }
+}
+
+fn banner_lines() -> List(#(String, String)) {
+  [
+    #("                   ████                                               ████   ████", ""),
+    #("                   ████                                               ████  ██████", ""),
+    #("                   ████                                               ████   ████", ""),
+    #("                   ████                                               ████", "           █▓█"),
+    #("   ████████ ████   ████      ████████     ████ ███████        ███████ ████   ████", "    ▓░▓█"),
+    #(" ███████████████   ████    ████████████   ██████████████    ██████████████   ████", "    ▓░░▓▓▓▓"),
+    #("█████     ██████   ████   ████     █████  █████     ████   █████     █████   ████", "  ▓▓░░░░░░▓"),
+    #("████       █████   ████  ████       ████  █████     ████   ████      █████   ████", " ▓░░░░░▒░▒█"),
+    #("████        ████   ████  ███████████████  █████     ████   ████       ████   ████", " █▓░▒░▒░░▓"),
+    #("█████      █████   ████  ████             █████     ████   ████      █████   ████", "  █▓░░▒░░▓"),
+    #(" ███████████████   ████   █████     ██    █████     ████   █████    ██████   ████", "   ▓░░░░░▓"),
+    #("  █████████ ████   ████    ████████████   █████     ████    ██████████████   ████", "   ▓░▒▓█▓▓"),
+    #("            ████   ████      ████████     █████     ████      ██████  ████   ████", "   █▓█"),
+    #("   █       ████", ""),
+    #("  █████████████", ""),
+    #("   ██████████", ""),
+  ]
 }
 
 pub fn draw_completed(steps: List(#(String, String))) {
@@ -76,8 +112,11 @@ fn render_select(
   clear_screen()
   draw_header()
   draw_completed(completed)
+  case completed {
+    [] -> Nil
+    _ -> stdout.execute([command.Println("")])
+  }
   stdout.execute([
-    command.Println(""),
     command.SetAttributes([style.Bold]),
     command.Println("  " <> title),
     command.ResetStyle,
@@ -230,8 +269,9 @@ fn render_input(
 
   draw_hint(hint)
 
-  // 입력 커서 위치 계산: header(1) + blank(1) + completed + blank(1) + input line
-  let input_row = 2 + list.length(completed) + 1
+  // 입력 커서 위치 계산: header(17) + completed + blank(1) + input line
+  // banner(16) + blank(1) = 17
+  let input_row = 17 + list.length(completed) + 1
   let input_col = string.length(prefix) + string.length(value)
   stdout.execute([
     command.MoveTo(input_col, input_row),

@@ -2,7 +2,7 @@
  * README.md template — 3 language versions
  */
 
-export function generateReadmeContent(lang, names, pm, pmConfig) {
+export function generateReadmeContent(lang, names, pm, pmConfig, license) {
   const installCmd =
     pm === "npm"
       ? "npm install"
@@ -14,11 +14,11 @@ export function generateReadmeContent(lang, names, pm, pmConfig) {
 
   switch (lang) {
     case "ko":
-      return generateKo(names, pm, installCmd);
+      return generateKo(names, pm, installCmd, license);
     case "ja":
-      return generateJa(names, pm, installCmd);
+      return generateJa(names, pm, installCmd, license);
     default:
-      return generateEn(names, pm, installCmd);
+      return generateEn(names, pm, installCmd, license);
   }
 }
 
@@ -26,7 +26,7 @@ export function generateReadmeContent(lang, names, pm, pmConfig) {
 // English
 // ---------------------------------------------------------------------------
 
-function generateEn(names, pm, installCmd) {
+function generateEn(names, pm, installCmd, license) {
   return `# ${names.pascalCase}
 
 A Mendix Pluggable Widget written in Gleam.
@@ -273,7 +273,7 @@ Widget names use the \`<name>\` value from the \`.mpk\`'s internal XML, and prop
 
 ## License
 
-Apache-2.0
+${license}
 `;
 }
 
@@ -281,7 +281,7 @@ Apache-2.0
 // Korean
 // ---------------------------------------------------------------------------
 
-function generateKo(names, pm, installCmd) {
+function generateKo(names, pm, installCmd, license) {
   return `# ${names.pascalCase}
 
 Gleam 언어로 작성된 Mendix Pluggable Widget.
@@ -528,7 +528,7 @@ switch.render(props)
 
 ## 라이센스
 
-Apache-2.0
+${license}
 `;
 }
 
@@ -536,7 +536,7 @@ Apache-2.0
 // Japanese
 // ---------------------------------------------------------------------------
 
-function generateJa(names, pm, installCmd) {
+function generateJa(names, pm, installCmd, license) {
   return `# ${names.pascalCase}
 
 Gleam言語で作成されたMendix Pluggable Widget。
@@ -783,6 +783,6 @@ switch.render(props)
 
 ## ライセンス
 
-Apache-2.0
+${license}
 `;
 }

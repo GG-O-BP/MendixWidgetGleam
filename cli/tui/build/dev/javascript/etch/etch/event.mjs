@@ -953,11 +953,13 @@ export function parse_modifier_to_state(modifier_mask) {
   let state = new KeyEventState(false, false, false);
   let _block;
   let $ = modifier_mask - 1;
-  let n = $;
-  if (n < 0) {
-    _block = 0;
-  } else {
-    _block = $;
+  {
+    let n = $;
+    if (n < 0) {
+      _block = 0;
+    } else {
+      _block = $;
+    }
   }
   let mask = _block;
   let _block$1;
@@ -1123,7 +1125,7 @@ export function parse_cb(code) {
   _block = $result.unwrap(_pipe, 0);
   let code$1 = _block;
   let _block$1;
-  let _pipe$1 = $int.bitwise_and(code$1, 0b0011);
+  let _pipe$1 = $int.bitwise_and(code$1, 0b11);
   _block$1 = $int.bitwise_or(
     _pipe$1,
     (() => {
@@ -1411,11 +1413,13 @@ export function parse_sgr_mouse(s) {
 export function parse_modifiers(code) {
   let _block;
   let $ = code - 1;
-  let x = $;
-  if (x < 0) {
-    _block = 0;
-  } else {
-    _block = $;
+  {
+    let x = $;
+    if (x < 0) {
+      _block = 0;
+    } else {
+      _block = $;
+    }
   }
   let mask = _block;
   return new Modifiers(
@@ -1848,31 +1852,33 @@ export function parse_special_key_code(code) {
             _block$2 = new Ok(new PageDown());
           } else {
             let k = key$1;
-            let k$1 = k;
-            if ((k$1 >= 11) && (k$1 <= 15)) {
-              _block$2 = new Ok(new F(k$1 - 10));
-            } else {
+            {
               let k$1 = k;
-              if ((k$1 >= 17) && (k$1 <= 21)) {
-                _block$2 = new Ok(new F(k$1 - 11));
+              if ((k$1 >= 11) && (k$1 <= 15)) {
+                _block$2 = new Ok(new F(k$1 - 10));
               } else {
                 let k$1 = k;
-                if ((k$1 >= 23) && (k$1 <= 26)) {
-                  _block$2 = new Ok(new F(k$1 - 12));
-                } else if (k === 28) {
-                  _block$2 = new Ok(new F(k - 15));
-                } else if (k === 29) {
-                  _block$2 = new Ok(new F(k - 15));
+                if ((k$1 >= 17) && (k$1 <= 21)) {
+                  _block$2 = new Ok(new F(k$1 - 11));
                 } else {
                   let k$1 = k;
-                  if ((k$1 >= 31) && (k$1 <= 34)) {
-                    _block$2 = new Ok(new F(k$1 - 17));
+                  if ((k$1 >= 23) && (k$1 <= 26)) {
+                    _block$2 = new Ok(new F(k$1 - 12));
+                  } else if (k === 28) {
+                    _block$2 = new Ok(new F(k - 15));
+                  } else if (k === 29) {
+                    _block$2 = new Ok(new F(k - 15));
                   } else {
-                    _block$2 = new Error(
-                      new FailedToParseEvent(
-                        "Failed to parse special key code (CSI <..> ~)",
-                      ),
-                    );
+                    let k$1 = k;
+                    if ((k$1 >= 31) && (k$1 <= 34)) {
+                      _block$2 = new Ok(new F(k$1 - 17));
+                    } else {
+                      _block$2 = new Error(
+                        new FailedToParseEvent(
+                          "Failed to parse special key code (CSI <..> ~)",
+                        ),
+                      );
+                    }
                   }
                 }
               }
