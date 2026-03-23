@@ -1,5 +1,5 @@
 name = "mendix_widget_gleam"
-version = "4.0.0"
+version = "4.0.1"
 target = "javascript"
 description = "Build Mendix Pluggable Widgets with Gleam — no JSX, pure Gleam + FFI"
 licences = ["Apache-2.0"]
@@ -11,8 +11,8 @@ runtime = "node"
 
 [dependencies]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
-glendix = ">= 4.0.2 and < 5.0.0"
-mendraw = ">= 1.1.10 and < 2.0.0"
+glendix = ">= 4.0.3 and < 5.0.0"
+mendraw = ">= 1.1.11 and < 2.0.0"
 dee = ">= 1.0.0 and < 2.0.0"
 redraw = ">= 19.2.2 and < 20.0.0"
 redraw_dom = ">= 19.2.2 and < 20.0.0"

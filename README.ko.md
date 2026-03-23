@@ -24,9 +24,8 @@ src/
     hello_world.gleam               # Hello World 공유 컴포넌트
   MendixWidget.xml                    # 위젯 속성 정의
   package.xml                         # Mendix 패키지 매니페스트
-widgets/                                # .mpk 위젯 파일 (mendraw/widget로 바인딩)
 package.json                            # npm 의존성 (React, 외부 라이브러리 등)
-gleam.toml                            # glendix >= 4.0.2 + mendraw 의존성 포함
+gleam.toml                            # glendix >= 4.0.3 + mendraw 의존성 포함
 ```
 
 React/Mendix FFI 및 JS Interop 바인딩은 이 프로젝트에 포함되지 않으며, [glendix](https://hexdocs.pm/glendix/) 및 [mendraw](https://hexdocs.pm/mendraw/) Hex 패키지로 제공된다.
@@ -175,93 +174,6 @@ pub fn tooltip(attrs: List(Attribute)) -> Element {
 ```
 
 `html.div`와 동일한 호출 패턴으로 외부 React 컴포넌트를 사용할 수 있다.
-
-## Mendix Marketplace 위젯 다운로드
-
-Mendix Marketplace에서 위젯(.mpk)을 인터랙티브하게 검색하고 다운로드할 수 있다. 다운로드 완료 후 바인딩 `.gleam` 파일이 자동 생성되어 바로 사용 가능하다.
-
-### 사전 준비
-
-`.env` 파일에 Mendix Personal Access Token을 설정한다:
-
-```
-MENDIX_PAT=your_personal_access_token
-```
-
-> PAT는 [Mendix Developer Settings](https://user-settings.mendix.com/link/developersettings)에서 **Personal Access Tokens** 섹션의 **New Token**을 클릭하여 발급. 필요한 scope: `mx:marketplace-content:read`
-
-### 실행
-
-```bash
-gleam run -m mendraw/marketplace
-```
-
-인터랙티브 TUI에서 위젯을 검색/선택하면 `widgets/` 디렉토리에 `.mpk`가 다운로드되고, `src/widgets/`에 바인딩 `.gleam` 파일이 자동 생성된다.
-
-## .mpk 위젯 컴포넌트 사용
-
-`widgets/` 디렉토리에 `.mpk` 파일(Mendix 위젯 빌드 결과물)을 배치하면, 다른 위젯 안에서 기존 Mendix 위젯을 React 컴포넌트로 렌더링할 수 있다.
-
-### 1단계: `.mpk` 파일 배치
-
-```
-프로젝트 루트/
-├── widgets/
-│   ├── Switch.mpk
-│   └── Badge.mpk
-├── src/
-└── gleam.toml
-```
-
-### 2단계: 바인딩 생성
-
-```bash
-gleam run -m glendix/install
-```
-
-실행 시 다음이 자동 처리된다:
-- `.mpk`에서 `.mjs`/`.css`를 추출하고 `widget_ffi.mjs`가 생성된다
-- `.mpk` XML의 `<property>` 정의를 파싱하여 `src/widgets/`에 바인딩 `.gleam` 파일이 자동 생성된다 (이미 존재하면 건너뜀)
-
-### 3단계: 자동 생성된 `src/widgets/*.gleam` 파일 확인
-
-```gleam
-// src/widgets/switch.gleam (자동 생성)
-import mendraw/mendix.{type JsProps}
-import mendraw/interop
-import redraw.{type Element}
-import redraw/dom/attribute
-import mendraw/widget
-
-/// Switch 위젯 렌더링 - props에서 속성을 읽어 위젯에 전달
-pub fn render(props: JsProps) -> Element {
-  let boolean_attribute = mendix.get_prop_required(props, "booleanAttribute")
-  let action = mendix.get_prop_required(props, "action")
-
-  let comp = widget.component("Switch")
-  interop.component_el(
-    comp,
-    [
-      attribute.attribute("booleanAttribute", boolean_attribute),
-      attribute.attribute("action", action),
-    ],
-    [],
-  )
-}
-```
-
-required/optional 속성이 자동 구분되며, 필요에 따라 생성된 파일을 자유롭게 수정할 수 있다.
-
-### 4단계: 위젯에서 사용
-
-```gleam
-import widgets/switch
-
-// 컴포넌트 내부에서
-switch.render(props)
-```
-
-위젯 이름은 `.mpk` 내부 XML의 `<name>` 값을, property key는 `.mpk` XML의 원본 key를 그대로 사용한다.
 
 ## 기술 스택
 

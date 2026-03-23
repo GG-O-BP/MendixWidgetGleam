@@ -63,7 +63,6 @@ Widget entry point signature: \`pub fn widget(props: JsProps) -> Element\` — i
 - \`src/${names.pascalCase}.xml\` — Widget property definitions. Adding \`<property>\` triggers automatic type generation by the build tool
 - \`src/package.xml\` — Mendix package manifest
 - \`gleam.toml [tools.glendix.bindings]\` — External React component binding configuration
-- \`widgets/\` — .mpk widget file bindings (used via \`mendraw/widget\`)
 
 ## Build Pipeline
 
@@ -94,7 +93,7 @@ src/*.gleam → gleam build → build/dev/javascript/**/*.mjs → Bridge JS (aut
 For detailed glendix API and Gleam syntax, see:
 
 - docs/glendix_guide.md — Complete React/Mendix bindings guide (elements, Hooks, events, Mendix types, practical patterns, troubleshooting)
-- docs/mendraw_guide.md — mendraw usage guide (widget .mpk bindings, Marketplace download, classic widget support)
+- docs/mendraw_guide.md — mendraw usage guide (Marketplace download, classic widget support)
 - docs/gleam_language_tour.md — Gleam syntax reference (types, pattern matching, FFI, use keyword, etc.)
 
 ## Mendix Documentation Sources

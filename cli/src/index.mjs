@@ -14,7 +14,6 @@ import { scaffold } from "./scaffold.mjs";
 import { t, getTemplateComments, getLangLabel } from "./i18n.mjs";
 import { generateClaudeMdContent } from "./templates/claude_md.mjs";
 import { generateReadmeContent } from "./templates/readme_md.mjs";
-import { generateWidgetsReadmeContent } from "./templates/widgets_readme.mjs";
 import { generateLicenseContent } from "./licenses.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -151,7 +150,6 @@ export async function main(args) {
   // Build template comments (i18n for template placeholders)
   const templateComments = {
     ...getTemplateComments(lang),
-    widgets_readme: generateWidgetsReadmeContent(lang),
   };
 
   // Scaffold options

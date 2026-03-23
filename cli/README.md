@@ -27,9 +27,8 @@ my-widget/
     editor_preview.gleam       # Studio Pro 디자인 뷰 미리보기
     components/
       hello_world.gleam      # Hello World 공유 컴포넌트
-  widgets/                       # .mpk 위젯 파일 (mendraw/widget로 바인딩)
   package.json                   # npm 의존성 (React, 외부 라이브러리 등)
-  gleam.toml                   # Gleam 프로젝트 설정 (glendix >= 4.0.2 + mendraw >= 1.1.10 의존성 포함)
+  gleam.toml                   # Gleam 프로젝트 설정 (glendix >= 4.0.3 + mendraw >= 1.1.11 의존성 포함)
   CLAUDE.md                    # AI 어시스턴트용 프로젝트 컨텍스트
 ```
 
@@ -51,7 +50,7 @@ gleam run -m glendix/define      # 위젯 프로퍼티 정의 TUI 에디터
 생성된 프로젝트는 [glendix](https://hexdocs.pm/glendix/) Hex 패키지를 의존성으로 사용한다. glendix가 React 원시 함수와 Mendix Pluggable Widget API 전체에 대한 타입 안전한 Gleam 바인딩을 제공한다:
 
 - **React** — `redraw`, `redraw/dom/attribute`, `redraw/hooks`, `redraw/dom/events`, `redraw/dom/html`, `redraw/dom/svg`; bindings via `glendix/binding`
-- **Mendix** (mendraw) — `mendraw/mendix`, `mendraw/mendix/editable_value`, `mendraw/mendix/action`, `mendraw/mendix/list_value`, `mendraw/mendix/selection`, `mendraw/mendix/reference`, `mendraw/mendix/reference_set`, `mendraw/mendix/date`, `mendraw/mendix/decimal`, `mendraw/mendix/filter`, `mendraw/widget` 등
+- **Mendix** (mendraw) — `mendraw/mendix`, `mendraw/mendix/editable_value`, `mendraw/mendix/action`, `mendraw/mendix/list_value`, `mendraw/mendix/selection`, `mendraw/mendix/reference`, `mendraw/mendix/reference_set`, `mendraw/mendix/date`, `mendraw/mendix/decimal`, `mendraw/mendix/filter` 등
 - **JS Interop** (glendix) — `glendix/js/array`, `glendix/js/object`, `glendix/js/json`, `glendix/js/promise`, `glendix/js/dom`, `glendix/js/timer`
 
 ## 라이선스

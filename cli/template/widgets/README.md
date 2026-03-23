@@ -1,1 +1,0 @@
-{{I18N:widgets_readme}}

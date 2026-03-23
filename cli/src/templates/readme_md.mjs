@@ -122,7 +122,6 @@ src/
   components/
     hello_world.gleam            # Shared Hello World component
   ${names.pascalCase}.xml            # Widget property definitions
-widgets/                           # .mpk widget files (bindings via mendraw/widget)
 package.json                       # npm dependencies (React, external libraries, etc.)
 \`\`\`
 
@@ -175,93 +174,6 @@ pub fn tooltip(attrs: List(Attribute)) -> Element {
 \`\`\`
 
 External React components follow the same calling pattern as \`html.div\`.
-
-## Mendix Marketplace Widget Download
-
-Interactively search and download widgets (.mpk) from the Mendix Marketplace. After download, binding \`.gleam\` files are generated automatically and ready to use.
-
-### Preparation
-
-Set your Mendix Personal Access Token in a \`.env\` file:
-
-\`\`\`
-MENDIX_PAT=your_personal_access_token
-\`\`\`
-
-> Generate a PAT from [Mendix Developer Settings](https://user-settings.mendix.com/link/developersettings) — click **New Token** under **Personal Access Tokens**. Required scope: \`mx:marketplace-content:read\`
-
-### Run
-
-\`\`\`bash
-gleam run -m mendraw/marketplace
-\`\`\`
-
-Search and select widgets in the interactive TUI. The \`.mpk\` is downloaded to the \`widgets/\` directory, and binding \`.gleam\` files are auto-generated in \`src/widgets/\`.
-
-## Using .mpk Widget Components
-
-Place \`.mpk\` files (Mendix widget build artifacts) in the \`widgets/\` directory to render existing Mendix widgets as React components within your own widget.
-
-### Step 1: Place the \`.mpk\` files
-
-\`\`\`
-project root/
-├── widgets/
-│   ├── Switch.mpk
-│   └── Badge.mpk
-├── src/
-└── gleam.toml
-\`\`\`
-
-### Step 2: Generate bindings
-
-\`\`\`bash
-gleam run -m glendix/install
-\`\`\`
-
-This automatically:
-- Extracts \`.mjs\`/\`.css\` from \`.mpk\` and generates \`widget_ffi.mjs\`
-- Parses \`<property>\` definitions from \`.mpk\` XML and generates binding \`.gleam\` files in \`src/widgets/\` (existing files are skipped)
-
-### Step 3: Review auto-generated \`src/widgets/*.gleam\` files
-
-\`\`\`gleam
-// src/widgets/switch.gleam (auto-generated)
-import mendraw/mendix.{type JsProps}
-import mendraw/interop
-import redraw.{type Element}
-import redraw/dom/attribute
-import mendraw/widget
-
-/// Render Switch widget - reads properties from props and passes them to the widget
-pub fn render(props: JsProps) -> Element {
-  let boolean_attribute = mendix.get_prop_required(props, "booleanAttribute")
-  let action = mendix.get_prop_required(props, "action")
-
-  let comp = widget.component("Switch")
-  interop.component_el(
-    comp,
-    [
-      attribute.attribute("booleanAttribute", boolean_attribute),
-      attribute.attribute("action", action),
-    ],
-    [],
-  )
-}
-\`\`\`
-
-Required/optional properties are distinguished automatically. You can freely modify the generated files as needed.
-
-### Step 4: Use in your widget
-
-\`\`\`gleam
-import widgets/switch
-
-// Inside a component
-switch.render(props)
-\`\`\`
-
-Widget names use the \`<name>\` value from the \`.mpk\`'s internal XML, and property keys use the original keys from the \`.mpk\` XML.
 
 ## Tech Stack
 
@@ -378,7 +290,6 @@ src/
   components/
     hello_world.gleam            # Hello World 공유 컴포넌트
   ${names.pascalCase}.xml            # 위젯 속성 정의
-widgets/                           # .mpk 위젯 파일 (mendraw/widget로 바인딩)
 package.json                       # npm 의존성 (React, 외부 라이브러리 등)
 \`\`\`
 
@@ -431,93 +342,6 @@ pub fn tooltip(attrs: List(Attribute)) -> Element {
 \`\`\`
 
 \`html.div\`와 동일한 호출 패턴으로 외부 React 컴포넌트를 사용할 수 있다.
-
-## Mendix Marketplace 위젯 다운로드
-
-Mendix Marketplace에서 위젯(.mpk)을 인터랙티브하게 검색하고 다운로드할 수 있다. 다운로드 완료 후 바인딩 \`.gleam\` 파일이 자동 생성되어 바로 사용 가능하다.
-
-### 사전 준비
-
-\`.env\` 파일에 Mendix Personal Access Token을 설정한다:
-
-\`\`\`
-MENDIX_PAT=your_personal_access_token
-\`\`\`
-
-> PAT는 [Mendix Developer Settings](https://user-settings.mendix.com/link/developersettings)에서 **Personal Access Tokens** 섹션의 **New Token**을 클릭하여 발급. 필요한 scope: \`mx:marketplace-content:read\`
-
-### 실행
-
-\`\`\`bash
-gleam run -m mendraw/marketplace
-\`\`\`
-
-인터랙티브 TUI에서 위젯을 검색/선택하면 \`widgets/\` 디렉토리에 \`.mpk\`가 다운로드되고, \`src/widgets/\`에 바인딩 \`.gleam\` 파일이 자동 생성된다.
-
-## .mpk 위젯 컴포넌트 사용
-
-\`widgets/\` 디렉토리에 \`.mpk\` 파일(Mendix 위젯 빌드 결과물)을 배치하면, 다른 위젯 안에서 기존 Mendix 위젯을 React 컴포넌트로 렌더링할 수 있다.
-
-### 1단계: \`.mpk\` 파일 배치
-
-\`\`\`
-프로젝트 루트/
-├── widgets/
-│   ├── Switch.mpk
-│   └── Badge.mpk
-├── src/
-└── gleam.toml
-\`\`\`
-
-### 2단계: 바인딩 생성
-
-\`\`\`bash
-gleam run -m glendix/install
-\`\`\`
-
-실행 시 다음이 자동 처리된다:
-- \`.mpk\`에서 \`.mjs\`/\`.css\`를 추출하고 \`widget_ffi.mjs\`가 생성된다
-- \`.mpk\` XML의 \`<property>\` 정의를 파싱하여 \`src/widgets/\`에 바인딩 \`.gleam\` 파일이 자동 생성된다 (이미 존재하면 건너뜀)
-
-### 3단계: 자동 생성된 \`src/widgets/*.gleam\` 파일 확인
-
-\`\`\`gleam
-// src/widgets/switch.gleam (자동 생성)
-import mendraw/mendix.{type JsProps}
-import mendraw/interop
-import redraw.{type Element}
-import redraw/dom/attribute
-import mendraw/widget
-
-/// Switch 위젯 렌더링 - props에서 속성을 읽어 위젯에 전달
-pub fn render(props: JsProps) -> Element {
-  let boolean_attribute = mendix.get_prop_required(props, "booleanAttribute")
-  let action = mendix.get_prop_required(props, "action")
-
-  let comp = widget.component("Switch")
-  interop.component_el(
-    comp,
-    [
-      attribute.attribute("booleanAttribute", boolean_attribute),
-      attribute.attribute("action", action),
-    ],
-    [],
-  )
-}
-\`\`\`
-
-required/optional 속성이 자동 구분되며, 필요에 따라 생성된 파일을 자유롭게 수정할 수 있다.
-
-### 4단계: 위젯에서 사용
-
-\`\`\`gleam
-import widgets/switch
-
-// 컴포넌트 내부에서
-switch.render(props)
-\`\`\`
-
-위젯 이름은 \`.mpk\` 내부 XML의 \`<name>\` 값을, property key는 \`.mpk\` XML의 원본 key를 그대로 사용한다.
 
 ## 기술 스택
 
@@ -634,7 +458,6 @@ src/
   components/
     hello_world.gleam            # Hello World共有コンポーネント
   ${names.pascalCase}.xml            # ウィジェットプロパティ定義
-widgets/                           # .mpkウィジェットファイル（mendraw/widgetでバインディング）
 package.json                       # npm依存関係（React、外部ライブラリなど）
 \`\`\`
 
@@ -687,93 +510,6 @@ pub fn tooltip(attrs: List(Attribute)) -> Element {
 \`\`\`
 
 \`html.div\`と同じ呼び出しパターンで外部Reactコンポーネントを使用できる。
-
-## Mendix Marketplaceウィジェットのダウンロード
-
-Mendix Marketplaceからウィジェット（.mpk）をインタラクティブに検索・ダウンロードできる。ダウンロード完了後、バインディング\`.gleam\`ファイルが自動生成され、すぐに使用可能になる。
-
-### 事前準備
-
-\`.env\`ファイルにMendix Personal Access Tokenを設定する：
-
-\`\`\`
-MENDIX_PAT=your_personal_access_token
-\`\`\`
-
-> PATは[Mendix Developer Settings](https://user-settings.mendix.com/link/developersettings)の**Personal Access Tokens**セクションで**New Token**をクリックして発行。必要なscope：\`mx:marketplace-content:read\`
-
-### 実行
-
-\`\`\`bash
-gleam run -m mendraw/marketplace
-\`\`\`
-
-インタラクティブTUIでウィジェットを検索・選択すると、\`widgets/\`ディレクトリに\`.mpk\`がダウンロードされ、\`src/widgets/\`にバインディング\`.gleam\`ファイルが自動生成される。
-
-## .mpkウィジェットコンポーネントの使用
-
-\`widgets/\`ディレクトリに\`.mpk\`ファイル（Mendixウィジェットビルド成果物）を配置すると、別のウィジェット内から既存のMendixウィジェットをReactコンポーネントとしてレンダリングできる。
-
-### ステップ1：\`.mpk\`ファイルの配置
-
-\`\`\`
-プロジェクトルート/
-├── widgets/
-│   ├── Switch.mpk
-│   └── Badge.mpk
-├── src/
-└── gleam.toml
-\`\`\`
-
-### ステップ2：バインディングの生成
-
-\`\`\`bash
-gleam run -m glendix/install
-\`\`\`
-
-実行時に以下が自動処理される：
-- \`.mpk\`から\`.mjs\`/\`.css\`を抽出し、\`widget_ffi.mjs\`が生成される
-- \`.mpk\` XMLの\`<property>\`定義をパースし、\`src/widgets/\`にバインディング\`.gleam\`ファイルが自動生成される（既存ファイルはスキップ）
-
-### ステップ3：自動生成された\`src/widgets/*.gleam\`ファイルの確認
-
-\`\`\`gleam
-// src/widgets/switch.gleam（自動生成）
-import mendraw/mendix.{type JsProps}
-import mendraw/interop
-import redraw.{type Element}
-import redraw/dom/attribute
-import mendraw/widget
-
-/// Switchウィジェットのレンダリング - propsからプロパティを読み取りウィジェットに渡す
-pub fn render(props: JsProps) -> Element {
-  let boolean_attribute = mendix.get_prop_required(props, "booleanAttribute")
-  let action = mendix.get_prop_required(props, "action")
-
-  let comp = widget.component("Switch")
-  interop.component_el(
-    comp,
-    [
-      attribute.attribute("booleanAttribute", boolean_attribute),
-      attribute.attribute("action", action),
-    ],
-    [],
-  )
-}
-\`\`\`
-
-required/optionalプロパティは自動的に区別され、生成されたファイルは自由に編集できる。
-
-### ステップ4：ウィジェットで使用
-
-\`\`\`gleam
-import widgets/switch
-
-// コンポーネント内で
-switch.render(props)
-\`\`\`
-
-ウィジェット名は\`.mpk\`内部XMLの\`<name>\`値を、プロパティキーは\`.mpk\` XMLの元のキーをそのまま使用する。
 
 ## 技術スタック
 

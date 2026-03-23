@@ -24,9 +24,8 @@ src/
     hello_world.gleam               # Shared Hello World component
   MendixWidget.xml                    # Widget property definitions
   package.xml                         # Mendix package manifest
-widgets/                                # .mpk widget files (used via mendraw/widget)
 package.json                            # npm dependencies (React, external libraries, etc.)
-gleam.toml                            # Includes glendix >= 4.0.2 + mendraw dependency
+gleam.toml                            # Includes glendix >= 4.0.3 + mendraw dependency
 ```
 
 React/Mendix FFI and JS Interop bindings are not included in this project — they are provided by the [glendix](https://hexdocs.pm/glendix/) and [mendraw](https://hexdocs.pm/mendraw/) Hex packages.
@@ -175,93 +174,6 @@ pub fn tooltip(attrs: List(Attribute)) -> Element {
 ```
 
 External React components follow the same calling pattern as `html.div`.
-
-## Mendix Marketplace Widget Download
-
-Interactively search and download widgets (.mpk) from the Mendix Marketplace. After download, binding `.gleam` files are generated automatically and are ready to use straight away.
-
-### Preparation
-
-Set your Mendix Personal Access Token in a `.env` file:
-
-```
-MENDIX_PAT=your_personal_access_token
-```
-
-> Generate a PAT from [Mendix Developer Settings](https://user-settings.mendix.com/link/developersettings) — click **New Token** under **Personal Access Tokens**. Required scope: `mx:marketplace-content:read`
-
-### Run
-
-```bash
-gleam run -m mendraw/marketplace
-```
-
-Search and select widgets in the interactive TUI. The `.mpk` is downloaded to the `widgets/` directory, and binding `.gleam` files are auto-generated in `src/widgets/`.
-
-## Using .mpk Widget Components
-
-Place `.mpk` files (Mendix widget build artefacts) in the `widgets/` directory to render existing Mendix widgets as React components within your own widget.
-
-### Step 1: Place the `.mpk` files
-
-```
-project root/
-├── widgets/
-│   ├── Switch.mpk
-│   └── Badge.mpk
-├── src/
-└── gleam.toml
-```
-
-### Step 2: Generate bindings
-
-```bash
-gleam run -m glendix/install
-```
-
-This automatically:
-- Extracts `.mjs`/`.css` from the `.mpk` and generates `widget_ffi.mjs`
-- Parses `<property>` definitions from the `.mpk` XML and generates binding `.gleam` files in `src/widgets/` (existing files are skipped)
-
-### Step 3: Review the auto-generated `src/widgets/*.gleam` files
-
-```gleam
-// src/widgets/switch.gleam (auto-generated)
-import mendraw/mendix.{type JsProps}
-import mendraw/interop
-import redraw.{type Element}
-import redraw/dom/attribute
-import mendraw/widget
-
-/// Render the Switch widget — reads properties from props and passes them to the widget
-pub fn render(props: JsProps) -> Element {
-  let boolean_attribute = mendix.get_prop_required(props, "booleanAttribute")
-  let action = mendix.get_prop_required(props, "action")
-
-  let comp = widget.component("Switch")
-  interop.component_el(
-    comp,
-    [
-      attribute.attribute("booleanAttribute", boolean_attribute),
-      attribute.attribute("action", action),
-    ],
-    [],
-  )
-}
-```
-
-Required and optional properties are distinguished automatically. You are free to modify the generated files as needed.
-
-### Step 4: Use in your widget
-
-```gleam
-import widgets/switch
-
-// Inside a component
-switch.render(props)
-```
-
-The widget name comes from the `<name>` value in the `.mpk`'s internal XML, and property keys use the original keys from the `.mpk` XML.
 
 ## Tech Stack
 

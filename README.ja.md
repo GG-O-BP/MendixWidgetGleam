@@ -24,9 +24,8 @@ src/
     hello_world.gleam               # Hello World共有コンポーネント
   MendixWidget.xml                    # ウィジェットプロパティ定義
   package.xml                         # Mendixパッケージマニフェスト
-widgets/                                # .mpkウィジェットファイル（mendraw/widgetで利用）
 package.json                            # npm依存関係（React、外部ライブラリなど）
-gleam.toml                            # glendix >= 4.0.2 + mendraw依存関係を含む
+gleam.toml                            # glendix >= 4.0.3 + mendraw依存関係を含む
 ```
 
 React/Mendix FFIおよびJS Interopバインディングはこのプロジェクトには含まれず、[glendix](https://hexdocs.pm/glendix/)および[mendraw](https://hexdocs.pm/mendraw/) Hexパッケージとして提供される。
@@ -175,93 +174,6 @@ pub fn tooltip(attrs: List(Attribute)) -> Element {
 ```
 
 `html.div`と同じ呼び出しパターンで外部Reactコンポーネントを使用できる。
-
-## Mendix Marketplaceウィジェットのダウンロード
-
-Mendix Marketplaceからウィジェット（.mpk）をインタラクティブに検索・ダウンロードできる。ダウンロード完了後、バインディング`.gleam`ファイルが自動生成され、すぐに使用可能になる。
-
-### 事前準備
-
-`.env`ファイルにMendix Personal Access Tokenを設定する：
-
-```
-MENDIX_PAT=your_personal_access_token
-```
-
-> PATは[Mendix Developer Settings](https://user-settings.mendix.com/link/developersettings)の**Personal Access Tokens**セクションで**New Token**をクリックして発行。必要なscope：`mx:marketplace-content:read`
-
-### 実行
-
-```bash
-gleam run -m mendraw/marketplace
-```
-
-インタラクティブTUIでウィジェットを検索・選択すると、`widgets/`ディレクトリに`.mpk`がダウンロードされ、`src/widgets/`にバインディング`.gleam`ファイルが自動生成される。
-
-## .mpkウィジェットコンポーネントの使用
-
-`widgets/`ディレクトリに`.mpk`ファイル（Mendixウィジェットビルド成果物）を配置すると、別のウィジェット内から既存のMendixウィジェットをReactコンポーネントとしてレンダリングできる。
-
-### ステップ1：`.mpk`ファイルの配置
-
-```
-プロジェクトルート/
-├── widgets/
-│   ├── Switch.mpk
-│   └── Badge.mpk
-├── src/
-└── gleam.toml
-```
-
-### ステップ2：バインディングの生成
-
-```bash
-gleam run -m glendix/install
-```
-
-実行時に以下が自動処理される：
-- `.mpk`から`.mjs`/`.css`を抽出し、`widget_ffi.mjs`が生成される
-- `.mpk` XMLの`<property>`定義をパースし、`src/widgets/`にバインディング`.gleam`ファイルが自動生成される（既存ファイルはスキップ）
-
-### ステップ3：自動生成された`src/widgets/*.gleam`ファイルの確認
-
-```gleam
-// src/widgets/switch.gleam（自動生成）
-import mendraw/mendix.{type JsProps}
-import mendraw/interop
-import redraw.{type Element}
-import redraw/dom/attribute
-import mendraw/widget
-
-/// Switchウィジェットのレンダリング - propsからプロパティを読み取りウィジェットに渡す
-pub fn render(props: JsProps) -> Element {
-  let boolean_attribute = mendix.get_prop_required(props, "booleanAttribute")
-  let action = mendix.get_prop_required(props, "action")
-
-  let comp = widget.component("Switch")
-  interop.component_el(
-    comp,
-    [
-      attribute.attribute("booleanAttribute", boolean_attribute),
-      attribute.attribute("action", action),
-    ],
-    [],
-  )
-}
-```
-
-required/optionalプロパティは自動的に区別され、生成されたファイルは自由に編集できる。
-
-### ステップ4：ウィジェットで使用
-
-```gleam
-import widgets/switch
-
-// コンポーネント内で
-switch.render(props)
-```
-
-ウィジェット名は`.mpk`内部XMLの`<name>`値を、プロパティキーは`.mpk` XMLの元のキーをそのまま使用する。
 
 ## 技術スタック
 
