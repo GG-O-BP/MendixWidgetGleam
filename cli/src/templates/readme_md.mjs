@@ -125,7 +125,7 @@ src/
 package.json                       # npm dependencies (React, external libraries, etc.)
 \`\`\`
 
-React bindings come from [redraw](https://hexdocs.pm/redraw/)/[redraw_dom](https://hexdocs.pm/redraw_dom/), while Mendix API and JS Interop bindings are provided by [mendraw](https://hexdocs.pm/mendraw/).
+React bindings come from [redraw](https://hexdocs.pm/redraw/)/[redraw_dom](https://hexdocs.pm/redraw_dom/), Mendix API bindings from [mendraw](https://hexdocs.pm/mendraw/), and JS Interop from [glendix](https://hexdocs.pm/glendix/).
 
 ## Using External React Components
 
@@ -293,7 +293,7 @@ src/
 package.json                       # npm 의존성 (React, 외부 라이브러리 등)
 \`\`\`
 
-React 바인딩은 [redraw](https://hexdocs.pm/redraw/)/[redraw_dom](https://hexdocs.pm/redraw_dom/)이, Mendix API 및 JS Interop 바인딩은 [mendraw](https://hexdocs.pm/mendraw/)가 제공합니다.
+React 바인딩은 [redraw](https://hexdocs.pm/redraw/)/[redraw_dom](https://hexdocs.pm/redraw_dom/)이, Mendix API 바인딩은 [mendraw](https://hexdocs.pm/mendraw/)가, JS Interop은 [glendix](https://hexdocs.pm/glendix/)가 제공합니다.
 
 ## 외부 React 컴포넌트 사용
 
@@ -461,7 +461,7 @@ src/
 package.json                       # npm依存関係（React、外部ライブラリなど）
 \`\`\`
 
-Reactバインディングは[redraw](https://hexdocs.pm/redraw/)/[redraw_dom](https://hexdocs.pm/redraw_dom/)が、Mendix APIおよびJS Interopバインディングは[mendraw](https://hexdocs.pm/mendraw/)が提供する。
+Reactバインディングは[redraw](https://hexdocs.pm/redraw/)/[redraw_dom](https://hexdocs.pm/redraw_dom/)が、Mendix APIバインディングは[mendraw](https://hexdocs.pm/mendraw/)が、JS Interopは[glendix](https://hexdocs.pm/glendix/)が提供する。
 
 ## 外部Reactコンポーネントの使用
 

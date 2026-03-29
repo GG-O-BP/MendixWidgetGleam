@@ -93,7 +93,7 @@ src/*.gleam → gleam build → build/dev/javascript/**/*.mjs → Bridge JS (aut
 For detailed glendix API and Gleam syntax, see:
 
 - docs/glendix_guide.md — Complete React/Mendix bindings guide (elements, Hooks, events, Mendix types, practical patterns, troubleshooting)
-- docs/mendraw_guide.md — mendraw usage guide (Marketplace download, classic widget support)
+- docs/mendraw_guide.md — mendraw usage guide (widget binding generation, Marketplace download, Classic widgets, Synthetic Data, Mendix type API)
 - docs/gleam_language_tour.md — Gleam syntax reference (types, pattern matching, FFI, use keyword, etc.)
 
 ## Mendix Documentation Sources
