@@ -4,11 +4,23 @@
   "workspaces": {
     "": {
       "name": "mendixwidgetgleam",
+      "dependencies": {
+        "react": "19.2.8",
+        "react-dom": "19.2.8",
+      },
       "devDependencies": {
         "@mendix/pluggable-widgets-tools": "^11.12.1",
+        "@types/react": "19.2.18",
+        "@types/react-dom": "19.2.5",
       },
     },
   },
+  "trustedDependencies": [
+    "unrs-resolver",
+    "core-js",
+    "@swc/core",
+    "@parcel/watcher",
+  ],
   "overrides": {
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",

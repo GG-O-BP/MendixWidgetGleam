@@ -25,7 +25,37 @@ async function walkDir(dir) {
 }
 
 // npm publish 시 제외되는 dotfile을 언더스코어 접두사로 보관하고 복원
-const DOTFILE_MAP = { _gitignore: ".gitignore" };
+const DOTFILE_MAP = {
+  _gitignore: ".gitignore",
+  "_yarnrc.yml": ".yarnrc.yml",
+};
+
+function javascriptRuntime(packageManager) {
+  if (packageManager === "bun" || packageManager === "deno") {
+    return packageManager;
+  }
+  return "node";
+}
+
+function denoPermissions(packageManager) {
+  if (packageManager !== "deno") return "";
+  return "[javascript.deno]\nallow_all = true\n";
+}
+
+function packageManagerField(packageManager) {
+  if (packageManager !== "yarn") return "";
+  return '  "packageManager": "yarn@4.18.0",\n';
+}
+
+function includeTemplateFile(relativePath, options) {
+  if (relativePath === "_yarnrc.yml") {
+    return options?.packageManager === "yarn";
+  }
+  if (relativePath === "pnpm-workspace.yaml") {
+    return options?.packageManager === "pnpm";
+  }
+  return true;
+}
 
 /** 파일명에서 플레이스홀더 치환 + dotfile 복원 */
 function replaceFileName(name, names) {
@@ -37,13 +67,20 @@ function replaceFileName(name, names) {
 
 /** 파일 내용에서 플레이스홀더 치환 */
 function replaceContent(content, names, templateComments, options) {
+  const packageManager = options?.packageManager ?? "npm";
   let result = content
     .replace(/\{\{PASCAL_CASE\}\}/g, names.pascalCase)
     .replace(/\{\{SNAKE_CASE\}\}/g, names.snakeCase)
     .replace(/\{\{LOWERCASE\}\}/g, names.lowerCase)
     .replace(/\{\{DISPLAY_NAME\}\}/g, names.displayName)
     .replace(/\{\{KEBAB_CASE\}\}/g, names.kebabCase)
-    .replace(/\{\{PACKAGE_MANAGER\}\}/g, options?.packageManager ?? "npm");
+    .replace(/\{\{PACKAGE_MANAGER\}\}/g, packageManager)
+    .replace(/\{\{JAVASCRIPT_RUNTIME\}\}/g, javascriptRuntime(packageManager))
+    .replace(/\{\{DENO_PERMISSIONS\}\}/g, denoPermissions(packageManager))
+    .replace(
+      /\{\{PACKAGE_MANAGER_FIELD\}\}/g,
+      packageManagerField(packageManager),
+    );
 
   if (options) {
     result = result
@@ -83,6 +120,7 @@ export async function scaffold(templateDir, targetDir, names, templateComments, 
   for (const srcPath of files) {
     // 템플릿 기준 상대 경로
     const relPath = relative(templateDir, srcPath);
+    if (!includeTemplateFile(relPath, options)) continue;
 
     // 경로의 각 부분에서 파일명 치환
     const destRelPath = relPath

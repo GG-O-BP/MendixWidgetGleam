@@ -9,10 +9,33 @@ MendrawでMendix runtime valueへ型安全にアクセスする。
 ## 現在の基準
 
 - Gleam 1.17以上
-- HexのGlendix 5.x / Mendraw 2.x
+- HexのGlendix 5.1.0 / Mendraw 2.x
 - Lustre 5.7 / Redraw 19.2
-- Node.js 22.18.x
+- このリポジトリは Bun 1.4、生成 project は Node.js 22.18 以降・Deno 2.9・
+  Yarn・pnpm も選択可能
 - Mendix Pluggable Widgets Tools 11.12 / React 19.2
+
+## 実験的ネイティブ互換
+
+reference project とすべての生成 project は次のモードを明示的に選択する。
+
+```toml
+[tools.glendix]
+pm = "bun" # npm, yarn, pnpm, bun, deno
+compatibility = "experimental-native"
+```
+
+Glendix は npm・Yarn・pnpm project を Node、Bun project を Bun、Deno project
+を Deno で実行する。process scoped の一時 `node`/`npm`/`npx` shim が Mendix
+tool の強制 version check を満たし、対応する package-manager call を選択した
+manager へ転送する。各 command 後に shim を削除し、global tool は置き換えない。
+したがって Node を使い続ける Yarn と pnpm もこの bypass を通り、Bun と Deno
+の widget build path は Node や npm を必要としない。
+
+generator は必要に応じて npm `allowScripts`、Bun `trustedDependencies`、
+Yarn の `node-modules` linker、pnpm の選択的 Babel public hoist と native
+build-script allowlist、Deno の permission/allowlist を生成する。dependency
+module は必ず選択した `--runtime` を明示して実行する。
 
 ## パッケージ境界
 
@@ -27,7 +50,7 @@ Marketplaceの順序は `mxp install` → `mendraw/install` → `glendix/install
 ## 開始
 
 ```sh
-gleam run -m glendix/install
+gleam run -m glendix/install --runtime bun
 gleam test --runtime bun
 gleam run -m glendix/build --runtime bun
 ```
@@ -40,7 +63,7 @@ gleam check
 gleam build --warnings-as-errors
 gleam docs build
 npm --prefix cli run build:tui
-bun --cwd cli test
+bun run --cwd cli test
 ```
 
 ## Widget構成
@@ -64,8 +87,8 @@ npm packageを追加し、`gleam.toml`にexportを登録する。
 recharts = ["PieChart", "Pie", "Tooltip"]
 ```
 
-Glendix 5の`binding.module`/`binding.resolve`は`Result`を返す。binding変更後は
-`gleam run -m glendix/install`を再実行する。
+Glendix 5.1.0の`binding.module`/`binding.resolve`は`Result`を返す。binding変更後は
+`gleam run -m glendix/install --runtime bun`を再実行する。
 
 ## Project generator
 
@@ -74,8 +97,8 @@ npx create-mendix-widget-gleam my-widget
 ```
 
 CLIはwidget、test、`AGENTS.md`、project scoped `.codex/config.toml`を生成し、
-dependency installとMPK buildまで確認する。install/packageが失敗した場合は
-non-zeroで終了する。
+npm・Yarn・pnpm・Bun・Denoから選択した path で dependency install と MPK
+build まで確認する。install/package が失敗した場合は non-zero で終了する。
 
 ## E2E検証
 

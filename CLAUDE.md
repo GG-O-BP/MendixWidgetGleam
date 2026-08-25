@@ -1,7 +1,8 @@
 # MendixWidgetGleam
 
 Gleam으로 Mendix Pluggable Widget과 스캐폴딩 CLI를 개발한다. 현재 기준은
-Glendix 5, Mendraw 2, Lustre 5.7, Redraw 19.2, Mendix Tools 11.12, React 19.2다.
+Glendix 5.1.0, Mendraw 2, Lustre 5.7, Redraw 19.2, Mendix Tools 11.12,
+React 19.2다.
 
 ## Commands
 
@@ -13,8 +14,8 @@ gleam build --warnings-as-errors
 gleam docs build
 gleam test --runtime bun
 npm --prefix cli run build:tui
-bun --cwd cli test
-bun --cwd cli run test:e2e
+bun run --cwd cli test
+bun run --cwd cli test:e2e
 gleam run -m glendix/install --runtime bun
 gleam run -m glendix/build --runtime bun
 ../scripts/family.sh widget-build "$PWD"
@@ -29,6 +30,9 @@ gleam run -m glendix/build --runtime bun
   client value와 설치된 MPK binding을, mxpak은 Marketplace 설치를 담당한다.
 - Marketplace 명령은 `mxp install`이며 Mendraw에서 검색/다운로드하지 않는다.
 - `glendix`와 `mendraw`는 명시적인 요청 없이 sibling path로 바꾸지 않는다.
+- 생성 프로젝트는 `[tools.glendix].compatibility = "experimental-native"`와
+  선택한 npm/Yarn/pnpm/Bun/Deno `pm`을 유지하고, Glendix 명령에는 그 매니저에
+  맞는 `--runtime`을 명시한다.
 - `build/`, `dist/`, 생성 bridge/registry를 수동 편집하지 않는다.
 - `mendix-token`과 모든 API key/token/secret을 출력하거나 저장하지 않는다.
 - 브라우저 E2E는 Glendam을 사용하고 모든 runtime/browser/server를 정리한다.

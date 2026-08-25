@@ -8,7 +8,7 @@ and verification paths synchronized.
 
 - Write widget behavior in Gleam. Do not add JSX, project-local React/Mendix
   FFI, or hand-written generated bridges under `src/*.js`.
-- Glendix 5 owns build, definition, external npm binding, and Lustre bridging;
+- Glendix 5.1.0 owns build, definition, external npm binding, and Lustre bridging;
   Mendraw 2 owns Mendix client values and bindings for installed MPKs; mxpak
   owns Marketplace installation.
 - Preserve the published Hex sources for `glendix` and `mendraw` unless the

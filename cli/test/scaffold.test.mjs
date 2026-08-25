@@ -75,13 +75,27 @@ test("template scaffolding is ordered, escaped, current, and docs-free", async (
   assert.equal(packageJson.author, 'A "Quoted" Author');
   assert.equal(packageJson.copyright, '© 2026 "Quoted" contributors.');
   assert.equal(packageJson.config.projectPath, "./tests/a\\b");
-  assert.equal(packageJson.engines.node, "^22.18.0");
+  assert.equal(packageJson.engines.node, ">=22.18.0");
   assert.equal(packageJson.devDependencies["@mendix/pluggable-widgets-tools"], "^11.12.1");
+  assert.equal(packageJson.dependencies.react, "19.2.8");
+  assert.equal(packageJson.dependencies["react-dom"], "19.2.8");
+  assert.equal(packageJson.devDependencies["@types/react"], "19.2.18");
+  assert.equal(packageJson.devDependencies["@types/react-dom"], "19.2.5");
+  assert.equal(packageJson.allowScripts["@parcel/watcher"], true);
+  assert.equal(packageJson.allowScripts["@swc/core"], true);
+  assert.deepEqual(packageJson.trustedDependencies, [
+    "@parcel/watcher",
+    "@swc/core",
+    "core-js",
+    "unrs-resolver",
+  ]);
 
   const gleamToml = await readFile(join(target, "gleam.toml"), "utf8");
-  assert.match(gleamToml, /glendix = ">= 5\.0\.0 and < 6\.0\.0"/);
+  assert.match(gleamToml, /glendix = ">= 5\.1\.0 and < 6\.0\.0"/);
   assert.match(gleamToml, /mendraw = ">= 2\.0\.0 and < 3\.0\.0"/);
   assert.match(gleamToml, /pm = "bun"/);
+  assert.match(gleamToml, /runtime = "bun"/);
+  assert.match(gleamToml, /compatibility = "experimental-native"/);
 
   const codexConfig = await readFile(join(target, ".codex/config.toml"), "utf8");
   assert.match(codexConfig, /"MENDIX_\*" = "exclude"/);
@@ -93,6 +107,81 @@ test("template scaffolding is ordered, escaped, current, and docs-free", async (
   }
 });
 
+test("each package manager selects its native runtime and compatibility files", async () => {
+  const names = generateNames("Native_Widget");
+  const expectedRuntimes = {
+    npm: "node",
+    yarn: "node",
+    pnpm: "node",
+    bun: "bun",
+    deno: "deno",
+  };
+
+  for (const [packageManager, runtime] of Object.entries(expectedRuntimes)) {
+    const target = join(temporaryRoot, `native-${packageManager}`);
+    await scaffold(
+      templateDir,
+      target,
+      names,
+      getTemplateComments("en"),
+      options({ packageManager }),
+    );
+    const gleamToml = await readFile(join(target, "gleam.toml"), "utf8");
+    const packageJson = JSON.parse(
+      await readFile(join(target, "package.json"), "utf8"),
+    );
+    const agents = generateAgentsMdContent(
+      "en",
+      names,
+      packageManager,
+      "example",
+    );
+    const readme = generateReadmeContent(
+      "en",
+      names,
+      packageManager,
+      "Apache-2.0",
+    );
+    assert.match(gleamToml, new RegExp(`runtime = "${runtime}"`));
+    assert.match(gleamToml, new RegExp(`pm = "${packageManager}"`));
+    assert.match(gleamToml, /compatibility = "experimental-native"/);
+    assert.match(packageJson.scripts.build, new RegExp(`--runtime ${runtime}$`));
+    assert.match(packageJson.scripts.dev, new RegExp(`--runtime ${runtime}$`));
+    assert.match(packageJson.scripts.test, new RegExp(`--runtime ${runtime}$`));
+    assert.match(agents, new RegExp(`--runtime ${runtime}`));
+    assert.match(readme, new RegExp(`--runtime ${runtime}`));
+
+    if (packageManager === "deno") {
+      assert.match(gleamToml, /\[javascript\.deno\]\nallow_all = true/);
+    } else {
+      assert.doesNotMatch(gleamToml, /\[javascript\.deno\]/);
+    }
+
+    if (packageManager === "yarn") {
+      assert.equal(
+        await readFile(join(target, ".yarnrc.yml"), "utf8"),
+        "nodeLinker: node-modules\nenableScripts: true\n",
+      );
+      assert.equal(packageJson.packageManager, "yarn@4.18.0");
+    } else {
+      await assert.rejects(access(join(target, ".yarnrc.yml")));
+      assert.equal(packageJson.packageManager, undefined);
+    }
+
+    if (packageManager === "pnpm") {
+      const workspace = await readFile(
+        join(target, "pnpm-workspace.yaml"),
+        "utf8",
+      );
+      assert.match(workspace, /publicHoistPattern:\n  - '@babel\/\*'/);
+      assert.match(workspace, /allowBuilds:/);
+      assert.match(workspace, /'@swc\/core': true/);
+    } else {
+      await assert.rejects(access(join(target, "pnpm-workspace.yaml")));
+    }
+  }
+});
+
 test("generated agent guidance uses current boundaries and completion gates", () => {
   const names = generateNames("Agent_Widget");
   const agents = generateAgentsMdContent("en", names, "pnpm", "example");
@@ -101,6 +190,7 @@ test("generated agent guidance uses current boundaries and completion gates", ()
 
   assert.equal(agents, claude);
   assert.match(agents, /\[tools\.glendix\]\.pm = "pnpm"/);
+  assert.match(agents, /compatibility = "experimental-native"/);
   assert.match(agents, /mxp install/);
   assert.match(agents, /Do not claim Mendix or browser compatibility/);
   assert.doesNotMatch(agents, /docs\/glendix_guide|mendraw\/marketplace/);

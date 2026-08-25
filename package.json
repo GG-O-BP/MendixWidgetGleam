@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/glendix-labs/MendixWidgetGleam#readme",
   "engines": {
-    "node": "^22.18.0"
+    "node": ">=22.18.0"
   },
   "packageManager": "bun@1.4.0",
   "license": "Apache-2.0",
@@ -30,8 +30,14 @@
     "dev": "gleam run -m glendix/dev --runtime bun",
     "test": "gleam test --runtime bun"
   },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
   "devDependencies": {
-    "@mendix/pluggable-widgets-tools": "^11.12.1"
+    "@mendix/pluggable-widgets-tools": "^11.12.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5"
   },
   "resolutions": {
     "react": "19.2.8",
@@ -44,5 +50,17 @@
     "react-dom": "19.2.8",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5"
-  }
+  },
+  "allowScripts": {
+    "@parcel/watcher": true,
+    "@swc/core": true,
+    "core-js": true,
+    "unrs-resolver": true
+  },
+  "trustedDependencies": [
+    "@parcel/watcher",
+    "@swc/core",
+    "core-js",
+    "unrs-resolver"
+  ]
 }

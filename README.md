@@ -9,10 +9,34 @@ React bridge, while Mendraw supplies typed access to Mendix runtime values.
 ## Current baseline
 
 - Gleam 1.17 or newer
-- Glendix 5.x and Mendraw 2.x from Hex
+- Glendix 5.1.0 and Mendraw 2.x from Hex
 - Lustre 5.7 and Redraw 19.2
-- Node.js 22.18.x
+- Bun 1.4 for this checked-in project; generated projects may instead use
+  Node.js 22.18 or newer, Deno 2.9, Yarn, or pnpm
 - Mendix Pluggable Widgets Tools 11.12 and React 19.2
+
+## Experimental native compatibility
+
+The reference project and every generated project opt in explicitly:
+
+```toml
+[tools.glendix]
+pm = "bun" # npm, yarn, pnpm, bun, or deno
+compatibility = "experimental-native"
+```
+
+Glendix runs npm, Yarn, and pnpm projects on Node; Bun projects on Bun; and Deno
+projects on Deno. Temporary process-scoped `node`/`npm`/`npx` shims satisfy the
+Mendix tool's mandatory version checks and route its supported package-manager
+calls to the selected manager. The shims are removed after each command and do
+not replace global tools. Therefore Yarn and pnpm also use the bypass even
+though they still use Node; Bun and Deno do not require Node or npm for the
+widget build path.
+
+The generator emits npm's `allowScripts`, Bun's `trustedDependencies`, Yarn's
+`node-modules` linker configuration, pnpm's selective Babel public hoist and
+native build-script allowlist, and Deno permissions/allowlist as appropriate.
+Dependency modules are always invoked with an explicit matching `--runtime`.
 
 ## Package boundaries
 
@@ -30,7 +54,7 @@ flow is `mxp install`, `mendraw/install`, `glendix/install`, then
 ## Start
 
 ```sh
-gleam run -m glendix/install
+gleam run -m glendix/install --runtime bun
 gleam test --runtime bun
 gleam run -m glendix/build --runtime bun
 ```
@@ -47,7 +71,7 @@ gleam docs build
 gleam run -m glendix/dev --runtime bun
 gleam run -m glendix/define --runtime bun
 npm --prefix cli run build:tui
-bun --cwd cli test
+bun run --cwd cli test
 ```
 
 ## Widget architecture
@@ -81,7 +105,7 @@ Install the npm package and list the exports in `gleam.toml`:
 recharts = ["PieChart", "Pie", "Tooltip"]
 ```
 
-Glendix 5 returns typed lookup errors:
+Glendix 5.1.0 returns typed lookup errors:
 
 ```gleam
 import gleam/result
@@ -99,7 +123,8 @@ pub fn pie_chart(
 }
 ```
 
-Run `gleam run -m glendix/install` again after changing npm bindings.
+Run `gleam run -m glendix/install --runtime bun` again after changing npm
+bindings.
 
 ## Project generator
 
@@ -109,7 +134,8 @@ npx create-mendix-widget-gleam my-widget
 
 The CLI generates the widget, tests, `AGENTS.md`, and project-scoped
 `.codex/config.toml`, then installs dependencies and proves that the generated
-project builds an MPK. It exits non-zero when installation or packaging fails.
+project builds an MPK with the selected npm, Yarn, pnpm, Bun, or Deno path. It
+exits non-zero when installation or packaging fails.
 
 ## End-to-end verification
 

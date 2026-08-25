@@ -10,6 +10,7 @@ import { execSync } from "node:child_process";
 import { collect_options } from "../tui/build/dev/javascript/tui/tui.mjs";
 import { collectOptions } from "./prompts.mjs";
 import { generateNames } from "./naming.mjs";
+import { runtimeForPm } from "./pm.mjs";
 import { scaffold } from "./scaffold.mjs";
 import { t, getTemplateComments, getLangLabel } from "./i18n.mjs";
 import {
@@ -38,7 +39,9 @@ const HELP = `
 ${BOLD}create-mendix-widget-gleam${RESET} — Create Gleam + Mendix Pluggable Widget projects
 
 ${BOLD}Usage:${RESET}
-  npx create-mendix-widget-gleam [project-name]
+  create-mendix-widget-gleam [project-name]
+
+  Launch with npx, yarn dlx, pnpm dlx, bunx, or deno x.
 
 ${BOLD}Options:${RESET}
   --help, -h       Show help
@@ -46,7 +49,8 @@ ${BOLD}Options:${RESET}
 
 ${BOLD}Examples:${RESET}
   npx create-mendix-widget-gleam my-cool-widget
-  npx create-mendix-widget-gleam MyCoolWidget
+  bunx create-mendix-widget-gleam MyCoolWidget
+  deno x -A -p create-mendix-widget-gleam create-mendix-widget-gleam my-widget
 `;
 
 const BANNER_LINES = [
@@ -170,6 +174,7 @@ export async function main(args) {
     projectPath,
     packageManager: pm,
   };
+  const runtime = runtimeForPm(pm);
 
   // Scaffold templates
   console.log(`${DIM}${t(lang, "progress.generatingFiles")}${RESET}`);
@@ -226,7 +231,7 @@ export async function main(args) {
   // and generates external npm bindings in one authoritative install step.
   console.log(`\n${BOLD}${t(lang, "progress.glendixInstalling")}${RESET}\n`);
   try {
-    execSync("gleam run -m glendix/install", {
+    execSync(`gleam run -m glendix/install --runtime ${runtime}`, {
       cwd: targetDir,
       stdio: "inherit",
     });
@@ -235,14 +240,16 @@ export async function main(args) {
     console.error(
       `\n${YELLOW}${t(lang, "error.glendixInstallFail")}${RESET}`,
     );
-    console.error(`  ${CYAN}gleam run -m glendix/install${RESET}\n`);
+    console.error(
+      `  ${CYAN}gleam run -m glendix/install --runtime ${runtime}${RESET}\n`,
+    );
     process.exit(1);
   }
 
   // Production build
   console.log(`\n${BOLD}${t(lang, "progress.buildingWidget")}${RESET}\n`);
   try {
-    execSync("gleam run -m glendix/build", {
+    execSync(`gleam run -m glendix/build --runtime ${runtime}`, {
       cwd: targetDir,
       stdio: "inherit",
     });
@@ -251,7 +258,9 @@ export async function main(args) {
     console.error(
       `\n${YELLOW}${t(lang, "error.buildFail")}${RESET}`,
     );
-    console.error(`  ${CYAN}gleam run -m glendix/build${RESET}\n`);
+    console.error(
+      `  ${CYAN}gleam run -m glendix/build --runtime ${runtime}${RESET}\n`,
+    );
     process.exit(1);
   }
 
@@ -262,8 +271,8 @@ ${GREEN}${BOLD}${t(lang, "done.title")}${RESET}
 ${BOLD}${t(lang, "done.nextSteps")}${RESET}
 
   ${CYAN}cd ${names.kebabCase}${RESET}
-  ${CYAN}gleam run -m glendix/dev${RESET}             ${DIM}${t(lang, "done.devServer")}${RESET}
-  ${CYAN}gleam run -m glendix/build${RESET}           ${DIM}${t(lang, "done.prodBuild")}${RESET}
+  ${CYAN}gleam run -m glendix/dev --runtime ${runtime}${RESET}             ${DIM}${t(lang, "done.devServer")}${RESET}
+  ${CYAN}gleam run -m glendix/build --runtime ${runtime}${RESET}           ${DIM}${t(lang, "done.prodBuild")}${RESET}
 `);
 
   // etch TUI 이벤트 서버의 stdin 리스너가 이벤트 루프를 유지하므로 명시적 종료

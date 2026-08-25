@@ -1,0 +1,8 @@
+publicHoistPattern:
+  - '@babel/*'
+
+allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
+  core-js: true
+  unrs-resolver: true

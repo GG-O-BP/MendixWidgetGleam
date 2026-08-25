@@ -5,8 +5,8 @@
   "description": "My widget description",
   "copyright": {{COPYRIGHT_JSON}},
   "author": {{AUTHOR_JSON}},
-  "engines": {
-    "node": "^22.18.0"
+{{PACKAGE_MANAGER_FIELD}}  "engines": {
+    "node": ">=22.18.0"
   },
   "license": "{{LICENSE_ID}}",
   "config": {
@@ -16,13 +16,19 @@
   },
   "packagePath": "{{ORGANIZATION}}",
   "scripts": {
-    "build": "gleam run -m glendix/build",
+    "build": "gleam run -m glendix/build --runtime {{JAVASCRIPT_RUNTIME}}",
     "check": "gleam check",
-    "dev": "gleam run -m glendix/dev",
-    "test": "gleam test"
+    "dev": "gleam run -m glendix/dev --runtime {{JAVASCRIPT_RUNTIME}}",
+    "test": "gleam test --runtime {{JAVASCRIPT_RUNTIME}}"
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "@mendix/pluggable-widgets-tools": "^11.12.1"
+    "@mendix/pluggable-widgets-tools": "^11.12.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5"
   },
   "resolutions": {
     "react": "19.2.8",
@@ -35,5 +41,17 @@
     "react-dom": "19.2.8",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5"
-  }
+  },
+  "allowScripts": {
+    "@parcel/watcher": true,
+    "@swc/core": true,
+    "core-js": true,
+    "unrs-resolver": true
+  },
+  "trustedDependencies": [
+    "@parcel/watcher",
+    "@swc/core",
+    "core-js",
+    "unrs-resolver"
+  ]
 }

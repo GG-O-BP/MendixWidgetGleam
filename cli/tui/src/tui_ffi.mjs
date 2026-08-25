@@ -10,6 +10,8 @@ export function detect_pm() {
   if (ua.startsWith("pnpm/")) return "pnpm";
   if (ua.startsWith("yarn/")) return "yarn";
   if (ua.startsWith("bun/")) return "bun";
+  if (globalThis.Deno?.version?.deno) return "deno";
+  if (globalThis.Bun?.version) return "bun";
   return "npm";
 }
 

@@ -634,6 +634,7 @@ export function collect_options(cli_name) {
                                                     "yarn",
                                                     "pnpm",
                                                     "bun",
+                                                    "deno",
                                                   ]);
                                                   let _block;
                                                   if (detected === "yarn") {
@@ -642,6 +643,8 @@ export function collect_options(cli_name) {
                                                     _block = 2;
                                                   } else if (detected === "bun") {
                                                     _block = 3;
+                                                  } else if (detected === "deno") {
+                                                    _block = 4;
                                                   } else {
                                                     _block = 0;
                                                   }

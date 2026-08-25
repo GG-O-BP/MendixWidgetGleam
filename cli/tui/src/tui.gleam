@@ -422,11 +422,18 @@ pub fn collect_options(cli_name: String) -> Promise(Options) {
 
                                   // 9단계: 패키지 매니저
                                   let detected = detect_pm()
-                                  let pms = ["npm", "yarn", "pnpm", "bun"]
+                                  let pms = [
+                                    "npm",
+                                    "yarn",
+                                    "pnpm",
+                                    "bun",
+                                    "deno",
+                                  ]
                                   let default_idx = case detected {
                                     "yarn" -> 1
                                     "pnpm" -> 2
                                     "bun" -> 3
+                                    "deno" -> 4
                                     _ -> 0
                                   }
                                   let pm_labels =

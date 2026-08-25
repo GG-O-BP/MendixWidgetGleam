@@ -8,14 +8,15 @@ repository = { type = "github", user = "glendix-labs", repo = "MendixWidgetGleam
 
 [javascript]
 typescript_declarations = false
-runtime = "node"
+runtime = "bun"
 
 [tools.glendix]
 pm = "bun"
+compatibility = "experimental-native"
 
 [dependencies]
 gleam_stdlib = ">= 1.0.5 and < 2.0.0"
-glendix = ">= 5.0.0 and < 6.0.0"
+glendix = ">= 5.1.0 and < 6.0.0"
 mendraw = ">= 2.0.0 and < 3.0.0"
 redraw = ">= 19.2.2 and < 20.0.0"
 redraw_dom = ">= 19.2.2 and < 20.0.0"

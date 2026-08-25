@@ -9,11 +9,12 @@ const COMMENT_LANG_INSTRUCTIONS = {
 function generateInstructions(lang, names, pm, organization) {
   const commentInstruction =
     COMMENT_LANG_INSTRUCTIONS[lang] ?? COMMENT_LANG_INSTRUCTIONS.en;
+  const runtime = pm === "bun" || pm === "deno" ? pm : "node";
 
   return `# ${names.pascalCase} agent instructions
 
 This repository builds a Mendix Pluggable Widget from Gleam. The widget uses
-Glendix 5 for build orchestration and the Lustre bridge, Mendraw 2 for Mendix
+Glendix 5.1.0 for build orchestration and the Lustre bridge, Mendraw 2 for Mendix
 client values, and Redraw for the React element boundary.
 
 ## Invariants
@@ -24,6 +25,9 @@ client values, and Redraw for the React element boundary.
   explicitly requests another source.
 - Keep \`[tools.glendix].pm = "${pm}"\`; it makes install/build commands use the
   package manager selected when this project was created.
+- Keep \`[tools.glendix].compatibility = "experimental-native"\`; Glendix uses
+  process-scoped Node/npm shims for Mendix Pluggable Widgets Tools and removes
+  them after each command.
 - Glendix owns build commands and external npm bindings. Mendraw owns Mendix
   values and generated bindings for already-installed MPKs. Marketplace search
   and installation belong to the standalone mxpak/\`mxp\` tool.
@@ -39,16 +43,17 @@ gleam deps download
 gleam format --check src test
 gleam check
 gleam build --warnings-as-errors
-gleam test
-gleam run -m glendix/install
-gleam run -m glendix/build
-gleam run -m glendix/dev
-gleam run -m glendix/define
+gleam test --runtime ${runtime}
+gleam run -m glendix/install --runtime ${runtime}
+gleam run -m glendix/build --runtime ${runtime}
+gleam run -m glendix/dev --runtime ${runtime}
+gleam run -m glendix/define --runtime ${runtime}
 \`\`\`
 
 For an external npm component, install the npm package, add its exports under
 \`[tools.glendix.bindings]\`, then rerun \`glendix/install\`. For a Marketplace
-MPK, run \`mxp install\` first and \`gleam run -m mendraw/install\` second.
+MPK, run \`mxp install\` first and
+\`gleam run -m mendraw/install --runtime ${runtime}\` second.
 
 ## Boundaries and verification
 
