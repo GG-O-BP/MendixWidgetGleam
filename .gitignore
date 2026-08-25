@@ -61,6 +61,11 @@ src/*.js
 # AI
 .claude/
 
+# Glendix Family workspace links
+/.agents/
+/.codex/
+/AGENTS.md
+
 # Mendix marketplace 캐시/설정
 .marketplace-cache/
 
