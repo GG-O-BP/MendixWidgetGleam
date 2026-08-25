@@ -1,4 +1,10 @@
-import { Ok, Error, toList, Empty as $Empty, prepend as listPrepend } from "../gleam.mjs";
+import {
+  Ok,
+  Error,
+  Empty as $Empty,
+  List$Empty$const as $List$Empty$const,
+  prepend as listPrepend,
+} from "../gleam.mjs";
 import * as $list from "../gleam/list.mjs";
 
 /**
@@ -7,11 +13,11 @@ import * as $list from "../gleam/list.mjs";
  * ## Examples
  *
  * ```gleam
- * assert is_ok(Ok(1))
+ * assert result.is_ok(Ok(1))
  * ```
  *
  * ```gleam
- * assert !is_ok(Error(Nil))
+ * assert !result.is_ok(Error(Nil))
  * ```
  */
 export function is_ok(result) {
@@ -28,11 +34,11 @@ export function is_ok(result) {
  * ## Examples
  *
  * ```gleam
- * assert !is_error(Ok(1))
+ * assert !result.is_error(Ok(1))
  * ```
  *
  * ```gleam
- * assert is_error(Error(Nil))
+ * assert result.is_error(Error(Nil))
  * ```
  */
 export function is_error(result) {
@@ -53,11 +59,11 @@ export function is_error(result) {
  * ## Examples
  *
  * ```gleam
- * assert map(over: Ok(1), with: fn(x) { x + 1 }) == Ok(2)
+ * assert result.map(over: Ok(1), with: fn(x) { x + 1 }) == Ok(2)
  * ```
  *
  * ```gleam
- * assert map(over: Error(1), with: fn(x) { x + 1 }) == Error(1)
+ * assert result.map(over: Error(1), with: fn(x) { x + 1 }) == Error(1)
  * ```
  */
 export function map(result, fun) {
@@ -79,11 +85,11 @@ export function map(result, fun) {
  * ## Examples
  *
  * ```gleam
- * assert map_error(over: Error(1), with: fn(x) { x + 1 }) == Error(2)
+ * assert result.map_error(over: Error(1), with: fn(x) { x + 1 }) == Error(2)
  * ```
  *
  * ```gleam
- * assert map_error(over: Ok(1), with: fn(x) { x + 1 }) == Ok(1)
+ * assert result.map_error(over: Ok(1), with: fn(x) { x + 1 }) == Ok(1)
  * ```
  */
 export function map_error(result, fun) {
@@ -101,15 +107,15 @@ export function map_error(result, fun) {
  * ## Examples
  *
  * ```gleam
- * assert flatten(Ok(Ok(1))) == Ok(1)
+ * assert result.flatten(Ok(Ok(1))) == Ok(1)
  * ```
  *
  * ```gleam
- * assert flatten(Ok(Error(""))) == Error("")
+ * assert result.flatten(Ok(Error(""))) == Error("")
  * ```
  *
  * ```gleam
- * assert flatten(Error(Nil)) == Error(Nil)
+ * assert result.flatten(Error(Nil)) == Error(Nil)
  * ```
  */
 export function flatten(result) {
@@ -134,19 +140,19 @@ export function flatten(result) {
  * ## Examples
  *
  * ```gleam
- * assert try(Ok(1), fn(x) { Ok(x + 1) }) == Ok(2)
+ * assert result.try(Ok(1), fn(x) { Ok(x + 1) }) == Ok(2)
  * ```
  *
  * ```gleam
- * assert try(Ok(1), fn(x) { Ok(#("a", x)) }) == Ok(#("a", 1))
+ * assert result.try(Ok(1), fn(x) { Ok(#("a", x)) }) == Ok(#("a", 1))
  * ```
  *
  * ```gleam
- * assert try(Ok(1), fn(_) { Error("Oh no") }) == Error("Oh no")
+ * assert result.try(Ok(1), fn(_) { Error("Oh no") }) == Error("Oh no")
  * ```
  *
  * ```gleam
- * assert try(Error(Nil), fn(x) { Ok(x + 1) }) == Error(Nil)
+ * assert result.try(Error(Nil), fn(x) { Ok(x + 1) }) == Error(Nil)
  * ```
  */
 export function try$(result, fun) {
@@ -165,11 +171,11 @@ export function try$(result, fun) {
  * ## Examples
  *
  * ```gleam
- * assert unwrap(Ok(1), 0) == 1
+ * assert result.unwrap(Ok(1), 0) == 1
  * ```
  *
  * ```gleam
- * assert unwrap(Error(""), 0) == 0
+ * assert result.unwrap(Error(""), 0) == 0
  * ```
  */
 export function unwrap(result, default$) {
@@ -188,11 +194,11 @@ export function unwrap(result, default$) {
  * ## Examples
  *
  * ```gleam
- * assert lazy_unwrap(Ok(1), fn() { 0 }) == 1
+ * assert result.lazy_unwrap(Ok(1), fn() { 0 }) == 1
  * ```
  *
  * ```gleam
- * assert lazy_unwrap(Error(""), fn() { 0 }) == 0
+ * assert result.lazy_unwrap(Error(""), fn() { 0 }) == 0
  * ```
  */
 export function lazy_unwrap(result, default$) {
@@ -211,11 +217,11 @@ export function lazy_unwrap(result, default$) {
  * ## Examples
  *
  * ```gleam
- * assert unwrap_error(Error(1), 0) == 1
+ * assert result.unwrap_error(Error(1), 0) == 1
  * ```
  *
  * ```gleam
- * assert unwrap_error(Ok(""), 0) == 0
+ * assert result.unwrap_error(Ok(""), 0) == 0
  * ```
  */
 export function unwrap_error(result, default$) {
@@ -233,19 +239,19 @@ export function unwrap_error(result, default$) {
  * ## Examples
  *
  * ```gleam
- * assert or(Ok(1), Ok(2)) == Ok(1)
+ * assert result.or(Ok(1), Ok(2)) == Ok(1)
  * ```
  *
  * ```gleam
- * assert or(Ok(1), Error("Error 2")) == Ok(1)
+ * assert result.or(Ok(1), Error("Error 2")) == Ok(1)
  * ```
  *
  * ```gleam
- * assert or(Error("Error 1"), Ok(2)) == Ok(2)
+ * assert result.or(Error("Error 1"), Ok(2)) == Ok(2)
  * ```
  *
  * ```gleam
- * assert or(Error("Error 1"), Error("Error 2")) == Error("Error 2")
+ * assert result.or(Error("Error 1"), Error("Error 2")) == Error("Error 2")
  * ```
  */
 export function or(first, second) {
@@ -264,19 +270,19 @@ export function or(first, second) {
  * ## Examples
  *
  * ```gleam
- * assert lazy_or(Ok(1), fn() { Ok(2) }) == Ok(1)
+ * assert result.lazy_or(Ok(1), fn() { Ok(2) }) == Ok(1)
  * ```
  *
  * ```gleam
- * assert lazy_or(Ok(1), fn() { Error("Error 2") }) == Ok(1)
+ * assert result.lazy_or(Ok(1), fn() { Error("Error 2") }) == Ok(1)
  * ```
  *
  * ```gleam
- * assert lazy_or(Error("Error 1"), fn() { Ok(2) }) == Ok(2)
+ * assert result.lazy_or(Error("Error 1"), fn() { Ok(2) }) == Ok(2)
  * ```
  *
  * ```gleam
- * assert lazy_or(Error("Error 1"), fn() { Error("Error 2") })
+ * assert result.lazy_or(Error("Error 1"), fn() { Error("Error 2") })
  *   == Error("Error 2")
  * ```
  */
@@ -296,11 +302,11 @@ export function lazy_or(first, second) {
  * ## Examples
  *
  * ```gleam
- * assert all([Ok(1), Ok(2)]) == Ok([1, 2])
+ * assert result.all([Ok(1), Ok(2)]) == Ok([1, 2])
  * ```
  *
  * ```gleam
- * assert all([Ok(1), Error("e")]) == Error("e")
+ * assert result.all([Ok(1), Error("e")]) == Error("e")
  * ```
  */
 export function all(results) {
@@ -342,12 +348,12 @@ function partition_loop(loop$results, loop$oks, loop$errors) {
  * ## Examples
  *
  * ```gleam
- * assert partition([Ok(1), Error("a"), Error("b"), Ok(2)])
+ * assert result.partition([Ok(1), Error("a"), Error("b"), Ok(2)])
  *   == #([2, 1], ["b", "a"])
  * ```
  */
 export function partition(results) {
-  return partition_loop(results, toList([]), toList([]));
+  return partition_loop(results, $List$Empty$const, $List$Empty$const);
 }
 
 /**
@@ -356,11 +362,11 @@ export function partition(results) {
  * ## Examples
  *
  * ```gleam
- * assert replace(Ok(1), Nil) == Ok(Nil)
+ * assert result.replace(Ok(1), Nil) == Ok(Nil)
  * ```
  *
  * ```gleam
- * assert replace(Error(1), Nil) == Error(1)
+ * assert result.replace(Error(1), Nil) == Error(1)
  * ```
  */
 export function replace(result, value) {
@@ -377,11 +383,11 @@ export function replace(result, value) {
  * ## Examples
  *
  * ```gleam
- * assert replace_error(Error(1), Nil) == Error(Nil)
+ * assert result.replace_error(Error(1), Nil) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert replace_error(Ok(1), Nil) == Ok(1)
+ * assert result.replace_error(Ok(1), Nil) == Ok(1)
  * ```
  */
 export function replace_error(result, error) {
@@ -398,7 +404,7 @@ export function replace_error(result, error) {
  * ## Examples
  *
  * ```gleam
- * assert values([Ok(1), Error("a"), Ok(3)]) == [1, 3]
+ * assert result.values([Ok(1), Error("a"), Ok(3)]) == [1, 3]
  * ```
  */
 export function values(results) {
@@ -422,19 +428,19 @@ export function values(results) {
  *
  * ```gleam
  * assert Ok(1)
- *   |> try_recover(with: fn(_) { Error("failed to recover") })
+ *   |> result.try_recover(with: fn(_) { Error("failed to recover") })
  *   == Ok(1)
  * ```
  *
  * ```gleam
  * assert Error(1)
- *   |> try_recover(with: fn(error) { Ok(error + 1) })
+ *   |> result.try_recover(with: fn(error) { Ok(error + 1) })
  *   == Ok(2)
  * ```
  *
  * ```gleam
  * assert Error(1)
- *   |> try_recover(with: fn(error) { Error("failed to recover") })
+ *   |> result.try_recover(with: fn(error) { Error("failed to recover") })
  *   == Error("failed to recover")
  * ```
  */

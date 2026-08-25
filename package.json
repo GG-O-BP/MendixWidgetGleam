@@ -2,12 +2,21 @@
   "name": "mendixwidgetgleam",
   "widgetName": "MendixWidget",
   "version": "1.0.0",
-  "description": "My widget description",
-  "copyright": "© Mendix Technology BV 2026. All rights reserved.",
-  "author": "John",
-  "engines": {
-    "node": ">=16"
+  "description": "Reference Mendix Pluggable Widget built with Gleam, Glendix, Mendraw, and Lustre",
+  "copyright": "© 2026 Glendix Labs contributors.",
+  "author": "Glendix Labs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/glendix-labs/MendixWidgetGleam.git"
   },
+  "bugs": {
+    "url": "https://github.com/glendix-labs/MendixWidgetGleam/issues"
+  },
+  "homepage": "https://github.com/glendix-labs/MendixWidgetGleam#readme",
+  "engines": {
+    "node": "^22.18.0"
+  },
+  "packageManager": "bun@1.4.0",
   "license": "Apache-2.0",
   "config": {
     "projectPath": "./tests/testProject",
@@ -16,21 +25,24 @@
   },
   "packagePath": "mendix",
   "scripts": {
-    "prerelease": "echo skipping lint"
+    "build": "gleam run -m glendix/build --runtime bun",
+    "check": "gleam check",
+    "dev": "gleam run -m glendix/dev --runtime bun",
+    "test": "gleam test --runtime bun"
   },
   "devDependencies": {
-    "@mendix/pluggable-widgets-tools": "^11.8.0"
+    "@mendix/pluggable-widgets-tools": "^11.12.1"
   },
   "resolutions": {
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0"
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5"
   },
   "overrides": {
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0"
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5"
   }
 }

@@ -2,54 +2,57 @@ import * as $int from "../../gleam_stdlib/gleam/int.mjs";
 import * as $consts from "../etch/internal/consts.mjs";
 import { csi, esc } from "../etch/internal/consts.mjs";
 import { CustomType as $CustomType } from "../gleam.mjs";
-import { enter_raw, exit_raw, is_raw_mode, window_size } from "../terminal/terminal_ffi.mjs";
 
-export { enter_raw, exit_raw, is_raw_mode, window_size };
-
+/**
+ * Clears the whole screen.
+ */
 export class All extends $CustomType {}
-export const ClearType$All = () => new All();
+export const ClearType$All$const = new All();
+export const ClearType$All = () => ClearType$All$const;
 export const ClearType$isAll = (value) => value instanceof All;
 
+/**
+ * Clears the whole screen and the history.
+ */
 export class Purge extends $CustomType {}
-export const ClearType$Purge = () => new Purge();
+export const ClearType$Purge$const = new Purge();
+export const ClearType$Purge = () => ClearType$Purge$const;
 export const ClearType$isPurge = (value) => value instanceof Purge;
 
+/**
+ * Clears cells from the cursor downwards.
+ */
 export class FromCursorDown extends $CustomType {}
-export const ClearType$FromCursorDown = () => new FromCursorDown();
+export const ClearType$FromCursorDown$const = new FromCursorDown();
+export const ClearType$FromCursorDown = () => ClearType$FromCursorDown$const;
 export const ClearType$isFromCursorDown = (value) =>
   value instanceof FromCursorDown;
 
+/**
+ * Clears cells from the cursor upwards.
+ */
 export class FromCursorUp extends $CustomType {}
-export const ClearType$FromCursorUp = () => new FromCursorUp();
+export const ClearType$FromCursorUp$const = new FromCursorUp();
+export const ClearType$FromCursorUp = () => ClearType$FromCursorUp$const;
 export const ClearType$isFromCursorUp = (value) =>
   value instanceof FromCursorUp;
 
+/**
+ * Clears cells at the current cursor row.
+ */
 export class CurrentLine extends $CustomType {}
-export const ClearType$CurrentLine = () => new CurrentLine();
+export const ClearType$CurrentLine$const = new CurrentLine();
+export const ClearType$CurrentLine = () => ClearType$CurrentLine$const;
 export const ClearType$isCurrentLine = (value) => value instanceof CurrentLine;
 
+/**
+ * Clears cells from the cursor positon until the end.
+ */
 export class UntilNewLine extends $CustomType {}
-export const ClearType$UntilNewLine = () => new UntilNewLine();
+export const ClearType$UntilNewLine$const = new UntilNewLine();
+export const ClearType$UntilNewLine = () => ClearType$UntilNewLine$const;
 export const ClearType$isUntilNewLine = (value) =>
   value instanceof UntilNewLine;
-
-export class FailedToEnterRawMode extends $CustomType {}
-export const TerminalError$FailedToEnterRawMode = () =>
-  new FailedToEnterRawMode();
-export const TerminalError$isFailedToEnterRawMode = (value) =>
-  value instanceof FailedToEnterRawMode;
-
-export class FailedToExitRawMode extends $CustomType {}
-export const TerminalError$FailedToExitRawMode = () =>
-  new FailedToExitRawMode();
-export const TerminalError$isFailedToExitRawMode = (value) =>
-  value instanceof FailedToExitRawMode;
-
-export class CouldNotGetWindowSize extends $CustomType {}
-export const TerminalError$CouldNotGetWindowSize = () =>
-  new CouldNotGetWindowSize();
-export const TerminalError$isCouldNotGetWindowSize = (value) =>
-  value instanceof CouldNotGetWindowSize;
 
 /**
  * Clears the terminal. See [`ClearType`](terminal.html#ClearType).

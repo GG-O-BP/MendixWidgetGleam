@@ -3,6 +3,7 @@ import {
   Error,
   toList,
   Empty as $Empty,
+  List$Empty$const as $List$Empty$const,
   prepend as listPrepend,
   CustomType as $CustomType,
   isEqual,
@@ -16,15 +17,15 @@ import * as $list from "../../gleam/list.mjs";
 import * as $option from "../../gleam/option.mjs";
 import { None, Some } from "../../gleam/option.mjs";
 import {
-  index as bare_index,
-  int as dynamic_int,
   float as dynamic_float,
+  int as dynamic_int,
   bit_array as dynamic_bit_array,
-  list as decode_list,
-  dict as decode_dict,
-  identity as cast,
-  is_null,
   string as dynamic_string,
+  identity as cast,
+  list as decode_list,
+  index as bare_index,
+  dict as decode_dict,
+  is_null,
 } from "../../gleam_stdlib.mjs";
 
 export class DecodeError extends $CustomType {
@@ -66,16 +67,23 @@ class Decoder extends $CustomType {
 export const dynamic = /* @__PURE__ */ new Decoder(decode_dynamic);
 
 /**
- * A decoder that decodes `Bool` values.
+ * A decoder that decodes `Float` values.
+ *
+ * This will not coerse int values into float values, so on platforms with
+ * distinct runtime int and float types (Erlang, not JavaScript) it will fail
+ * for ints. One time this may happen is when decoding JSON data.
+ *
+ * If you want to decode both ints and floats you may want to use the `one_of`
+ * function.
  *
  * ## Examples
  *
  * ```gleam
- * let result = decode.run(dynamic.bool(True), decode.bool)
- * assert result == Ok(True)
+ * let result = decode.run(dynamic.float(3.14), decode.float)
+ * assert result == Ok(3.14)
  * ```
  */
-export const bool = /* @__PURE__ */ new Decoder(decode_bool);
+export const float = /* @__PURE__ */ new Decoder(decode_float);
 
 /**
  * A decoder that decodes `Int` values.
@@ -95,25 +103,6 @@ export const bool = /* @__PURE__ */ new Decoder(decode_bool);
  * ```
  */
 export const int = /* @__PURE__ */ new Decoder(decode_int);
-
-/**
- * A decoder that decodes `Float` values.
- *
- * This will not coerse int values into float values, so on platforms with
- * distinct runtime int and float types (Erlang, not JavaScript) it will fail
- * for ints. One time this may happen is when decoding JSON data.
- *
- * If you want to decode both ints and floats you may want to use the `one_of`
- * function.
- *
- * ## Examples
- *
- * ```gleam
- * let result = decode.run(dynamic.float(3.14), decode.float)
- * assert result == Ok(3.14)
- * ```
- */
-export const float = /* @__PURE__ */ new Decoder(decode_float);
 
 /**
  * A decoder that decodes `BitArray` values. This decoder never returns an error.
@@ -140,6 +129,22 @@ export const bit_array = /* @__PURE__ */ new Decoder(decode_bit_array);
 export const string = /* @__PURE__ */ new Decoder(decode_string);
 
 /**
+ * A decoder that decodes `Bool` values.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * let result = decode.run(dynamic.bool(True), decode.bool)
+ * assert result == Ok(True)
+ * ```
+ */
+export const bool = /* @__PURE__ */ new Decoder(decode_bool);
+
+function decode_dynamic(data) {
+  return [data, $List$Empty$const];
+}
+
+/**
  * Run a decoder on a `Dynamic` value, decoding the value if it is of the
  * desired type, or returning errors.
  *
@@ -157,10 +162,8 @@ export const string = /* @__PURE__ */ new Decoder(decode_string);
  */
 export function run(data, decoder) {
   let $ = decoder.function(data);
-  let maybe_invalid_data;
-  let errors;
-  maybe_invalid_data = $[0];
-  errors = $[1];
+  let maybe_invalid_data = $[0];
+  let errors = $[1];
   if (errors instanceof $Empty) {
     return new Ok(maybe_invalid_data);
   } else {
@@ -168,33 +171,22 @@ export function run(data, decoder) {
   }
 }
 
-/**
- * Finalise a decoder having successfully extracted a value.
- *
- * ## Examples
- *
- * ```gleam
- * let data = dynamic.properties([
- *   #(dynamic.string("email"), dynamic.string("lucy@example.com")),
- *   #(dynamic.string("name"), dynamic.string("Lucy")),
- * ])
- *
- * let decoder = {
- *   use name <- decode.field("name", string)
- *   use email <- decode.field("email", string)
- *   decode.success(SignUp(name: name, email: email))
- * }
- *
- * let result = decode.run(data, decoder)
- * assert result == Ok(SignUp(name: "Lucy", email: "lucy@example.com"))
- * ```
- */
-export function success(data) {
-  return new Decoder((_) => { return [data, toList([])]; });
+function run_dynamic_function(data, name, f) {
+  let $ = f(data);
+  if ($ instanceof Ok) {
+    let data$1 = $[0];
+    return [data$1, $List$Empty$const];
+  } else {
+    let placeholder = $[0];
+    return [
+      placeholder,
+      toList([new DecodeError(name, $dynamic.classify(data), $List$Empty$const)]),
+    ];
+  }
 }
 
-function decode_dynamic(data) {
-  return [data, toList([])];
+function decode_float(data) {
+  return run_dynamic_function(data, "Float", dynamic_float);
 }
 
 /**
@@ -212,57 +204,23 @@ export function map(decoder, transformer) {
   return new Decoder(
     (d) => {
       let $ = decoder.function(d);
-      let data;
-      let errors;
-      data = $[0];
-      errors = $[1];
+      let data = $[0];
+      let errors = $[1];
       return [transformer(data), errors];
     },
   );
 }
 
-/**
- * Apply a transformation function to any errors returned by the decoder.
- */
-export function map_errors(decoder, transformer) {
-  return new Decoder(
-    (d) => {
-      let $ = decoder.function(d);
-      let data;
-      let errors;
-      data = $[0];
-      errors = $[1];
-      return [data, transformer(errors)];
-    },
-  );
+function decode_int(data) {
+  return run_dynamic_function(data, "Int", dynamic_int);
 }
 
-/**
- * Create a new decoder based upon the value of a previous decoder.
- *
- * This may be useful to run one previous decoder to use in further decoding.
- */
-export function then$(decoder, next) {
-  return new Decoder(
-    (dynamic_data) => {
-      let $ = decoder.function(dynamic_data);
-      let data;
-      let errors;
-      data = $[0];
-      errors = $[1];
-      let decoder$1 = next(data);
-      let $1 = decoder$1.function(dynamic_data);
-      let layer;
-      let data$1;
-      layer = $1;
-      data$1 = $1[0];
-      if (errors instanceof $Empty) {
-        return layer;
-      } else {
-        return [data$1, errors];
-      }
-    },
-  );
+function decode_bit_array(data) {
+  return run_dynamic_function(data, "BitArray", dynamic_bit_array);
+}
+
+function decode_string(data) {
+  return run_dynamic_function(data, "String", dynamic_string);
 }
 
 function run_decoders(loop$data, loop$failure, loop$decoders) {
@@ -276,10 +234,8 @@ function run_decoders(loop$data, loop$failure, loop$decoders) {
       let decoder = decoders.head;
       let decoders$1 = decoders.tail;
       let $ = decoder.function(data);
-      let layer;
-      let errors;
-      layer = $;
-      errors = $[1];
+      let layer = $;
+      let errors = $[1];
       if (errors instanceof $Empty) {
         return layer;
       } else {
@@ -302,10 +258,11 @@ function run_decoders(loop$data, loop$failure, loop$decoders) {
  * ## Examples
  *
  * ```gleam
- * let decoder = decode.one_of(decode.string, or: [
- *   decode.int |> decode.map(int.to_string),
- *   decode.float |> decode.map(float.to_string),
- * ])
+ * let decoder =
+ *   decode.one_of(decode.string, or: [
+ *     decode.int |> decode.map(int.to_string),
+ *     decode.float |> decode.map(float.to_string),
+ *   ])
  * assert decode.run(dynamic.int(1000), decoder) == Ok("1000")
  * ```
  */
@@ -313,10 +270,8 @@ export function one_of(first, alternatives) {
   return new Decoder(
     (dynamic_data) => {
       let $ = first.function(dynamic_data);
-      let layer;
-      let errors;
-      layer = $;
-      errors = $[1];
+      let layer = $;
+      let errors = $[1];
       if (errors instanceof $Empty) {
         return layer;
       } else {
@@ -326,35 +281,487 @@ export function one_of(first, alternatives) {
   );
 }
 
+function path_segment_to_string(key) {
+  let decoder = one_of(
+    string,
+    toList([
+      (() => {
+        let _pipe = int;
+        return map(_pipe, $int.to_string);
+      })(),
+      (() => {
+        let _pipe = float;
+        return map(_pipe, $float.to_string);
+      })(),
+    ]),
+  );
+  let $ = run(key, decoder);
+  if ($ instanceof Ok) {
+    let key$1 = $[0];
+    return key$1;
+  } else {
+    return ("<" + $dynamic.classify(key)) + ">";
+  }
+}
+
+function push_path(layer, path) {
+  let path$1 = $list.map(
+    path,
+    (key) => {
+      let _pipe = key;
+      let _pipe$1 = cast(_pipe);
+      return path_segment_to_string(_pipe$1);
+    },
+  );
+  let errors = $list.map(
+    layer[1],
+    (error) => {
+      return new DecodeError(
+        error.expected,
+        error.found,
+        $list.append(path$1, error.path),
+      );
+    },
+  );
+  return [layer[0], errors];
+}
+
 /**
- * Create a decoder that can refer to itself, useful for decoding deeply
- * nested data.
- *
- * Attempting to create a recursive decoder without this function could result
- * in an infinite loop. If you are using `field` or other `use`able functions
- * then you may not need to use this function.
+ * A decoder that decodes lists where all elements are decoded with a given
+ * decoder.
  *
  * ## Examples
  *
  * ```gleam
- * type Nested {
- *   Nested(List(Nested))
- *   Value(String)
- * }
- *
- * fn nested_decoder() -> decode.Decoder(Nested) {
- *   use <- decode.recursive
- *   decode.one_of(decode.string |> decode.map(Value), [
- *     decode.list(nested_decoder()) |> decode.map(Nested),
- *   ])
- * }
+ * let result =
+ *   [1, 2, 3]
+ *   |> list.map(dynamic.int)
+ *   |> dynamic.list
+ *   |> decode.run(decode.list(of: decode.int))
+ * assert result == Ok([1, 2, 3])
  * ```
  */
-export function recursive(inner) {
+export function list(inner) {
   return new Decoder(
     (data) => {
-      let decoder = inner();
-      return decoder.function(data);
+      return decode_list(
+        data,
+        inner.function,
+        (p, k) => { return push_path(p, toList([k])); },
+        0,
+        $List$Empty$const,
+      );
+    },
+  );
+}
+
+function index(
+  loop$path,
+  loop$position,
+  loop$inner,
+  loop$data,
+  loop$handle_miss
+) {
+  while (true) {
+    let path = loop$path;
+    let position = loop$position;
+    let inner = loop$inner;
+    let data = loop$data;
+    let handle_miss = loop$handle_miss;
+    if (path instanceof $Empty) {
+      let _pipe = data;
+      let _pipe$1 = inner(_pipe);
+      return push_path(_pipe$1, $list.reverse(position));
+    } else {
+      let key = path.head;
+      let path$1 = path.tail;
+      let $ = bare_index(data, key);
+      if ($ instanceof Ok) {
+        let $1 = $[0];
+        if ($1 instanceof Some) {
+          let data$1 = $1[0];
+          loop$path = path$1;
+          loop$position = listPrepend(key, position);
+          loop$inner = inner;
+          loop$data = data$1;
+          loop$handle_miss = handle_miss;
+        } else {
+          return handle_miss(data, listPrepend(key, position));
+        }
+      } else {
+        let kind = $[0];
+        let $1 = inner(data);
+        let default$ = $1[0];
+        let _pipe = [
+          default$,
+          toList([
+            new DecodeError(kind, $dynamic.classify(data), $List$Empty$const),
+          ]),
+        ];
+        return push_path(_pipe, $list.reverse(position));
+      }
+    }
+  }
+}
+
+/**
+ * The same as [`field`](#field), except taking a path to the value rather
+ * than a field name.
+ *
+ * This function will index into dictionaries with any key type, and if the key is
+ * an int then it'll also index into Erlang tuples and JavaScript arrays, and
+ * the first eight elements of Gleam lists.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * let data =
+ *   dynamic.properties([
+ *     #(
+ *       dynamic.string("data"),
+ *       dynamic.properties([
+ *         #(dynamic.string("email"), dynamic.string("lucy@example.com")),
+ *         #(dynamic.string("name"), dynamic.string("Lucy")),
+ *       ]),
+ *     ),
+ *   ])
+ *
+ * let decoder = {
+ *   use name <- decode.subfield(["data", "name"], decode.string)
+ *   use email <- decode.subfield(["data", "email"], decode.string)
+ *   decode.success(SignUp(name: name, email: email))
+ * }
+ * let result = decode.run(data, decoder)
+ * assert result == Ok(SignUp(name: "Lucy", email: "lucy@example.com"))
+ * ```
+ */
+export function subfield(field_path, field_decoder, next) {
+  return new Decoder(
+    (data) => {
+      let $ = index(
+        field_path,
+        $List$Empty$const,
+        field_decoder.function,
+        data,
+        (data, position) => {
+          let $1 = field_decoder.function(data);
+          let default$ = $1[0];
+          let _pipe = [
+            default$,
+            toList([new DecodeError("Field", "Nothing", $List$Empty$const)]),
+          ];
+          return push_path(_pipe, $list.reverse(position));
+        },
+      );
+      let out = $[0];
+      let errors1 = $[1];
+      let $1 = next(out).function(data);
+      let out$1 = $1[0];
+      let errors2 = $1[1];
+      return [out$1, $list.append(errors1, errors2)];
+    },
+  );
+}
+
+/**
+ * A decoder that decodes a value that is nested within other values. For
+ * example, decoding a value that is within some deeply nested JSON objects.
+ *
+ * This function will index into dictionaries with any key type, and if the key is
+ * an int then it'll also index into Erlang tuples and JavaScript arrays, and
+ * the first eight elements of Gleam lists.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * let decoder = decode.at(["one", "two"], decode.int)
+ *
+ * let data =
+ *   dynamic.properties([
+ *     #(
+ *       dynamic.string("one"),
+ *       dynamic.properties([
+ *         #(dynamic.string("two"), dynamic.int(1000)),
+ *       ]),
+ *     ),
+ *   ])
+ *
+ * assert decode.run(data, decoder) == Ok(1000)
+ * ```
+ *
+ * ```gleam
+ * assert dynamic.nil()
+ *   |> decode.run(decode.optional(decode.int))
+ *   == Ok(option.None)
+ * ```
+ */
+export function at(path, inner) {
+  return new Decoder(
+    (data) => {
+      return index(
+        path,
+        $List$Empty$const,
+        inner.function,
+        data,
+        (data, position) => {
+          let $ = inner.function(data);
+          let default$ = $[0];
+          let _pipe = [
+            default$,
+            toList([new DecodeError("Field", "Nothing", $List$Empty$const)]),
+          ];
+          return push_path(_pipe, $list.reverse(position));
+        },
+      );
+    },
+  );
+}
+
+/**
+ * Finalise a decoder having successfully extracted a value.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * let data =
+ *   dynamic.properties([
+ *     #(dynamic.string("email"), dynamic.string("lucy@example.com")),
+ *     #(dynamic.string("name"), dynamic.string("Lucy")),
+ *   ])
+ *
+ * let decoder = {
+ *   use name <- decode.field("name", string)
+ *   use email <- decode.field("email", string)
+ *   decode.success(SignUp(name: name, email: email))
+ * }
+ *
+ * let result = decode.run(data, decoder)
+ * assert result == Ok(SignUp(name: "Lucy", email: "lucy@example.com"))
+ * ```
+ */
+export function success(data) {
+  return new Decoder((_) => { return [data, $List$Empty$const]; });
+}
+
+/**
+ * Construct a decode error for some unexpected dynamic data.
+ */
+export function decode_error(expected, found) {
+  return toList([
+    new DecodeError(expected, $dynamic.classify(found), $List$Empty$const),
+  ]);
+}
+
+/**
+ * Run a decoder on a field of a `Dynamic` value, decoding the value if it is
+ * of the desired type, or returning errors. An error is returned if there is
+ * no field for the specified key.
+ *
+ * This function will index into dictionaries with any key type, and if the key is
+ * an int then it'll also index into Erlang tuples and JavaScript arrays, and
+ * the first eight elements of Gleam lists.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * let data =
+ *   dynamic.properties([
+ *     #(dynamic.string("email"), dynamic.string("lucy@example.com")),
+ *     #(dynamic.string("name"), dynamic.string("Lucy")),
+ *   ])
+ *
+ * let decoder = {
+ *   use name <- decode.field("name", string)
+ *   use email <- decode.field("email", string)
+ *   decode.success(SignUp(name: name, email: email))
+ * }
+ *
+ * let result = decode.run(data, decoder)
+ * assert result == Ok(SignUp(name: "Lucy", email: "lucy@example.com"))
+ * ```
+ *
+ * If you wish to decode a value that is more deeply nested within the dynamic
+ * data, see [`subfield`](#subfield) and [`at`](#at).
+ *
+ * If you wish to return a default in the event that a field is not present,
+ * see [`optional_field`](#optional_field) and / [`optionally_at`](#optionally_at).
+ */
+export function field(field_name, field_decoder, next) {
+  return subfield(toList([field_name]), field_decoder, next);
+}
+
+/**
+ * Run a decoder on a field of a `Dynamic` value, decoding the value if it is
+ * of the desired type, or returning errors. The given default value is
+ * returned if there is no field for the specified key.
+ *
+ * This function will index into dictionaries with any key type, and if the key is
+ * an int then it'll also index into Erlang tuples and JavaScript arrays, and
+ * the first eight elements of Gleam lists.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * let data =
+ *   dynamic.properties([
+ *     #(dynamic.string("name"), dynamic.string("Lucy")),
+ *   ])
+ *
+ * let decoder = {
+ *   use name <- decode.field("name", string)
+ *   use email <- decode.optional_field("email", "n/a", string)
+ *   decode.success(SignUp(name: name, email: email))
+ * }
+ *
+ * let result = decode.run(data, decoder)
+ * assert result == Ok(SignUp(name: "Lucy", email: "n/a"))
+ * ```
+ */
+export function optional_field(key, default$, field_decoder, next) {
+  return new Decoder(
+    (data) => {
+      let _block;
+      let _block$1;
+      let $1 = bare_index(data, key);
+      if ($1 instanceof Ok) {
+        let $2 = $1[0];
+        if ($2 instanceof Some) {
+          let data$1 = $2[0];
+          _block$1 = field_decoder.function(data$1);
+        } else {
+          _block$1 = [default$, $List$Empty$const];
+        }
+      } else {
+        let kind = $1[0];
+        _block$1 = [
+          default$,
+          toList([
+            new DecodeError(kind, $dynamic.classify(data), $List$Empty$const),
+          ]),
+        ];
+      }
+      let _pipe = _block$1;
+      _block = push_path(_pipe, toList([key]));
+      let $ = _block;
+      let out = $[0];
+      let errors1 = $[1];
+      let $2 = next(out).function(data);
+      let out$1 = $2[0];
+      let errors2 = $2[1];
+      return [out$1, $list.append(errors1, errors2)];
+    },
+  );
+}
+
+/**
+ * A decoder that decodes a value that is nested within other values. For
+ * example, decoding a value that is within some deeply nested JSON objects.
+ *
+ * This function will index into dictionaries with any key type, and if the key is
+ * an int then it'll also index into Erlang tuples and JavaScript arrays, and
+ * the first eight elements of Gleam lists.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * let decoder = decode.optionally_at(["one", "two"], 100, decode.int)
+ *
+ * let data =
+ *   dynamic.properties([
+ *     #(dynamic.string("one"), dynamic.properties([])),
+ *   ])
+ *
+ * assert decode.run(data, decoder) == Ok(100)
+ * ```
+ */
+export function optionally_at(path, default$, inner) {
+  return new Decoder(
+    (data) => {
+      return index(
+        path,
+        $List$Empty$const,
+        inner.function,
+        data,
+        (_, _1) => { return [default$, $List$Empty$const]; },
+      );
+    },
+  );
+}
+
+function decode_bool(data) {
+  let $ = isEqual(cast(true), data);
+  if ($) {
+    return [true, $List$Empty$const];
+  } else {
+    let $1 = isEqual(cast(false), data);
+    if ($1) {
+      return [false, $List$Empty$const];
+    } else {
+      return [false, decode_error("Bool", data)];
+    }
+  }
+}
+
+function fold_dict(acc, key, value, key_decoder, value_decoder) {
+  let $ = key_decoder(key);
+  let $1 = $[1];
+  if ($1 instanceof $Empty) {
+    let key_decoded = $[0];
+    let $2 = value_decoder(value);
+    let $3 = $2[1];
+    if ($3 instanceof $Empty) {
+      let value$1 = $2[0];
+      let dict$1 = $dict.insert(acc[0], key_decoded, value$1);
+      return [dict$1, acc[1]];
+    } else {
+      let errors = $3;
+      let key_identifier = path_segment_to_string(key);
+      return push_path([$dict.new$(), errors], toList([key_identifier]));
+    }
+  } else {
+    let errors = $1;
+    return push_path([$dict.new$(), errors], toList(["keys"]));
+  }
+}
+
+/**
+ * A decoder that decodes dicts where all keys and values are decoded with
+ * given decoders.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * let values =
+ *   dynamic.properties([
+ *     #(dynamic.string("one"), dynamic.int(1)),
+ *     #(dynamic.string("two"), dynamic.int(2)),
+ *   ])
+ *
+ * let result = decode.run(values, decode.dict(decode.string, decode.int))
+ * assert result == Ok(values)
+ * ```
+ */
+export function dict(key, value) {
+  return new Decoder(
+    (data) => {
+      let $ = decode_dict(data);
+      if ($ instanceof Ok) {
+        let dict$1 = $[0];
+        return $dict.fold(
+          dict$1,
+          [$dict.new$(), $List$Empty$const],
+          (a, k, v) => {
+            let $1 = a[1];
+            if ($1 instanceof $Empty) {
+              return fold_dict(a, k, v, key.function, value.function);
+            } else {
+              return a;
+            }
+          },
+        );
+      } else {
+        return [$dict.new$(), decode_error("Dict", data)];
+      }
     },
   );
 }
@@ -384,13 +791,11 @@ export function optional(inner) {
     (data) => {
       let $ = is_null(data);
       if ($) {
-        return [new $option.None(), toList([])];
+        return [$option.Option$None$const, $List$Empty$const];
       } else {
         let $1 = inner.function(data);
-        let data$1;
-        let errors;
-        data$1 = $1[0];
-        errors = $1[1];
+        let data$1 = $1[0];
+        let errors = $1[1];
         return [new $option.Some(data$1), errors];
       }
     },
@@ -398,52 +803,17 @@ export function optional(inner) {
 }
 
 /**
- * Construct a decode error for some unexpected dynamic data.
+ * Apply a transformation function to any errors returned by the decoder.
  */
-export function decode_error(expected, found) {
-  return toList([
-    new DecodeError(expected, $dynamic.classify(found), toList([])),
-  ]);
-}
-
-function run_dynamic_function(data, name, f) {
-  let $ = f(data);
-  if ($ instanceof Ok) {
-    let data$1 = $[0];
-    return [data$1, toList([])];
-  } else {
-    let placeholder = $[0];
-    return [
-      placeholder,
-      toList([new DecodeError(name, $dynamic.classify(data), toList([]))]),
-    ];
-  }
-}
-
-function decode_bool(data) {
-  let $ = isEqual(cast(true), data);
-  if ($) {
-    return [true, toList([])];
-  } else {
-    let $1 = isEqual(cast(false), data);
-    if ($1) {
-      return [false, toList([])];
-    } else {
-      return [false, decode_error("Bool", data)];
-    }
-  }
-}
-
-function decode_int(data) {
-  return run_dynamic_function(data, "Int", dynamic_int);
-}
-
-function decode_float(data) {
-  return run_dynamic_function(data, "Float", dynamic_float);
-}
-
-function decode_bit_array(data) {
-  return run_dynamic_function(data, "BitArray", dynamic_bit_array);
+export function map_errors(decoder, transformer) {
+  return new Decoder(
+    (d) => {
+      let $ = decoder.function(d);
+      let data = $[0];
+      let errors = $[1];
+      return [data, transformer(errors)];
+    },
+  );
 }
 
 /**
@@ -465,16 +835,37 @@ export function collapse_errors(decoder, name) {
   return new Decoder(
     (dynamic_data) => {
       let $ = decoder.function(dynamic_data);
-      let layer;
-      let data;
-      let errors;
-      layer = $;
-      data = $[0];
-      errors = $[1];
+      let layer = $;
+      let data = $[0];
+      let errors = $[1];
       if (errors instanceof $Empty) {
         return layer;
       } else {
         return [data, decode_error(name, dynamic_data)];
+      }
+    },
+  );
+}
+
+/**
+ * Create a new decoder based upon the value of a previous decoder.
+ *
+ * This may be useful to run one previous decoder to use in further decoding.
+ */
+export function then$(decoder, next) {
+  return new Decoder(
+    (dynamic_data) => {
+      let $ = decoder.function(dynamic_data);
+      let data = $[0];
+      let errors = $[1];
+      let decoder$1 = next(data);
+      let $1 = decoder$1.function(dynamic_data);
+      let layer = $1;
+      let data$1 = $1[0];
+      if (errors instanceof $Empty) {
+        return layer;
+      } else {
+        return [data$1, errors];
       }
     },
   );
@@ -515,7 +906,7 @@ export function failure(placeholder, name) {
  * `[]`.
  *
  * If you were to make a decoder for the `Int` type (rather than using the
- * build-in `Int` decoder) you would define it like so:
+ * built-in `Int` decoder) you would define it like so:
  *
  * ```gleam
  * pub fn int_decoder() -> decode.Decoder(Int) {
@@ -544,450 +935,49 @@ export function new_primitive_decoder(name, decoding_function) {
       let $ = decoding_function(d);
       if ($ instanceof Ok) {
         let t = $[0];
-        return [t, toList([])];
+        return [t, $List$Empty$const];
       } else {
         let placeholder = $[0];
         return [
           placeholder,
-          toList([new DecodeError(name, $dynamic.classify(d), toList([]))]),
+          toList([
+            new DecodeError(name, $dynamic.classify(d), $List$Empty$const),
+          ]),
         ];
       }
     },
   );
 }
 
-function decode_string(data) {
-  return run_dynamic_function(data, "String", dynamic_string);
-}
-
-function path_segment_to_string(key) {
-  let decoder = one_of(
-    string,
-    toList([
-      (() => {
-        let _pipe = int;
-        return map(_pipe, $int.to_string);
-      })(),
-      (() => {
-        let _pipe = float;
-        return map(_pipe, $float.to_string);
-      })(),
-    ]),
-  );
-  let $ = run(key, decoder);
-  if ($ instanceof Ok) {
-    let key$1 = $[0];
-    return key$1;
-  } else {
-    return ("<" + $dynamic.classify(key)) + ">";
-  }
-}
-
-function fold_dict(acc, key, value, key_decoder, value_decoder) {
-  let $ = key_decoder(key);
-  let $1 = $[1];
-  if ($1 instanceof $Empty) {
-    let key_decoded = $[0];
-    let $2 = value_decoder(value);
-    let $3 = $2[1];
-    if ($3 instanceof $Empty) {
-      let value$1 = $2[0];
-      let dict$1 = $dict.insert(acc[0], key_decoded, value$1);
-      return [dict$1, acc[1]];
-    } else {
-      let errors = $3;
-      let key_identifier = path_segment_to_string(key);
-      return push_path([$dict.new$(), errors], toList([key_identifier]));
-    }
-  } else {
-    let errors = $1;
-    return push_path([$dict.new$(), errors], toList(["keys"]));
-  }
-}
-
 /**
- * A decoder that decodes dicts where all keys and values are decoded with
- * given decoders.
+ * Create a decoder that can refer to itself, useful for decoding deeply
+ * nested data.
+ *
+ * Attempting to create a recursive decoder without this function could result
+ * in an infinite loop. If you are using `field` or other `use`able functions
+ * then you may not need to use this function.
  *
  * ## Examples
  *
  * ```gleam
- * let values = dynamic.properties([
- *   #(dynamic.string("one"), dynamic.int(1)),
- *   #(dynamic.string("two"), dynamic.int(2)),
- * ])
+ * type Nested {
+ *   Nested(List(Nested))
+ *   Value(String)
+ * }
  *
- * let result =
- *   decode.run(values, decode.dict(decode.string, decode.int))
- * assert result == Ok(values)
- * ```
- */
-export function dict(key, value) {
-  return new Decoder(
-    (data) => {
-      let $ = decode_dict(data);
-      if ($ instanceof Ok) {
-        let dict$1 = $[0];
-        return $dict.fold(
-          dict$1,
-          [$dict.new$(), toList([])],
-          (a, k, v) => {
-            let $1 = a[1];
-            if ($1 instanceof $Empty) {
-              return fold_dict(a, k, v, key.function, value.function);
-            } else {
-              return a;
-            }
-          },
-        );
-      } else {
-        return [$dict.new$(), decode_error("Dict", data)];
-      }
-    },
-  );
-}
-
-/**
- * A decoder that decodes lists where all elements are decoded with a given
- * decoder.
- *
- * ## Examples
- *
- * ```gleam
- * let result =
- *   [1, 2, 3]
- *   |> list.map(dynamic.int)
- *   |> dynamic.list
- *   |> decode.run(decode.list(of: decode.int))
- * assert result == Ok([1, 2, 3])
- * ```
- */
-export function list(inner) {
-  return new Decoder(
-    (data) => {
-      return decode_list(
-        data,
-        inner.function,
-        (p, k) => { return push_path(p, toList([k])); },
-        0,
-        toList([]),
-      );
-    },
-  );
-}
-
-function push_path(layer, path) {
-  let path$1 = $list.map(
-    path,
-    (key) => {
-      let _pipe = key;
-      let _pipe$1 = cast(_pipe);
-      return path_segment_to_string(_pipe$1);
-    },
-  );
-  let errors = $list.map(
-    layer[1],
-    (error) => {
-      return new DecodeError(
-        error.expected,
-        error.found,
-        $list.append(path$1, error.path),
-      );
-    },
-  );
-  return [layer[0], errors];
-}
-
-function index(
-  loop$path,
-  loop$position,
-  loop$inner,
-  loop$data,
-  loop$handle_miss
-) {
-  while (true) {
-    let path = loop$path;
-    let position = loop$position;
-    let inner = loop$inner;
-    let data = loop$data;
-    let handle_miss = loop$handle_miss;
-    if (path instanceof $Empty) {
-      let _pipe = data;
-      let _pipe$1 = inner(_pipe);
-      return push_path(_pipe$1, $list.reverse(position));
-    } else {
-      let key = path.head;
-      let path$1 = path.tail;
-      let $ = bare_index(data, key);
-      if ($ instanceof Ok) {
-        let $1 = $[0];
-        if ($1 instanceof Some) {
-          let data$1 = $1[0];
-          loop$path = path$1;
-          loop$position = listPrepend(key, position);
-          loop$inner = inner;
-          loop$data = data$1;
-          loop$handle_miss = handle_miss;
-        } else {
-          return handle_miss(data, listPrepend(key, position));
-        }
-      } else {
-        let kind = $[0];
-        let $1 = inner(data);
-        let default$;
-        default$ = $1[0];
-        let _pipe = [
-          default$,
-          toList([new DecodeError(kind, $dynamic.classify(data), toList([]))]),
-        ];
-        return push_path(_pipe, $list.reverse(position));
-      }
-    }
-  }
-}
-
-/**
- * The same as [`field`](#field), except taking a path to the value rather
- * than a field name.
- *
- * This function will index into dictionaries with any key type, and if the key is
- * an int then it'll also index into Erlang tuples and JavaScript arrays, and
- * the first eight elements of Gleam lists.
- *
- * ## Examples
- *
- * ```gleam
- * let data = dynamic.properties([
- *   #(dynamic.string("data"), dynamic.properties([
- *     #(dynamic.string("email"), dynamic.string("lucy@example.com")),
- *     #(dynamic.string("name"), dynamic.string("Lucy")),
+ * fn nested_decoder() -> decode.Decoder(Nested) {
+ *   use <- decode.recursive
+ *   decode.one_of(decode.string |> decode.map(Value), [
+ *     decode.list(nested_decoder()) |> decode.map(Nested),
  *   ])
- * ])
- *
- * let decoder = {
- *   use name <- decode.subfield(["data", "name"], decode.string)
- *   use email <- decode.subfield(["data", "email"], decode.string)
- *   decode.success(SignUp(name: name, email: email))
  * }
- * let result = decode.run(data, decoder)
- * assert result == Ok(SignUp(name: "Lucy", email: "lucy@example.com"))
  * ```
  */
-export function subfield(field_path, field_decoder, next) {
+export function recursive(inner) {
   return new Decoder(
     (data) => {
-      let $ = index(
-        field_path,
-        toList([]),
-        field_decoder.function,
-        data,
-        (data, position) => {
-          let $1 = field_decoder.function(data);
-          let default$;
-          default$ = $1[0];
-          let _pipe = [
-            default$,
-            toList([new DecodeError("Field", "Nothing", toList([]))]),
-          ];
-          return push_path(_pipe, $list.reverse(position));
-        },
-      );
-      let out;
-      let errors1;
-      out = $[0];
-      errors1 = $[1];
-      let $1 = next(out).function(data);
-      let out$1;
-      let errors2;
-      out$1 = $1[0];
-      errors2 = $1[1];
-      return [out$1, $list.append(errors1, errors2)];
-    },
-  );
-}
-
-/**
- * A decoder that decodes a value that is nested within other values. For
- * example, decoding a value that is within some deeply nested JSON objects.
- *
- * This function will index into dictionaries with any key type, and if the key is
- * an int then it'll also index into Erlang tuples and JavaScript arrays, and
- * the first eight elements of Gleam lists.
- *
- * ## Examples
- *
- * ```gleam
- * let decoder = decode.at(["one", "two"], decode.int)
- *
- * let data = dynamic.properties([
- *   #(dynamic.string("one"), dynamic.properties([
- *     #(dynamic.string("two"), dynamic.int(1000)),
- *   ]),
- * ])
- *
- * assert decode.run(data, decoder) == Ok(1000)
- * ```
- *
- * ```gleam
- * assert dynamic.nil()
- *   |> decode.run(decode.optional(decode.int))
- *   == Ok(option.None)
- * ```
- */
-export function at(path, inner) {
-  return new Decoder(
-    (data) => {
-      return index(
-        path,
-        toList([]),
-        inner.function,
-        data,
-        (data, position) => {
-          let $ = inner.function(data);
-          let default$;
-          default$ = $[0];
-          let _pipe = [
-            default$,
-            toList([new DecodeError("Field", "Nothing", toList([]))]),
-          ];
-          return push_path(_pipe, $list.reverse(position));
-        },
-      );
-    },
-  );
-}
-
-/**
- * Run a decoder on a field of a `Dynamic` value, decoding the value if it is
- * of the desired type, or returning errors. An error is returned if there is
- * no field for the specified key.
- *
- * This function will index into dictionaries with any key type, and if the key is
- * an int then it'll also index into Erlang tuples and JavaScript arrays, and
- * the first eight elements of Gleam lists.
- *
- * ## Examples
- *
- * ```gleam
- * let data = dynamic.properties([
- *   #(dynamic.string("email"), dynamic.string("lucy@example.com")),
- *   #(dynamic.string("name"), dynamic.string("Lucy")),
- * ])
- *
- * let decoder = {
- *   use name <- decode.field("name", string)
- *   use email <- decode.field("email", string)
- *   decode.success(SignUp(name: name, email: email))
- * }
- *
- * let result = decode.run(data, decoder)
- * assert result == Ok(SignUp(name: "Lucy", email: "lucy@example.com"))
- * ```
- *
- * If you wish to decode a value that is more deeply nested within the dynamic
- * data, see [`subfield`](#subfield) and [`at`](#at).
- *
- * If you wish to return a default in the event that a field is not present,
- * see [`optional_field`](#optional_field) and / [`optionally_at`](#optionally_at).
- */
-export function field(field_name, field_decoder, next) {
-  return subfield(toList([field_name]), field_decoder, next);
-}
-
-/**
- * Run a decoder on a field of a `Dynamic` value, decoding the value if it is
- * of the desired type, or returning errors. The given default value is
- * returned if there is no field for the specified key.
- *
- * This function will index into dictionaries with any key type, and if the key is
- * an int then it'll also index into Erlang tuples and JavaScript arrays, and
- * the first eight elements of Gleam lists.
- *
- * ## Examples
- *
- * ```gleam
- * let data = dynamic.properties([
- *   #(dynamic.string("name"), dynamic.string("Lucy")),
- * ])
- *
- * let decoder = {
- *   use name <- decode.field("name", string)
- *   use email <- decode.optional_field("email", "n/a", string)
- *   decode.success(SignUp(name: name, email: email))
- * }
- *
- * let result = decode.run(data, decoder)
- * assert result == Ok(SignUp(name: "Lucy", email: "n/a"))
- * ```
- */
-export function optional_field(key, default$, field_decoder, next) {
-  return new Decoder(
-    (data) => {
-      let _block;
-      let _block$1;
-      let $1 = bare_index(data, key);
-      if ($1 instanceof Ok) {
-        let $2 = $1[0];
-        if ($2 instanceof Some) {
-          let data$1 = $2[0];
-          _block$1 = field_decoder.function(data$1);
-        } else {
-          _block$1 = [default$, toList([])];
-        }
-      } else {
-        let kind = $1[0];
-        _block$1 = [
-          default$,
-          toList([new DecodeError(kind, $dynamic.classify(data), toList([]))]),
-        ];
-      }
-      let _pipe = _block$1;
-      _block = push_path(_pipe, toList([key]));
-      let $ = _block;
-      let out;
-      let errors1;
-      out = $[0];
-      errors1 = $[1];
-      let $2 = next(out).function(data);
-      let out$1;
-      let errors2;
-      out$1 = $2[0];
-      errors2 = $2[1];
-      return [out$1, $list.append(errors1, errors2)];
-    },
-  );
-}
-
-/**
- * A decoder that decodes a value that is nested within other values. For
- * example, decoding a value that is within some deeply nested JSON objects.
- *
- * This function will index into dictionaries with any key type, and if the key is
- * an int then it'll also index into Erlang tuples and JavaScript arrays, and
- * the first eight elements of Gleam lists.
- *
- * ## Examples
- *
- * ```gleam
- * let decoder = decode.optionally_at(["one", "two"], 100, decode.int)
- *
- * let data = dynamic.properties([
- *   #(dynamic.string("one"), dynamic.properties([])),
- * ])
- *
- * assert decode.run(data, decoder) == Ok(100)
- * ```
- */
-export function optionally_at(path, default$, inner) {
-  return new Decoder(
-    (data) => {
-      return index(
-        path,
-        toList([]),
-        inner.function,
-        data,
-        (_, _1) => { return [default$, toList([])]; },
-      );
+      let decoder = inner();
+      return decoder.function(data);
     },
   );
 }

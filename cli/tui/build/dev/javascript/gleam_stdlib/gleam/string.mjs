@@ -9,7 +9,7 @@ import {
 } from "../gleam.mjs";
 import * as $list from "../gleam/list.mjs";
 import * as $option from "../gleam/option.mjs";
-import { None, Some } from "../gleam/option.mjs";
+import { Some, Option$None$const } from "../gleam/option.mjs";
 import * as $order from "../gleam/order.mjs";
 import * as $string_tree from "../gleam/string_tree.mjs";
 import {
@@ -20,20 +20,22 @@ import {
   string_grapheme_slice as grapheme_slice,
   string_byte_slice as unsafe_byte_slice,
   crop_string as crop,
+  byte_size,
   contains_string as contains,
   starts_with,
   ends_with,
-  split_once,
-  trim_start,
-  trim_end,
   pop_grapheme,
   graphemes as to_graphemes,
+  split_once,
+  trim_end,
+  trim_start,
   codepoint as unsafe_int_to_utf_codepoint,
   string_to_codepoint_integer_list,
   utf_codepoint_list_to_string as from_utf_codepoints,
   utf_codepoint_to_int,
   inspect as do_inspect,
-  byte_size,
+  string_remove_prefix as remove_prefix,
+  string_remove_suffix as remove_suffix,
 } from "../gleam_stdlib.mjs";
 
 export {
@@ -45,6 +47,8 @@ export {
   length,
   lowercase,
   pop_grapheme,
+  remove_prefix,
+  remove_suffix,
   split_once,
   starts_with,
   to_graphemes,
@@ -55,8 +59,10 @@ export {
 };
 
 class Leading extends $CustomType {}
+const Direction$Leading$const = new Leading();
 
 class Trailing extends $CustomType {}
+const Direction$Trailing$const = new Trailing();
 
 /**
  * Determines if a `String` is empty.
@@ -64,11 +70,11 @@ class Trailing extends $CustomType {}
  * ## Examples
  *
  * ```gleam
- * assert is_empty("")
+ * assert string.is_empty("")
  * ```
  *
  * ```gleam
- * assert !is_empty("the world")
+ * assert !string.is_empty("the world")
  * ```
  */
 export function is_empty(str) {
@@ -84,7 +90,7 @@ export function is_empty(str) {
  * ## Examples
  *
  * ```gleam
- * assert reverse("stressed") == "desserts"
+ * assert string.reverse("stressed") == "desserts"
  * ```
  */
 export function reverse(string) {
@@ -100,11 +106,12 @@ export function reverse(string) {
  * ## Examples
  *
  * ```gleam
- * assert replace("www.example.com", each: ".", with: "-") == "www-example-com"
+ * assert string.replace("www.example.com", each: ".", with: "-")
+ *   == "www-example-com"
  * ```
  *
  * ```gleam
- * assert replace("a,b,c,d,e", each: ",", with: "/") == "a/b/c/d/e"
+ * assert string.replace("a,b,c,d,e", each: ",", with: "/") == "a/b/c/d/e"
  * ```
  */
 export function replace(string, pattern, substitute) {
@@ -124,25 +131,25 @@ export function replace(string, pattern, substitute) {
  * ```gleam
  * import gleam/order
  *
- * assert compare("Anthony", "Anthony") == order.Eq
+ * assert string.compare("Anthony", "Anthony") == order.Eq
  * ```
  *
  * ```gleam
  * import gleam/order
  *
- * assert compare("A", "B") == order.Lt
+ * assert string.compare("A", "B") == order.Lt
  * ```
  */
 export function compare(a, b) {
   let $ = a === b;
   if ($) {
-    return new $order.Eq();
+    return $order.Order$Eq$const;
   } else {
     let $1 = less_than(a, b);
     if ($1) {
-      return new $order.Lt();
+      return $order.Order$Lt$const;
     } else {
-      return new $order.Gt();
+      return $order.Order$Gt$const;
     }
   }
 }
@@ -158,23 +165,23 @@ export function compare(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert slice(from: "gleam", at_index: 1, length: 2) == "le"
+ * assert string.slice(from: "gleam", at_index: 1, length: 2) == "le"
  * ```
  *
  * ```gleam
- * assert slice(from: "gleam", at_index: 1, length: 10) == "leam"
+ * assert string.slice(from: "gleam", at_index: 1, length: 10) == "leam"
  * ```
  *
  * ```gleam
- * assert slice(from: "gleam", at_index: 10, length: 3) == ""
+ * assert string.slice(from: "gleam", at_index: 10, length: 3) == ""
  * ```
  *
  * ```gleam
- * assert slice(from: "gleam", at_index: -2, length: 2) == "am"
+ * assert string.slice(from: "gleam", at_index: -2, length: 2) == "am"
  * ```
  *
  * ```gleam
- * assert slice(from: "gleam", at_index: -12, length: 2) == ""
+ * assert string.slice(from: "gleam", at_index: -12, length: 2) == ""
  * ```
  */
 export function slice(string, idx, len) {
@@ -198,6 +205,32 @@ export function slice(string, idx, len) {
 }
 
 /**
+ * Drops *n* graphemes from the start of a `String`.
+ *
+ * This function runs in linear time with the number of graphemes to drop.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * assert string.drop_start(from: "The Lone Gunmen", up_to: 2) == "e Lone Gunmen"
+ * ```
+ */
+export function drop_start(string, num_graphemes) {
+  let $ = num_graphemes <= 0;
+  if ($) {
+    return string;
+  } else {
+    let prefix = grapheme_slice(string, 0, num_graphemes);
+    let prefix_size = byte_size(prefix);
+    return unsafe_byte_slice(
+      string,
+      prefix_size,
+      byte_size(string) - prefix_size,
+    );
+  }
+}
+
+/**
  * Drops *n* graphemes from the end of a `String`.
  *
  * This function traverses the full string, so it runs in linear time with the
@@ -206,7 +239,7 @@ export function slice(string, idx, len) {
  * ## Examples
  *
  * ```gleam
- * assert drop_end(from: "Cigarette Smoking Man", up_to: 2)
+ * assert string.drop_end(from: "Cigarette Smoking Man", up_to: 2)
  *   == "Cigarette Smoking M"
  * ```
  */
@@ -216,6 +249,43 @@ export function drop_end(string, num_graphemes) {
     return string;
   } else {
     return slice(string, 0, length(string) - num_graphemes);
+  }
+}
+
+function to_graphemes_loop(loop$string, loop$acc) {
+  while (true) {
+    let string = loop$string;
+    let acc = loop$acc;
+    let $ = pop_grapheme(string);
+    if ($ instanceof Ok) {
+      let grapheme = $[0][0];
+      let rest = $[0][1];
+      loop$string = rest;
+      loop$acc = listPrepend(grapheme, acc);
+    } else {
+      return acc;
+    }
+  }
+}
+
+/**
+ * Creates a list of `String`s by splitting a given string on a given substring.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * assert string.split("home/gleam/desktop/", on: "/")
+ *   == ["home", "gleam", "desktop", ""]
+ * ```
+ */
+export function split(x, substring) {
+  if (substring === "") {
+    return to_graphemes(x);
+  } else {
+    let _pipe = x;
+    let _pipe$1 = $string_tree.from_string(_pipe);
+    let _pipe$2 = $string_tree.split(_pipe$1, substring);
+    return $list.map(_pipe$2, $string_tree.to_string);
   }
 }
 
@@ -234,7 +304,7 @@ export function drop_end(string, num_graphemes) {
  * ## Examples
  *
  * ```gleam
- * assert append(to: "butter", suffix: "fly") == "butterfly"
+ * assert string.append(to: "butter", suffix: "fly") == "butterfly"
  * ```
  */
 export function append(first, second) {
@@ -264,7 +334,7 @@ function concat_loop(loop$strings, loop$accumulator) {
  * ## Examples
  *
  * ```gleam
- * assert concat(["never", "the", "less"]) == "nevertheless"
+ * assert string.concat(["never", "the", "less"]) == "nevertheless"
  * ```
  */
 export function concat(strings) {
@@ -304,7 +374,7 @@ function repeat_loop(loop$times, loop$doubling_acc, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert repeat("ha", times: 3) == "hahaha"
+ * assert string.repeat("ha", times: 3) == "hahaha"
  * ```
  */
 export function repeat(string, times) {
@@ -341,7 +411,8 @@ function join_loop(loop$strings, loop$separator, loop$accumulator) {
  * ## Examples
  *
  * ```gleam
- * assert join(["home","evan","Desktop"], with: "/") == "home/evan/Desktop"
+ * assert string.join(["home", "evan", "Desktop"], with: "/")
+ *   == "home/evan/Desktop"
  * ```
  */
 export function join(strings, separator) {
@@ -367,15 +438,15 @@ function padding(size, pad_string) {
  * ## Examples
  *
  * ```gleam
- * assert pad_start("121", to: 5, with: ".") == "..121"
+ * assert string.pad_start("121", to: 5, with: ".") == "..121"
  * ```
  *
  * ```gleam
- * assert pad_start("121", to: 3, with: ".") == "121"
+ * assert string.pad_start("121", to: 3, with: ".") == "121"
  * ```
  *
  * ```gleam
- * assert pad_start("121", to: 2, with: ".") == "121"
+ * assert string.pad_start("121", to: 2, with: ".") == "121"
  * ```
  */
 export function pad_start(string, desired_length, pad_string) {
@@ -395,15 +466,15 @@ export function pad_start(string, desired_length, pad_string) {
  * ## Examples
  *
  * ```gleam
- * assert pad_end("123", to: 5, with: ".") == "123.."
+ * assert string.pad_end("123", to: 5, with: ".") == "123.."
  * ```
  *
  * ```gleam
- * assert pad_end("123", to: 3, with: ".") == "123"
+ * assert string.pad_end("123", to: 3, with: ".") == "123"
  * ```
  *
  * ```gleam
- * assert pad_end("123", to: 2, with: ".") == "123"
+ * assert string.pad_end("123", to: 2, with: ".") == "123"
  * ```
  */
 export function pad_end(string, desired_length, pad_string) {
@@ -428,50 +499,13 @@ export function pad_end(string, desired_length, pad_string) {
  * ## Examples
  *
  * ```gleam
- * assert trim("  hats  \n") == "hats"
+ * assert string.trim("  hats  \n") == "hats"
  * ```
  */
 export function trim(string) {
   let _pipe = string;
   let _pipe$1 = trim_start(_pipe);
   return trim_end(_pipe$1);
-}
-
-function to_graphemes_loop(loop$string, loop$acc) {
-  while (true) {
-    let string = loop$string;
-    let acc = loop$acc;
-    let $ = pop_grapheme(string);
-    if ($ instanceof Ok) {
-      let grapheme = $[0][0];
-      let rest = $[0][1];
-      loop$string = rest;
-      loop$acc = listPrepend(grapheme, acc);
-    } else {
-      return acc;
-    }
-  }
-}
-
-/**
- * Creates a list of `String`s by splitting a given string on a given substring.
- *
- * ## Examples
- *
- * ```gleam
- * assert split("home/gleam/desktop/", on: "/")
- *   == ["home", "gleam", "desktop", ""]
- * ```
- */
-export function split(x, substring) {
-  if (substring === "") {
-    return to_graphemes(x);
-  } else {
-    let _pipe = x;
-    let _pipe$1 = $string_tree.from_string(_pipe);
-    let _pipe$2 = $string_tree.split(_pipe$1, substring);
-    return $list.map(_pipe$2, $string_tree.to_string);
-  }
 }
 
 function do_to_utf_codepoints(string) {
@@ -490,19 +524,19 @@ function do_to_utf_codepoints(string) {
  * ## Examples
  *
  * ```gleam
- * assert "a" |> to_utf_codepoints == [UtfCodepoint(97)]
+ * assert "a" |> string.to_utf_codepoints == [UtfCodepoint(97)]
  * ```
  *
  * ```gleam
  * // Semantically the same as:
  * // ["🏳", "️", "‍", "🌈"] or:
  * // [waving_white_flag, variant_selector_16, zero_width_joiner, rainbow]
- * assert "🏳️‍🌈" |> to_utf_codepoints
+ * assert "🏳️‍🌈" |> string.to_utf_codepoints
  *   == [
- *     UtfCodepoint(127987),
- *     UtfCodepoint(65039),
+ *     UtfCodepoint(127_987),
+ *     UtfCodepoint(65_039),
  *     UtfCodepoint(8205),
- *     UtfCodepoint(127752),
+ *     UtfCodepoint(127_752),
  *   ]
  * ```
  */
@@ -542,16 +576,16 @@ export function utf_codepoint(value) {
  * ## Examples
  *
  * ```gleam
- * assert to_option("") == None
+ * assert string.to_option("") == None
  * ```
  *
  * ```gleam
- * assert to_option("hats") == Some("hats")
+ * assert string.to_option("hats") == Some("hats")
  * ```
  */
 export function to_option(string) {
   if (string === "") {
-    return new None();
+    return Option$None$const;
   } else {
     return new Some(string);
   }
@@ -565,11 +599,11 @@ export function to_option(string) {
  * ## Examples
  *
  * ```gleam
- * assert first("") == Error(Nil)
+ * assert string.first("") == Error(Nil)
  * ```
  *
  * ```gleam
- * assert first("icecream") == Ok("i")
+ * assert string.first("icecream") == Ok("i")
  * ```
  */
 export function first(string) {
@@ -593,11 +627,11 @@ export function first(string) {
  * ## Examples
  *
  * ```gleam
- * assert last("") == Error(Nil)
+ * assert string.last("") == Error(Nil)
  * ```
  *
  * ```gleam
- * assert last("icecream") == Ok("m")
+ * assert string.last("icecream") == Ok("m")
  * ```
  */
 export function last(string) {
@@ -623,7 +657,7 @@ export function last(string) {
  * ## Examples
  *
  * ```gleam
- * assert capitalise("mamouna") == "Mamouna"
+ * assert string.capitalise("mamouna") == "Mamouna"
  * ```
  */
 export function capitalise(string) {
@@ -666,30 +700,4 @@ export function inspect(term) {
   let _pipe = term;
   let _pipe$1 = do_inspect(_pipe);
   return $string_tree.to_string(_pipe$1);
-}
-
-/**
- * Drops *n* graphemes from the start of a `String`.
- *
- * This function runs in linear time with the number of graphemes to drop.
- *
- * ## Examples
- *
- * ```gleam
- * assert drop_start(from: "The Lone Gunmen", up_to: 2) == "e Lone Gunmen"
- * ```
- */
-export function drop_start(string, num_graphemes) {
-  let $ = num_graphemes <= 0;
-  if ($) {
-    return string;
-  } else {
-    let prefix = grapheme_slice(string, 0, num_graphemes);
-    let prefix_size = byte_size(prefix);
-    return unsafe_byte_slice(
-      string,
-      prefix_size,
-      byte_size(string) - prefix_size,
-    );
-  }
 }

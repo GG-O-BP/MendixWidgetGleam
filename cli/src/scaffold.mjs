@@ -3,7 +3,7 @@
  */
 
 import { readdir, readFile, writeFile, mkdir, copyFile } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 
 /** 바이너리 판별용 확장자 */
 const BINARY_EXTS = new Set([".png", ".jpg", ".gif", ".ico", ".woff", ".woff2", ".ttf", ".eot"]);
@@ -11,6 +11,7 @@ const BINARY_EXTS = new Set([".png", ".jpg", ".gif", ".ico", ".woff", ".woff2", 
 /** 재귀적으로 디렉토리 내 모든 파일 경로를 수집 */
 async function walkDir(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
+  entries.sort((left, right) => left.name.localeCompare(right.name));
   const files = [];
   for (const entry of entries) {
     const fullPath = join(dir, entry.name);
@@ -35,13 +36,14 @@ function replaceFileName(name, names) {
 }
 
 /** 파일 내용에서 플레이스홀더 치환 */
-function replaceContent(content, names, pmConfig, templateComments, options) {
+function replaceContent(content, names, templateComments, options) {
   let result = content
     .replace(/\{\{PASCAL_CASE\}\}/g, names.pascalCase)
     .replace(/\{\{SNAKE_CASE\}\}/g, names.snakeCase)
     .replace(/\{\{LOWERCASE\}\}/g, names.lowerCase)
     .replace(/\{\{DISPLAY_NAME\}\}/g, names.displayName)
-    .replace(/\{\{KEBAB_CASE\}\}/g, names.kebabCase);
+    .replace(/\{\{KEBAB_CASE\}\}/g, names.kebabCase)
+    .replace(/\{\{PACKAGE_MANAGER\}\}/g, options?.packageManager ?? "npm");
 
   if (options) {
     result = result
@@ -50,7 +52,10 @@ function replaceContent(content, names, pmConfig, templateComments, options) {
       .replace(/\{\{LICENSE_ID\}\}/g, options.license)
       .replace(/\{\{VERSION\}\}/g, options.version)
       .replace(/\{\{AUTHOR\}\}/g, options.author)
-      .replace(/\{\{PROJECT_PATH\}\}/g, options.projectPath);
+      .replace(/\{\{PROJECT_PATH\}\}/g, options.projectPath)
+      .replace(/\{\{COPYRIGHT_JSON\}\}/g, JSON.stringify(options.copyright))
+      .replace(/\{\{AUTHOR_JSON\}\}/g, JSON.stringify(options.author))
+      .replace(/\{\{PROJECT_PATH_JSON\}\}/g, JSON.stringify(options.projectPath));
   }
 
   if (templateComments) {
@@ -67,13 +72,13 @@ function replaceContent(content, names, pmConfig, templateComments, options) {
  * @param {string} templateDir - 템플릿 디렉토리 경로
  * @param {string} targetDir - 생성할 프로젝트 디렉토리 경로
  * @param {object} names - 이름 변환 결과
- * @param {object} pmConfig - 패키지 매니저 설정
  * @param {object} [templateComments] - i18n 템플릿 주석 ({{I18N:*}} 치환용)
  * @param {object} [options] - 추가 옵션 (organization, copyright, license, version, author, projectPath)
  */
-export async function scaffold(templateDir, targetDir, names, pmConfig, templateComments, options) {
+export async function scaffold(templateDir, targetDir, names, templateComments, options) {
   const files = await walkDir(templateDir);
-  const created = [];
+  const destinations = new Set();
+  const plan = [];
 
   for (const srcPath of files) {
     // 템플릿 기준 상대 경로
@@ -85,24 +90,38 @@ export async function scaffold(templateDir, targetDir, names, pmConfig, template
       .map((part) => replaceFileName(part, names))
       .join("/");
 
-    const destPath = join(targetDir, destRelPath);
+    if (destinations.has(destRelPath)) {
+      throw new Error(`Template paths collide after substitution: ${destRelPath}`);
+    }
+    destinations.add(destRelPath);
+
     const ext = srcPath.substring(srcPath.lastIndexOf(".")).toLowerCase();
+    const binary = BINARY_EXTS.has(ext);
+    let content;
 
-    // 디렉토리 생성
-    await mkdir(join(destPath, ".."), { recursive: true });
-
-    if (BINARY_EXTS.has(ext)) {
-      // 바이너리 파일은 그대로 복사
-      await copyFile(srcPath, destPath);
-    } else {
-      // 텍스트 파일은 내용 치환
-      const content = await readFile(srcPath, "utf-8");
-      const replaced = replaceContent(content, names, pmConfig, templateComments, options);
-      await writeFile(destPath, replaced, "utf-8");
+    if (!binary) {
+      const source = await readFile(srcPath, "utf-8");
+      content = replaceContent(source, names, templateComments, options);
+      const unresolved = content.match(/\{\{(?:[A-Z][A-Z0-9_]*|I18N:\w+)\}\}/);
+      if (unresolved) {
+        throw new Error(
+          `Unresolved template placeholder ${unresolved[0]} in ${relPath}`,
+        );
+      }
     }
 
-    created.push(destRelPath);
+    plan.push({ srcPath, destRelPath, binary, content });
   }
 
-  return created;
+  for (const item of plan) {
+    const destPath = join(targetDir, item.destRelPath);
+    await mkdir(dirname(destPath), { recursive: true });
+    if (item.binary) {
+      await copyFile(item.srcPath, destPath);
+    } else {
+      await writeFile(destPath, item.content, "utf-8");
+    }
+  }
+
+  return plan.map((item) => item.destRelPath);
 }

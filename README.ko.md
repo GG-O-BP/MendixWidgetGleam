@@ -1,195 +1,95 @@
 # MendixWidgetGleam
 
-**[English](README.md)** | **[한국어](README.ko.md)** | **[日本語](README.ja.md)**
+[English](README.md) | **한국어** | [日本語](README.ja.md)
 
-**Gleam 언어로 Mendix Pluggable Widget을 개발하는 프로젝트.**
+Gleam으로 만든 Mendix Pluggable Widget 기준 프로젝트와 생성기다. 기본 위젯은
+Glendix의 React 브리지를 통해 상태를 가진 Lustre 컴포넌트를 렌더링하고,
+Mendraw로 Mendix 런타임 값을 타입 안전하게 읽는다.
 
-JSX를 사용하지 않고, Gleam 코드만으로 React 컴포넌트를 작성하여 Mendix Studio Pro에서 동작하는 위젯을 만든다. React 바인딩은 [redraw](https://hexdocs.pm/redraw/)/[redraw_dom](https://hexdocs.pm/redraw_dom/)이, Mendix API 바인딩은 [mendraw](https://hexdocs.pm/mendraw/)가, 빌드 도구 + JS interop은 [glendix](https://hexdocs.pm/glendix/)가 제공한다.
+## 현재 기준
 
-## 왜 Gleam인가?
+- Gleam 1.17 이상
+- Hex의 Glendix 5.x / Mendraw 2.x
+- Lustre 5.7 / Redraw 19.2
+- Node.js 22.18.x
+- Mendix Pluggable Widgets Tools 11.12 / React 19.2
 
-- **정적 타입 안전성** — Gleam의 강력한 타입 시스템으로 런타임 에러를 컴파일 타임에 방지
-- **불변 데이터** — 예측 가능한 상태 관리
-- **JavaScript 타겟 지원** — `gleam build --target javascript`로 ES 모듈 출력
-- **glendix + mendraw 패키지** — React + Mendix API + JS Interop의 타입 안전한 Gleam 바인딩. `EditableValue`, `ActionValue`, `ListValue` 등 모든 Mendix Pluggable Widget API를 지원
+## 패키지 경계
 
-## 아키텍처
+- **Glendix**: 위젯 빌드, definition 편집, 외부 npm 바인딩, Lustre→React 브리지
+- **Mendraw**: Mendix client value와 이미 설치된 MPK 자산의 생성 바인딩
+- **mxpak**: Marketplace 검색·다운로드·캐시·락파일
+- **Glendam**: Glendix Family 워크스페이스의 브라우저 자동화
 
-```
-src/
-  mendix_widget_gleam.gleam           # 위젯 메인 모듈
-  editor_config.gleam                 # Studio Pro 속성 패널 설정
-  editor_preview.gleam                # Studio Pro 디자인 뷰 미리보기
-  components/
-    hello_world.gleam               # Hello World 공유 컴포넌트
-  MendixWidget.xml                    # 위젯 속성 정의
-  package.xml                         # Mendix 패키지 매니페스트
-package.json                            # npm 의존성 (React, 외부 라이브러리 등)
-gleam.toml                            # glendix >= 4.0.5 + mendraw 의존성 포함
-```
+Marketplace 전체 흐름은 `mxp install` → `mendraw/install` →
+`glendix/install` → `glendix/build` 순서다.
 
-React/Mendix FFI 및 JS Interop 바인딩은 이 프로젝트에 포함되지 않으며, [glendix](https://hexdocs.pm/glendix/) 및 [mendraw](https://hexdocs.pm/mendraw/) Hex 패키지로 제공된다.
+## 시작
 
-### 빌드 파이프라인
-
-```
-위젯 코드 (.gleam) + glendix 패키지 (Hex)
-    ↓  gleam run -m glendix/build (Gleam 컴파일 자동 수행)
-ES 모듈 (.mjs) — build/dev/javascript/...
-    ↓  브릿지 JS (자동 생성)가 import
-    ↓  Rollup (pluggable-widgets-tools)
-.mpk 위젯 패키지 — dist/
+```sh
+gleam run -m glendix/install
+gleam test --runtime bun
+gleam run -m glendix/build --runtime bun
 ```
 
-### 핵심 원리
+마지막 명령은 `dist/` 아래에 `.mpk`를 만든다.
 
-Gleam 함수 `fn(JsProps) -> Element`는 React 함수형 컴포넌트와 동일한 시그니처다. React 바인딩은 [redraw](https://hexdocs.pm/redraw/) / [redraw_dom](https://hexdocs.pm/redraw_dom/)이 제공하고, mendraw는 Mendix 런타임 타입 접근자를, glendix는 JS interop을 타입 안전하게 제공하므로, 위젯 프로젝트에서는 비즈니스 로직에만 집중하면 된다.
+```sh
+gleam format --check src test cli/tui/src
+gleam check
+gleam build --warnings-as-errors
+gleam docs build
+npm --prefix cli run build:tui
+bun --cwd cli test
+```
+
+## 위젯 구조
+
+Mendix 런타임은 다음 Gleam 함수를 React 함수형 컴포넌트로 호출한다.
 
 ```gleam
-// src/mendix_widget_gleam.gleam
-import mendraw/mendix.{type JsProps}
-import redraw.{type Element}
-import redraw/dom/attribute
-import redraw/dom/html
-
-pub fn widget(props: JsProps) -> Element {
-  let sample_text = mendix.get_string_prop(props, "sampleText")
-  html.div([attribute.class("widget-hello-world")], [
-    html.text("Hello " <> sample_text),
-  ])
-}
+pub fn widget(props: mendix.JsProps) -> redraw.Element
 ```
 
-Mendix 복합 타입도 Gleam에서 타입 안전하게 사용할 수 있다:
+`src/components/counter.gleam`은 `glendix/lustre.use_simple`로 model/update를
+관리하며 런타임 진입점과 Studio Pro preview가 같은 컴포넌트를 사용한다.
+빈 label fallback과 순서가 있는 상태 전이는 Gleam 테스트로 검증한다.
 
-```gleam
-import mendraw/mendix
-import mendraw/mendix/editable_value
-import mendraw/mendix/action
+## 외부 React 컴포넌트
 
-pub fn widget(props: JsProps) -> Element {
-  // EditableValue 접근
-  let name_attr: EditableValue = mendix.get_prop_required(props, "name")
-  let display = editable_value.display_value(name_attr)
-
-  // ActionValue 실행
-  let on_save: Option(ActionValue) = mendix.get_prop(props, "onSave")
-  action.execute_action(on_save)
-  // ...
-}
-```
-
-## 시작하기
-
-### 사전 요구사항
-
-- [Gleam](https://gleam.run/getting-started/installing/) (v1.0+)
-- [Node.js](https://nodejs.org/) (v16+)
-- [Mendix Studio Pro](https://marketplace.mendix.com/link/studiopro/) (위젯 테스트용)
-
-### 설치
-
-```bash
-gleam run -m glendix/install   # Gleam 의존성 자동 다운로드 + npm 의존성 설치 + 바인딩 코드 생성 (외부 React 패키지는 사전에 수동 설치 필요)
-```
-
-### 빌드
-
-```bash
-gleam run -m glendix/build     # Gleam 컴파일 + 위젯 빌드 (.mpk 생성)
-```
-
-빌드 결과물은 `dist/` 디렉토리에 `.mpk` 파일로 생성된다.
-
-### 개발
-
-```bash
-gleam run -m glendix/dev       # Gleam 컴파일 + 개발 서버 (HMR, port 3000)
-gleam run -m glendix/start     # Mendix 테스트 프로젝트와 연동 개발
-```
-
-## 명령어 모음
-
-모든 명령어는 `gleam`으로 통일. `gleam run -m`은 Gleam 컴파일을 자동 수행한 뒤 스크립트를 실행한다.
-
-| 명령어 | 설명 |
-|--------|------|
-| `gleam run -m glendix/install` | 의존성 설치 (Gleam + npm) + 바인딩 코드 생성 |
-| `gleam run -m glendix/build` | 프로덕션 빌드 (.mpk 생성) |
-| `gleam run -m glendix/dev` | 개발 서버 (HMR, port 3000) |
-| `gleam run -m glendix/start` | Mendix 테스트 프로젝트 연동 |
-| `gleam run -m glendix/lint` | ESLint 실행 |
-| `gleam run -m glendix/lint_fix` | ESLint 자동 수정 |
-| `gleam run -m glendix/release` | 릴리즈 빌드 |
-| `gleam run -m mendraw/marketplace` | Mendix Marketplace 위젯 검색/다운로드 |
-| `gleam run -m glendix/define` | 위젯 프로퍼티 정의 TUI 에디터 |
-| `gleam build --target javascript` | Gleam → JS 컴파일만 |
-| `gleam test` | Gleam 테스트 실행 |
-| `gleam format` | Gleam 코드 포맷팅 |
-
-## 외부 React 컴포넌트 사용
-
-npm 패키지로 제공되는 React 컴포넌트 라이브러리를 `.mjs` FFI 파일 작성 없이 순수 Gleam에서 사용할 수 있다.
-
-### 1단계: npm 패키지 설치
-
-```bash
-npm install recharts
-```
-
-### 2단계: `gleam.toml`에 바인딩 추가
-
-`gleam.toml`에 `[tools.glendix.bindings]` 섹션을 추가한다:
+npm 패키지를 설치하고 `gleam.toml`에 export를 등록한다.
 
 ```toml
-[tools.glendix.bindings.recharts]
-components = ["PieChart", "Pie", "Cell", "Tooltip", "ResponsiveContainer"]
+[tools.glendix.bindings]
+recharts = ["PieChart", "Pie", "Tooltip"]
 ```
 
-### 3단계: 바인딩 생성
+Glendix 5의 `binding.module`/`binding.resolve`는 `Result`를 반환한다. 바인딩을
+변경한 뒤 `gleam run -m glendix/install`을 다시 실행한다.
 
-```bash
-gleam run -m glendix/install
+## 프로젝트 생성기
+
+```sh
+npx create-mendix-widget-gleam my-widget
 ```
 
-`binding_ffi.mjs`가 자동 생성된다. 이후 `gleam run -m glendix/build` 등 빌드 시에도 자동 갱신된다.
+CLI는 위젯, 테스트, `AGENTS.md`, 프로젝트 범위 `.codex/config.toml`을 만들고
+의존성 설치와 MPK 빌드까지 검증한다. 설치나 packaging이 실패하면 성공으로
+보고하지 않고 non-zero로 종료한다.
 
-### 4단계: Gleam에서 사용
+## E2E 검증
 
-```gleam
-import glendix/binding
-import mendraw/interop
-import redraw.{type Element}
-import redraw/dom/attribute.{type Attribute}
+Glendix Family 워크스페이스에서는 다음 경로를 사용한다.
 
-fn m() { binding.module("recharts") }
-
-pub fn pie_chart(attrs: List(Attribute), children: List(Element)) -> Element {
-  interop.component_el(binding.resolve(m(), "PieChart"), attrs, children)
-}
-
-pub fn tooltip(attrs: List(Attribute)) -> Element {
-  interop.void_component_el(binding.resolve(m(), "Tooltip"), attrs)
-}
+```sh
+../scripts/family.sh widget-build "$PWD"
+../scripts/family.sh downstream-e2e
 ```
 
-`html.div`와 동일한 호출 패턴으로 외부 React 컴포넌트를 사용할 수 있다.
-
-## 기술 스택
-
-- **Gleam** — 위젯 로직, UI (JavaScript 타겟 컴파일)
-- **[glendix](https://hexdocs.pm/glendix/)** — 빌드 도구 + JS Interop Gleam 바인딩 (Hex 패키지)
-- **[mendraw](https://hexdocs.pm/mendraw/)** — Mendix API Gleam 바인딩 (Hex 패키지)
-- **React 19** — Mendix Pluggable Widget 런타임
-- **Rollup** — `@mendix/pluggable-widgets-tools` 기반 번들링
-
-## 제약사항
-
-- Gleam → JS → Mendix Widget 파이프라인은 공식 지원되지 않는 조합이므로 빌드 설정 커스터마이징이 필요할 수 있다
-- JSX 파일을 사용하지 않는다 — 모든 React 로직은 Gleam + glendix로 구현
-- React 바인딩은 glendix를 통해 redraw/redraw_dom을 사용한다 — 다른 Gleam React 라이브러리는 사용하지 않는다
-- 위젯 프로젝트에 FFI 파일을 직접 작성하지 않는다 — React/Mendix FFI는 glendix가 제공
+다운스트림 경로는 현재 위젯, CLI 생성 프로젝트, MPK 검사, Lustre 브라우저,
+관리형 Mendix 런타임을 검증한다. 이 경로가 통과하지 않으면 브라우저/Mendix
+호환성을 주장하지 않는다.
 
 ## 라이선스
 
-Apache License 2.0 — [LICENSE](./LICENSE) 참조
+[Apache License 2.0](LICENSE)

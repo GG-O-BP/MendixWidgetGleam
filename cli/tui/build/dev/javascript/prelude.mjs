@@ -9,11 +9,7 @@ export class CustomType {
 
 export class List {
   static fromArray(array, tail) {
-    let t = tail || new Empty();
-    for (let i = array.length - 1; i >= 0; --i) {
-      t = new NonEmpty(array[i], t);
-    }
-    return t;
+    return toList(array, tail)
   }
 
   [Symbol.iterator]() {
@@ -52,7 +48,11 @@ export function prepend(element, tail) {
 }
 
 export function toList(elements, tail) {
-  return List.fromArray(elements, tail);
+  let t = tail || List$Empty$const
+  for (let i = elements.length - 1; i >= 0; --i) {
+    t = new NonEmpty(elements[i], t);
+  }
+  return t;
 }
 
 class ListIterator {
@@ -73,8 +73,9 @@ class ListIterator {
   }
 }
 
-export class Empty extends List {}
-export const List$Empty = () => new Empty();
+export class Empty extends List { }
+export const List$Empty$const = new Empty();
+export const List$Empty = () => List$Empty$const;
 export const List$isEmpty = (value) => value instanceof Empty;
 
 export class NonEmpty extends List {
@@ -299,9 +300,11 @@ export const BitArray$BitArray = (buffer, bitSize, bitOffset) =>
 export const BitArray$isBitArray = (value) => value instanceof BitArray;
 export const BitArray$BitArray$data = (bitArray) => {
   if (bitArray.bitSize % 8 !== 0)
-    throw new Error("BitArray$BitArray$data called on un-aligned bit array");
+    throw new globalThis.Error(
+      "BitArray$BitArray$data called on un-aligned bit array",
+    );
   const array = bitArray.rawBuffer;
-  return new DataView(array.buffer, array.byteOffset, bitArray.byteLength);
+  return new DataView(array.buffer, array.byteOffset, bitArray.byteSize);
 };
 
 /**
@@ -573,7 +576,7 @@ export function toBitArray(segments) {
       return new BitArray(segment);
     }
 
-    return new BitArray(new Uint8Array(/** @type {number[]} */ (segments)));
+    return new BitArray(new Uint8Array(/** @type {number[]} */(segments)));
   }
 
   // Count the total number of bits and check if all segments are numbers, i.e.
@@ -595,7 +598,7 @@ export function toBitArray(segments) {
   // If all segments are numbers then pass the segments array directly to the
   // Uint8Array constructor
   if (areAllSegmentsNumbers) {
-    return new BitArray(new Uint8Array(/** @type {number[]} */ (segments)));
+    return new BitArray(new Uint8Array(/** @type {number[]} */(segments)));
   }
 
   // Pack the segments into a Uint8Array
@@ -1252,7 +1255,11 @@ function numberToFp16Uint(value, isBigEndian) {
   } else if (value === -Infinity) {
     buffer[1] = 0xfc;
   } else if (value === 0) {
-    // Both values are already zero
+    // 0 === -0, so we need to do an additional check here
+    if (isNegativeZero(value)) {
+      buffer[1] = 128;
+    }
+    // Otherwise, both values are already zero
   } else {
     const sign = value < 0 ? 1 : 0;
     value = Math.abs(value);
@@ -1270,7 +1277,14 @@ function numberToFp16Uint(value, isBigEndian) {
       fraction = 0;
     }
 
-    fraction = Math.round(fraction * 1024);
+    fraction = roundTiesToEven(fraction * 1024);
+
+    // Rounding can push the fraction up to 1024, which doesn't fit in the bits
+    // it has, so it carries into the exponent.
+    if (fraction === 1024) {
+      fraction = 0;
+      exponent += 1;
+    }
 
     buffer[1] =
       (sign << 7) | ((exponent & 0x1f) << 2) | ((fraction >> 8) & 0x03);
@@ -1284,6 +1298,38 @@ function numberToFp16Uint(value, isBigEndian) {
   }
 
   return buffer;
+}
+
+/**
+ * Rounds to the nearest integer, with a value exactly halfway between two
+ * integers rounding to the even one.
+ *
+ * This is the rounding IEEE 754 specifies. `Math.round` rounds a half towards
+ * positive infinity instead.
+ *
+ * @param {number} value
+ * @returns {number}
+ */
+function roundTiesToEven(value) {
+  const rounded = Math.round(value);
+  if (rounded - value === 0.5 && rounded % 2 !== 0) {
+    return rounded - 1;
+  }
+
+  return rounded;
+}
+
+/**
+ * Returns whether or not a value is `-0`, since this cannot be checked using
+ * equality.
+ *
+ * @param {number} value
+ * @returns {boolean}
+ */
+function isNegativeZero(value) {
+  // One of the few differences between 0 and -0 is that division by -0 returns
+  // -Infinity rather than Infinity.
+  return 1 / value === -Infinity;
 }
 
 /**
@@ -1456,7 +1502,7 @@ export function isEqual(x, y) {
       try {
         if (a.equals(b)) continue;
         else return false;
-      } catch {}
+      } catch { }
     }
 
     let [keys, get] = getters(a);

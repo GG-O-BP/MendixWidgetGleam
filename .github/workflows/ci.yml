@@ -1,0 +1,76 @@
+name: MendixWidgetGleam gates
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mendix-widget-gleam-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-cli-and-mpk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.18.0
+          package-manager-cache: false
+      - name: Set up Gleam
+        uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          otp-version: "29"
+          gleam-version: "1.18.1"
+          rebar3-version: "3"
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.0
+      - name: Install locked JavaScript dependencies
+        run: bun install --frozen-lockfile
+      - name: Download locked Gleam dependencies
+        run: gleam deps download
+      - name: Check formatting
+        run: gleam format --check src test cli/tui/src
+      - name: Check widget source
+        run: gleam check
+      - name: Reject widget warnings
+        run: gleam build --warnings-as-errors
+      - name: Build API documentation
+        run: gleam docs build
+      - name: Run widget tests
+        run: gleam test --runtime bun
+      - name: Build current TUI dependency boundary
+        working-directory: cli/tui
+        run: |
+          gleam deps download
+          gleam check
+          gleam build --warnings-as-errors
+      - name: Build published TUI assets
+        working-directory: cli
+        run: npm run build:tui
+      - name: Run CLI regression tests
+        working-directory: cli
+        run: bun test
+      - name: Build a generated project end to end
+        working-directory: cli
+        run: bun run test:e2e
+      - name: Install and build the checked-in widget
+        run: |
+          gleam run -m glendix/install --runtime bun
+          gleam run -m glendix/build --runtime bun
+      - name: Upload built MPKs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mendix-widget-gleam-mpk
+          path: dist/**/*.mpk
+          if-no-files-found: error

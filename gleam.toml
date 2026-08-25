@@ -1,19 +1,25 @@
 name = "mendix_widget_gleam"
-version = "4.0.5"
+version = "5.0.0"
+gleam = ">= 1.17.0"
 target = "javascript"
-description = "Build Mendix Pluggable Widgets with Gleam — no JSX, pure Gleam + FFI"
+description = "Reference Mendix Pluggable Widget built with Gleam, Glendix, Mendraw, and Lustre"
 licences = ["Apache-2.0"]
-repository = { type = "github", user = "GG-O-BP", repo = "MendixWidgetGleam" }
+repository = { type = "github", user = "glendix-labs", repo = "MendixWidgetGleam" }
 
 [javascript]
 typescript_declarations = false
 runtime = "node"
 
+[tools.glendix]
+pm = "bun"
+
 [dependencies]
-gleam_stdlib = ">= 0.44.0 and < 2.0.0"
-glendix = ">= 4.0.5 and < 5.0.0"
-mendraw = ">= 1.2.1 and < 2.0.0"
-dee = ">= 1.0.0 and < 2.0.0"
+gleam_stdlib = ">= 1.0.5 and < 2.0.0"
+glendix = ">= 5.0.0 and < 6.0.0"
+mendraw = ">= 2.0.0 and < 3.0.0"
 redraw = ">= 19.2.2 and < 20.0.0"
 redraw_dom = ">= 19.2.2 and < 20.0.0"
-lustre = ">= 5.6.0 and < 6.0.0"
+lustre = ">= 5.7.1 and < 6.0.0"
+
+[dev_dependencies]
+gleeunit = ">= 1.11.0 and < 2.0.0"

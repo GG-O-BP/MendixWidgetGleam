@@ -3,34 +3,37 @@
   "widgetName": "{{PASCAL_CASE}}",
   "version": "{{VERSION}}",
   "description": "My widget description",
-  "copyright": "{{COPYRIGHT}}",
-  "author": "{{AUTHOR}}",
+  "copyright": {{COPYRIGHT_JSON}},
+  "author": {{AUTHOR_JSON}},
   "engines": {
-    "node": ">=16"
+    "node": "^22.18.0"
   },
   "license": "{{LICENSE_ID}}",
   "config": {
-    "projectPath": "{{PROJECT_PATH}}",
+    "projectPath": {{PROJECT_PATH_JSON}},
     "mendixHost": "http://localhost:8080",
     "developmentPort": 3000
   },
   "packagePath": "{{ORGANIZATION}}",
   "scripts": {
-    "prerelease": "echo skipping lint"
+    "build": "gleam run -m glendix/build",
+    "check": "gleam check",
+    "dev": "gleam run -m glendix/dev",
+    "test": "gleam test"
   },
   "devDependencies": {
-    "@mendix/pluggable-widgets-tools": "^11.8.0"
+    "@mendix/pluggable-widgets-tools": "^11.12.1"
   },
   "resolutions": {
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0"
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5"
   },
   "overrides": {
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0"
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5"
   }
 }

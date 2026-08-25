@@ -1,8 +1,8 @@
 import {
   Ok,
   Error,
-  toList,
   Empty as $Empty,
+  List$Empty$const as $List$Empty$const,
   prepend as listPrepend,
   CustomType as $CustomType,
 } from "../gleam.mjs";
@@ -18,7 +18,8 @@ export const Option$isSome = (value) => value instanceof Some;
 export const Option$Some$0 = (value) => value[0];
 
 export class None extends $CustomType {}
-export const Option$None = () => new None();
+export const Option$None$const = new None();
+export const Option$None = () => Option$None$const;
 export const Option$isNone = (value) => value instanceof None;
 
 function reverse_and_prepend(loop$prefix, loop$suffix) {
@@ -37,7 +38,7 @@ function reverse_and_prepend(loop$prefix, loop$suffix) {
 }
 
 function reverse(list) {
-  return reverse_and_prepend(list, toList([]));
+  return reverse_and_prepend(list, $List$Empty$const);
 }
 
 function all_loop(loop$list, loop$acc) {
@@ -54,7 +55,7 @@ function all_loop(loop$list, loop$acc) {
         loop$list = rest;
         loop$acc = listPrepend(first, acc);
       } else {
-        return new None();
+        return Option$None$const;
       }
     }
   }
@@ -68,15 +69,15 @@ function all_loop(loop$list, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert all([Some(1), Some(2)]) == Some([1, 2])
+ * assert option.all([Some(1), Some(2)]) == Some([1, 2])
  * ```
  *
  * ```gleam
- * assert all([Some(1), None]) == None
+ * assert option.all([Some(1), None]) == None
  * ```
  */
 export function all(list) {
-  return all_loop(list, toList([]));
+  return all_loop(list, $List$Empty$const);
 }
 
 /**
@@ -85,11 +86,11 @@ export function all(list) {
  * ## Examples
  *
  * ```gleam
- * assert is_some(Some(1))
+ * assert option.is_some(Some(1))
  * ```
  *
  * ```gleam
- * assert !is_some(None)
+ * assert !option.is_some(None)
  * ```
  */
 export function is_some(option) {
@@ -102,11 +103,11 @@ export function is_some(option) {
  * ## Examples
  *
  * ```gleam
- * assert !is_none(Some(1))
+ * assert !option.is_none(Some(1))
  * ```
  *
  * ```gleam
- * assert is_none(None)
+ * assert option.is_none(None)
  * ```
  */
 export function is_none(option) {
@@ -119,11 +120,11 @@ export function is_none(option) {
  * ## Examples
  *
  * ```gleam
- * assert to_result(Some(1), "some_error") == Ok(1)
+ * assert option.to_result(Some(1), "some_error") == Ok(1)
  * ```
  *
  * ```gleam
- * assert to_result(None, "some_error") == Error("some_error")
+ * assert option.to_result(None, "some_error") == Error("some_error")
  * ```
  */
 export function to_result(option, e) {
@@ -141,11 +142,11 @@ export function to_result(option, e) {
  * ## Examples
  *
  * ```gleam
- * assert from_result(Ok(1)) == Some(1)
+ * assert option.from_result(Ok(1)) == Some(1)
  * ```
  *
  * ```gleam
- * assert from_result(Error("some_error")) == None
+ * assert option.from_result(Error("some_error")) == None
  * ```
  */
 export function from_result(result) {
@@ -153,7 +154,7 @@ export function from_result(result) {
     let a = result[0];
     return new Some(a);
   } else {
-    return new None();
+    return Option$None$const;
   }
 }
 
@@ -163,11 +164,11 @@ export function from_result(result) {
  * ## Examples
  *
  * ```gleam
- * assert unwrap(Some(1), 0) == 1
+ * assert option.unwrap(Some(1), 0) == 1
  * ```
  *
  * ```gleam
- * assert unwrap(None, 0) == 0
+ * assert option.unwrap(None, 0) == 0
  * ```
  */
 export function unwrap(option, default$) {
@@ -185,11 +186,11 @@ export function unwrap(option, default$) {
  * ## Examples
  *
  * ```gleam
- * assert lazy_unwrap(Some(1), fn() { 0 }) == 1
+ * assert option.lazy_unwrap(Some(1), fn() { 0 }) == 1
  * ```
  *
  * ```gleam
- * assert lazy_unwrap(None, fn() { 0 }) == 0
+ * assert option.lazy_unwrap(None, fn() { 0 }) == 0
  * ```
  */
 export function lazy_unwrap(option, default$) {
@@ -211,11 +212,11 @@ export function lazy_unwrap(option, default$) {
  * ## Examples
  *
  * ```gleam
- * assert map(over: Some(1), with: fn(x) { x + 1 }) == Some(2)
+ * assert option.map(over: Some(1), with: fn(x) { x + 1 }) == Some(2)
  * ```
  *
  * ```gleam
- * assert map(over: None, with: fn(x) { x + 1 }) == None
+ * assert option.map(over: None, with: fn(x) { x + 1 }) == None
  * ```
  */
 export function map(option, fun) {
@@ -233,15 +234,15 @@ export function map(option, fun) {
  * ## Examples
  *
  * ```gleam
- * assert flatten(Some(Some(1))) == Some(1)
+ * assert option.flatten(Some(Some(1))) == Some(1)
  * ```
  *
  * ```gleam
- * assert flatten(Some(None)) == None
+ * assert option.flatten(Some(None)) == None
  * ```
  *
  * ```gleam
- * assert flatten(None) == None
+ * assert option.flatten(None) == None
  * ```
  */
 export function flatten(option) {
@@ -267,19 +268,19 @@ export function flatten(option) {
  * ## Examples
  *
  * ```gleam
- * assert then(Some(1), fn(x) { Some(x + 1) }) == Some(2)
+ * assert option.then(Some(1), fn(x) { Some(x + 1) }) == Some(2)
  * ```
  *
  * ```gleam
- * assert then(Some(1), fn(x) { Some(#("a", x)) }) == Some(#("a", 1))
+ * assert option.then(Some(1), fn(x) { Some(#("a", x)) }) == Some(#("a", 1))
  * ```
  *
  * ```gleam
- * assert then(Some(1), fn(_) { None }) == None
+ * assert option.then(Some(1), fn(_) { None }) == None
  * ```
  *
  * ```gleam
- * assert then(None, fn(x) { Some(x + 1) }) == None
+ * assert option.then(None, fn(x) { Some(x + 1) }) == None
  * ```
  */
 export function then$(option, fun) {
@@ -297,19 +298,19 @@ export function then$(option, fun) {
  * ## Examples
  *
  * ```gleam
- * assert or(Some(1), Some(2)) == Some(1)
+ * assert option.or(Some(1), Some(2)) == Some(1)
  * ```
  *
  * ```gleam
- * assert or(Some(1), None) == Some(1)
+ * assert option.or(Some(1), None) == Some(1)
  * ```
  *
  * ```gleam
- * assert or(None, Some(2)) == Some(2)
+ * assert option.or(None, Some(2)) == Some(2)
  * ```
  *
  * ```gleam
- * assert or(None, None) == None
+ * assert option.or(None, None) == None
  * ```
  */
 export function or(first, second) {
@@ -326,19 +327,19 @@ export function or(first, second) {
  * ## Examples
  *
  * ```gleam
- * assert lazy_or(Some(1), fn() { Some(2) }) == Some(1)
+ * assert option.lazy_or(Some(1), fn() { Some(2) }) == Some(1)
  * ```
  *
  * ```gleam
- * assert lazy_or(Some(1), fn() { None }) == Some(1)
+ * assert option.lazy_or(Some(1), fn() { None }) == Some(1)
  * ```
  *
  * ```gleam
- * assert lazy_or(None, fn() { Some(2) }) == Some(2)
+ * assert option.lazy_or(None, fn() { Some(2) }) == Some(2)
  * ```
  *
  * ```gleam
- * assert lazy_or(None, fn() { None }) == None
+ * assert option.lazy_or(None, fn() { None }) == None
  * ```
  */
 export function lazy_or(first, second) {
@@ -378,9 +379,9 @@ function values_loop(loop$list, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert values([Some(1), None, Some(3)]) == [1, 3]
+ * assert option.values([Some(1), None, Some(3)]) == [1, 3]
  * ```
  */
 export function values(options) {
-  return values_loop(options, toList([]));
+  return values_loop(options, $List$Empty$const);
 }

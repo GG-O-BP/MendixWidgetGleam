@@ -3,38 +3,68 @@ import * as $consts from "../etch/internal/consts.mjs";
 import { csi, esc } from "../etch/internal/consts.mjs";
 import { CustomType as $CustomType } from "../gleam.mjs";
 
+/**
+ * Default cursor shape.
+ */
 export class DefaultShape extends $CustomType {}
-export const CursorStyle$DefaultShape = () => new DefaultShape();
+export const CursorStyle$DefaultShape$const = new DefaultShape();
+export const CursorStyle$DefaultShape = () => CursorStyle$DefaultShape$const;
 export const CursorStyle$isDefaultShape = (value) =>
   value instanceof DefaultShape;
 
+/**
+ * Blinking block █.
+ */
 export class BlinkingBlock extends $CustomType {}
-export const CursorStyle$BlinkingBlock = () => new BlinkingBlock();
+export const CursorStyle$BlinkingBlock$const = new BlinkingBlock();
+export const CursorStyle$BlinkingBlock = () => CursorStyle$BlinkingBlock$const;
 export const CursorStyle$isBlinkingBlock = (value) =>
   value instanceof BlinkingBlock;
 
+/**
+ * Steady (non-blinking) block █.
+ */
 export class SteadyBlock extends $CustomType {}
-export const CursorStyle$SteadyBlock = () => new SteadyBlock();
+export const CursorStyle$SteadyBlock$const = new SteadyBlock();
+export const CursorStyle$SteadyBlock = () => CursorStyle$SteadyBlock$const;
 export const CursorStyle$isSteadyBlock = (value) =>
   value instanceof SteadyBlock;
 
+/**
+ * Blinking underscore _.
+ */
 export class BlinkingUnderScore extends $CustomType {}
-export const CursorStyle$BlinkingUnderScore = () => new BlinkingUnderScore();
+export const CursorStyle$BlinkingUnderScore$const = new BlinkingUnderScore();
+export const CursorStyle$BlinkingUnderScore = () =>
+  CursorStyle$BlinkingUnderScore$const;
 export const CursorStyle$isBlinkingUnderScore = (value) =>
   value instanceof BlinkingUnderScore;
 
+/**
+ * Steady (non-blinking) underscore _.
+ */
 export class SteadyUnderScore extends $CustomType {}
-export const CursorStyle$SteadyUnderScore = () => new SteadyUnderScore();
+export const CursorStyle$SteadyUnderScore$const = new SteadyUnderScore();
+export const CursorStyle$SteadyUnderScore = () =>
+  CursorStyle$SteadyUnderScore$const;
 export const CursorStyle$isSteadyUnderScore = (value) =>
   value instanceof SteadyUnderScore;
 
+/**
+ * Blinking bar |.
+ */
 export class BlinkingBar extends $CustomType {}
-export const CursorStyle$BlinkingBar = () => new BlinkingBar();
+export const CursorStyle$BlinkingBar$const = new BlinkingBar();
+export const CursorStyle$BlinkingBar = () => CursorStyle$BlinkingBar$const;
 export const CursorStyle$isBlinkingBar = (value) =>
   value instanceof BlinkingBar;
 
+/**
+ * Steady (non-blinking) bar |.
+ */
 export class SteadyBar extends $CustomType {}
-export const CursorStyle$SteadyBar = () => new SteadyBar();
+export const CursorStyle$SteadyBar$const = new SteadyBar();
+export const CursorStyle$SteadyBar = () => CursorStyle$SteadyBar$const;
 export const CursorStyle$isSteadyBar = (value) => value instanceof SteadyBar;
 
 /**

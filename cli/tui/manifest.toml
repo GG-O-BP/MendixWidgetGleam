@@ -1,0 +1,20 @@
+# Do not manually edit this file, it is managed by Gleam.
+#
+# This file locks the dependency versions used, to make your build
+# deterministic and to prevent unexpected versions from being included
+# in your application.
+#
+# You should check this file into your source control repository.
+
+packages = [
+  { name = "etch", version = "1.4.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "etch", source = "hex", outer_checksum = "A4B4458EE1E7D22753538C03F0D64C930309863365D2D26570E2D2C6B7CFC5EA" },
+  { name = "etch_javascript", version = "1.1.0", build_tools = ["gleam"], requirements = ["etch", "gleam_javascript", "gleam_stdlib"], otp_app = "etch_javascript", source = "hex", outer_checksum = "F857C37DB0323AD6D6AEC1A39169358636AFB748FD8F164E7CB592A99AE496E3" },
+  { name = "gleam_javascript", version = "1.0.1", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "gleam_javascript", source = "hex", outer_checksum = "D542C4B4F40E942F5D3372D524419FA521A7BB92D621AF696CC286E89D882D55" },
+  { name = "gleam_stdlib", version = "1.0.5", build_tools = ["gleam"], requirements = [], otp_app = "gleam_stdlib", source = "hex", outer_checksum = "CEE5B6C076A85B45F60C585F4316C63EC8B7127C119D5738C3958A9C4D50404E" },
+]
+
+[requirements]
+etch = { version = ">= 1.4.0 and < 2.0.0" }
+etch_javascript = { version = ">= 1.1.0 and < 2.0.0" }
+gleam_javascript = { version = ">= 1.0.1 and < 2.0.0" }
+gleam_stdlib = { version = ">= 1.0.5 and < 2.0.0" }

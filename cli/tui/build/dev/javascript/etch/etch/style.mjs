@@ -1,82 +1,158 @@
 import * as $int from "../../gleam_stdlib/gleam/int.mjs";
 import * as $consts from "../etch/internal/consts.mjs";
 import { csi } from "../etch/internal/consts.mjs";
-import { toList, Empty as $Empty, CustomType as $CustomType } from "../gleam.mjs";
+import {
+  Empty as $Empty,
+  List$Empty$const as $List$Empty$const,
+  CustomType as $CustomType,
+} from "../gleam.mjs";
 
+/**
+ * Default terminal color.
+ */
 export class Default extends $CustomType {}
-export const Color$Default = () => new Default();
+export const Color$Default$const = new Default();
+export const Color$Default = () => Color$Default$const;
 export const Color$isDefault = (value) => value instanceof Default;
 
+/**
+ * Black color.
+ */
 export class Black extends $CustomType {}
-export const Color$Black = () => new Black();
+export const Color$Black$const = new Black();
+export const Color$Black = () => Color$Black$const;
 export const Color$isBlack = (value) => value instanceof Black;
 
+/**
+ * Grey color.
+ */
 export class Grey extends $CustomType {}
-export const Color$Grey = () => new Grey();
+export const Color$Grey$const = new Grey();
+export const Color$Grey = () => Color$Grey$const;
 export const Color$isGrey = (value) => value instanceof Grey;
 
+/**
+ * Red color.
+ */
 export class Red extends $CustomType {}
-export const Color$Red = () => new Red();
+export const Color$Red$const = new Red();
+export const Color$Red = () => Color$Red$const;
 export const Color$isRed = (value) => value instanceof Red;
 
+/**
+ * Bright red color.
+ */
 export class BrightRed extends $CustomType {}
-export const Color$BrightRed = () => new BrightRed();
+export const Color$BrightRed$const = new BrightRed();
+export const Color$BrightRed = () => Color$BrightRed$const;
 export const Color$isBrightRed = (value) => value instanceof BrightRed;
 
+/**
+ * Green color.
+ */
 export class Green extends $CustomType {}
-export const Color$Green = () => new Green();
+export const Color$Green$const = new Green();
+export const Color$Green = () => Color$Green$const;
 export const Color$isGreen = (value) => value instanceof Green;
 
+/**
+ * Bright green color.
+ */
 export class BrightGreen extends $CustomType {}
-export const Color$BrightGreen = () => new BrightGreen();
+export const Color$BrightGreen$const = new BrightGreen();
+export const Color$BrightGreen = () => Color$BrightGreen$const;
 export const Color$isBrightGreen = (value) => value instanceof BrightGreen;
 
+/**
+ * Yellow color.
+ */
 export class Yellow extends $CustomType {}
-export const Color$Yellow = () => new Yellow();
+export const Color$Yellow$const = new Yellow();
+export const Color$Yellow = () => Color$Yellow$const;
 export const Color$isYellow = (value) => value instanceof Yellow;
 
+/**
+ * Bright yellow color.
+ */
 export class BrightYellow extends $CustomType {}
-export const Color$BrightYellow = () => new BrightYellow();
+export const Color$BrightYellow$const = new BrightYellow();
+export const Color$BrightYellow = () => Color$BrightYellow$const;
 export const Color$isBrightYellow = (value) => value instanceof BrightYellow;
 
+/**
+ * Blue color.
+ */
 export class Blue extends $CustomType {}
-export const Color$Blue = () => new Blue();
+export const Color$Blue$const = new Blue();
+export const Color$Blue = () => Color$Blue$const;
 export const Color$isBlue = (value) => value instanceof Blue;
 
+/**
+ * Bright blue color.
+ */
 export class BrightBlue extends $CustomType {}
-export const Color$BrightBlue = () => new BrightBlue();
+export const Color$BrightBlue$const = new BrightBlue();
+export const Color$BrightBlue = () => Color$BrightBlue$const;
 export const Color$isBrightBlue = (value) => value instanceof BrightBlue;
 
+/**
+ * Magenta color.
+ */
 export class Magenta extends $CustomType {}
-export const Color$Magenta = () => new Magenta();
+export const Color$Magenta$const = new Magenta();
+export const Color$Magenta = () => Color$Magenta$const;
 export const Color$isMagenta = (value) => value instanceof Magenta;
 
+/**
+ * Bright magenta color.
+ */
 export class BrightMagenta extends $CustomType {}
-export const Color$BrightMagenta = () => new BrightMagenta();
+export const Color$BrightMagenta$const = new BrightMagenta();
+export const Color$BrightMagenta = () => Color$BrightMagenta$const;
 export const Color$isBrightMagenta = (value) => value instanceof BrightMagenta;
 
+/**
+ * Cyan color.
+ */
 export class Cyan extends $CustomType {}
-export const Color$Cyan = () => new Cyan();
+export const Color$Cyan$const = new Cyan();
+export const Color$Cyan = () => Color$Cyan$const;
 export const Color$isCyan = (value) => value instanceof Cyan;
 
+/**
+ * Bright cyan color.
+ */
 export class BrightCyan extends $CustomType {}
-export const Color$BrightCyan = () => new BrightCyan();
+export const Color$BrightCyan$const = new BrightCyan();
+export const Color$BrightCyan = () => Color$BrightCyan$const;
 export const Color$isBrightCyan = (value) => value instanceof BrightCyan;
 
+/**
+ * White color.
+ */
 export class White extends $CustomType {}
-export const Color$White = () => new White();
+export const Color$White$const = new White();
+export const Color$White = () => Color$White$const;
 export const Color$isWhite = (value) => value instanceof White;
 
+/**
+ * Bright white color.
+ */
 export class BrightWhite extends $CustomType {}
-export const Color$BrightWhite = () => new BrightWhite();
+export const Color$BrightWhite$const = new BrightWhite();
+export const Color$BrightWhite = () => Color$BrightWhite$const;
 export const Color$isBrightWhite = (value) => value instanceof BrightWhite;
 
+/**
+ * Bright grey color.
+ */
 export class BrightGrey extends $CustomType {}
-export const Color$BrightGrey = () => new BrightGrey();
+export const Color$BrightGrey$const = new BrightGrey();
+export const Color$BrightGrey = () => Color$BrightGrey$const;
 export const Color$isBrightGrey = (value) => value instanceof BrightGrey;
 
 /**
- * Ansi color (256 colors). See https://www.ditig.com/256-colors-cheat-sheet.
+ * Ansi color (256 colors). See <https://www.ditig.com/256-colors-cheat-sheet.>
  */
 export class AnsiValue extends $CustomType {
   constructor(v) {
@@ -109,28 +185,52 @@ export const Color$Rgb$1 = (value) => value.g;
 export const Color$Rgb$b = (value) => value.b;
 export const Color$Rgb$2 = (value) => value.b;
 
+/**
+ * Bold text.
+ */
 export class Bold extends $CustomType {}
-export const Attribute$Bold = () => new Bold();
+export const Attribute$Bold$const = new Bold();
+export const Attribute$Bold = () => Attribute$Bold$const;
 export const Attribute$isBold = (value) => value instanceof Bold;
 
+/**
+ * Dim text.
+ */
 export class Dim extends $CustomType {}
-export const Attribute$Dim = () => new Dim();
+export const Attribute$Dim$const = new Dim();
+export const Attribute$Dim = () => Attribute$Dim$const;
 export const Attribute$isDim = (value) => value instanceof Dim;
 
+/**
+ * Underline text.
+ */
 export class Underline extends $CustomType {}
-export const Attribute$Underline = () => new Underline();
+export const Attribute$Underline$const = new Underline();
+export const Attribute$Underline = () => Attribute$Underline$const;
 export const Attribute$isUnderline = (value) => value instanceof Underline;
 
+/**
+ * Italic text.
+ */
 export class Italic extends $CustomType {}
-export const Attribute$Italic = () => new Italic();
+export const Attribute$Italic$const = new Italic();
+export const Attribute$Italic = () => Attribute$Italic$const;
 export const Attribute$isItalic = (value) => value instanceof Italic;
 
+/**
+ * Blinking text.
+ */
 export class Blinking extends $CustomType {}
-export const Attribute$Blinking = () => new Blinking();
+export const Attribute$Blinking$const = new Blinking();
+export const Attribute$Blinking = () => Attribute$Blinking$const;
 export const Attribute$isBlinking = (value) => value instanceof Blinking;
 
+/**
+ * Inverse (swaps foreground and background [`Colors`](style.html#Color)).
+ */
 export class Inverse extends $CustomType {}
-export const Attribute$Inverse = () => new Inverse();
+export const Attribute$Inverse$const = new Inverse();
+export const Attribute$Inverse = () => Attribute$Inverse$const;
 export const Attribute$isInverse = (value) => value instanceof Inverse;
 
 export class Style extends $CustomType {
@@ -157,56 +257,54 @@ export const Style$Style$2 = (value) => value.attributes;
  * and no [`Attributes`](style.html#Attribute).
  */
 export function default_style() {
-  return new Style(new Default(), new Default(), toList([]));
+  return new Style(Color$Default$const, Color$Default$const, $List$Empty$const);
 }
 
-function get_fg(c) {
-  if (c instanceof Default) {
-    return "39";
-  } else if (c instanceof Black) {
-    return "30";
-  } else if (c instanceof Grey) {
-    return "90";
-  } else if (c instanceof Red) {
-    return "31";
-  } else if (c instanceof BrightRed) {
-    return "91";
-  } else if (c instanceof Green) {
-    return "32";
-  } else if (c instanceof BrightGreen) {
-    return "92";
-  } else if (c instanceof Yellow) {
-    return "33";
-  } else if (c instanceof BrightYellow) {
-    return "93";
-  } else if (c instanceof Blue) {
-    return "34";
-  } else if (c instanceof BrightBlue) {
-    return "94";
-  } else if (c instanceof Magenta) {
-    return "35";
-  } else if (c instanceof BrightMagenta) {
-    return "95";
-  } else if (c instanceof Cyan) {
-    return "36";
-  } else if (c instanceof BrightCyan) {
-    return "96";
-  } else if (c instanceof White) {
-    return "37";
-  } else if (c instanceof BrightWhite) {
-    return "97";
-  } else if (c instanceof BrightGrey) {
-    return "38;5;7";
-  } else if (c instanceof AnsiValue) {
-    let v = c.v;
-    return "38;5;" + $int.to_string(v);
-  } else {
-    let r = c.r;
-    let g = c.g;
-    let b = c.b;
-    return (((("38;2;" + $int.to_string(r)) + ";") + $int.to_string(g)) + ";") + $int.to_string(
-      b,
-    );
+function get_attributes(loop$a, loop$acc) {
+  while (true) {
+    let a = loop$a;
+    let acc = loop$acc;
+    if (a instanceof $Empty) {
+      return "";
+    } else {
+      let $ = a.tail;
+      if ($ instanceof $Empty) {
+        let attr = a.head;
+        if (attr instanceof Bold) {
+          return acc + "1";
+        } else if (attr instanceof Dim) {
+          return acc + "2";
+        } else if (attr instanceof Underline) {
+          return acc + "4";
+        } else if (attr instanceof Italic) {
+          return acc + "3";
+        } else if (attr instanceof Blinking) {
+          return acc + "5";
+        } else {
+          return acc + "7";
+        }
+      } else {
+        let attr = a.head;
+        let rest = $;
+        let acc$1 = (() => {
+          if (attr instanceof Bold) {
+            return acc + "1";
+          } else if (attr instanceof Dim) {
+            return acc + "2";
+          } else if (attr instanceof Underline) {
+            return acc + "4";
+          } else if (attr instanceof Italic) {
+            return acc + "3";
+          } else if (attr instanceof Blinking) {
+            return acc + "5";
+          } else {
+            return acc + "7";
+          }
+        })() + ";";
+        loop$a = rest;
+        loop$acc = acc$1;
+      }
+    }
   }
 }
 
@@ -260,6 +358,66 @@ function get_bg(c) {
   }
 }
 
+function get_fg(c) {
+  if (c instanceof Default) {
+    return "39";
+  } else if (c instanceof Black) {
+    return "30";
+  } else if (c instanceof Grey) {
+    return "90";
+  } else if (c instanceof Red) {
+    return "31";
+  } else if (c instanceof BrightRed) {
+    return "91";
+  } else if (c instanceof Green) {
+    return "32";
+  } else if (c instanceof BrightGreen) {
+    return "92";
+  } else if (c instanceof Yellow) {
+    return "33";
+  } else if (c instanceof BrightYellow) {
+    return "93";
+  } else if (c instanceof Blue) {
+    return "34";
+  } else if (c instanceof BrightBlue) {
+    return "94";
+  } else if (c instanceof Magenta) {
+    return "35";
+  } else if (c instanceof BrightMagenta) {
+    return "95";
+  } else if (c instanceof Cyan) {
+    return "36";
+  } else if (c instanceof BrightCyan) {
+    return "96";
+  } else if (c instanceof White) {
+    return "37";
+  } else if (c instanceof BrightWhite) {
+    return "97";
+  } else if (c instanceof BrightGrey) {
+    return "38;5;7";
+  } else if (c instanceof AnsiValue) {
+    let v = c.v;
+    return "38;5;" + $int.to_string(v);
+  } else {
+    let r = c.r;
+    let g = c.g;
+    let b = c.b;
+    return (((("38;2;" + $int.to_string(r)) + ";") + $int.to_string(g)) + ";") + $int.to_string(
+      b,
+    );
+  }
+}
+
+/**
+ * Applies style to a string.
+ */
+export function with_style(s, style) {
+  return ((((((csi + get_fg(style.fg)) + ";") + get_bg(style.bg)) + ";") + get_attributes(
+    style.attributes,
+    "",
+  )) + "m") + s;
+}
+
 /**
  * Sets the foreground color of a string. It does not reset the color after applying it.
  * Also see [`on`](style.html#on) to set the background color.
@@ -284,64 +442,6 @@ export function on(s, c) {
  */
 export function with_on(s, fg, bg) {
   return ((((csi + get_fg(fg)) + ";") + get_bg(bg)) + "m") + s;
-}
-
-function get_attributes(loop$a, loop$acc) {
-  while (true) {
-    let a = loop$a;
-    let acc = loop$acc;
-    if (a instanceof $Empty) {
-      return "";
-    } else {
-      let $ = a.tail;
-      if ($ instanceof $Empty) {
-        let attr = a.head;
-        if (attr instanceof Bold) {
-          return acc + "1";
-        } else if (attr instanceof Dim) {
-          return acc + "2";
-        } else if (attr instanceof Underline) {
-          return acc + "4";
-        } else if (attr instanceof Italic) {
-          return acc + "3";
-        } else if (attr instanceof Blinking) {
-          return acc + "5";
-        } else {
-          return acc + "7";
-        }
-      } else {
-        let attr = a.head;
-        let rest = $;
-        let acc$1 = (() => {
-          if (attr instanceof Bold) {
-            return acc + "1";
-          } else if (attr instanceof Dim) {
-            return acc + "2";
-          } else if (attr instanceof Underline) {
-            return acc + "4";
-          } else if (attr instanceof Italic) {
-            return acc + "3";
-          } else if (attr instanceof Blinking) {
-            return acc + "5";
-          } else {
-            return acc + "7";
-          }
-        })() + ";";
-        loop$a = rest;
-        loop$acc = acc$1;
-      }
-    }
-  }
-}
-
-/**
- * Applies style to a string.
- */
-export function with_style(s, style) {
-  return ((((((csi + get_fg(style.fg)) + ";") + get_bg(style.bg)) + ";") + get_attributes(
-    style.attributes,
-    "",
-  )) + "m") + s;
 }
 
 /**

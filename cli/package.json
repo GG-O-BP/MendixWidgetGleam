@@ -1,23 +1,35 @@
 {
   "name": "create-mendix-widget-gleam",
-  "version": "4.0.5",
+  "version": "5.0.0",
   "description": "Scaffold a Mendix Pluggable Widget powered by Gleam",
   "type": "module",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/glendix-labs/MendixWidgetGleam.git",
+    "directory": "cli"
+  },
+  "bugs": {
+    "url": "https://github.com/glendix-labs/MendixWidgetGleam/issues"
+  },
+  "homepage": "https://github.com/glendix-labs/MendixWidgetGleam/tree/main/cli#readme",
   "bin": "bin/create-mendix-widget-gleam.mjs",
   "files": [
     "bin/",
     "src/",
     "template/",
-    "tui/build/dev/javascript/",
+    "tui/build/dev/javascript/**/*.mjs",
     "README.md"
   ],
   "scripts": {
-    "build:tui": "cd tui && gleam build --target javascript"
+    "build:tui": "cd tui && gleam build --target javascript",
+    "test": "bun test test/*.test.mjs",
+    "test:e2e": "bun test/template.e2e.mjs"
   },
   "engines": {
-    "node": ">=18"
+    "node": "^22.18.0"
   },
+  "packageManager": "bun@1.4.0",
   "keywords": [
     "mendix",
     "gleam",

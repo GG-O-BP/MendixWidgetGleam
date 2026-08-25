@@ -3,6 +3,7 @@ import {
   Error,
   toList,
   Empty as $Empty,
+  List$Empty$const as $List$Empty$const,
   prepend as listPrepend,
   CustomType as $CustomType,
   makeError,
@@ -14,7 +15,7 @@ import * as $float from "../gleam/float.mjs";
 import * as $int from "../gleam/int.mjs";
 import * as $order from "../gleam/order.mjs";
 
-const FILEPATH = "src\\gleam\\list.gleam";
+const FILEPATH = "src/gleam/list.gleam";
 
 export class Continue extends $CustomType {
   constructor($0) {
@@ -37,8 +38,10 @@ export const ContinueOrStop$isStop = (value) => value instanceof Stop;
 export const ContinueOrStop$Stop$0 = (value) => value[0];
 
 class Ascending extends $CustomType {}
+const Sorting$Ascending$const = new Ascending();
 
 class Descending extends $CustomType {}
+const Sorting$Descending$const = new Descending();
 
 const min_positive = 2.2250738585072014e-308;
 
@@ -68,15 +71,15 @@ function length_loop(loop$list, loop$count) {
  * ## Examples
  *
  * ```gleam
- * assert length([]) == 0
+ * assert list.length([]) == 0
  * ```
  *
  * ```gleam
- * assert length([1]) == 1
+ * assert list.length([1]) == 1
  * ```
  *
  * ```gleam
- * assert length([1, 2]) == 2
+ * assert list.length([1, 2]) == 2
  * ```
  */
 export function length(list) {
@@ -116,15 +119,15 @@ function count_loop(loop$list, loop$predicate, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert count([], fn(a) { a > 0 }) == 0
+ * assert list.count([], fn(a) { a > 0 }) == 0
  * ```
  *
  * ```gleam
- * assert count([1], fn(a) { a > 0 }) == 1
+ * assert list.count([1], fn(a) { a > 0 }) == 1
  * ```
  *
  * ```gleam
- * assert count([1, 2, 3], int.is_odd) == 2
+ * assert list.count([1, 2, 3], int.is_odd) == 2
  * ```
  */
 export function count(list, predicate) {
@@ -135,7 +138,7 @@ export function count(list, predicate) {
  * Reverses a list and prepends it to another list.
  * This function runs in linear time, proportional to the length of the list
  * to prepend.
- * 
+ *
  * @ignore
  */
 function reverse_and_prepend(loop$prefix, loop$suffix) {
@@ -166,19 +169,19 @@ function reverse_and_prepend(loop$prefix, loop$suffix) {
  * ## Examples
  *
  * ```gleam
- * assert reverse([]) == []
+ * assert list.reverse([]) == []
  * ```
  *
  * ```gleam
- * assert reverse([1]) == [1]
+ * assert list.reverse([1]) == [1]
  * ```
  *
  * ```gleam
- * assert reverse([1, 2]) == [2, 1]
+ * assert list.reverse([1, 2]) == [2, 1]
  * ```
  */
 export function reverse(list) {
-  return reverse_and_prepend(list, toList([]));
+  return reverse_and_prepend(list, $List$Empty$const);
 }
 
 /**
@@ -189,19 +192,19 @@ export function reverse(list) {
  * ## Examples
  *
  * ```gleam
- * assert is_empty([])
+ * assert list.is_empty([])
  * ```
  *
  * ```gleam
- * assert !is_empty([1])
+ * assert !list.is_empty([1])
  * ```
  *
  * ```gleam
- * assert !is_empty([1, 1])
+ * assert !list.is_empty([1, 1])
  * ```
  */
 export function is_empty(list) {
-  return isEqual(list, toList([]));
+  return list instanceof $Empty;
 }
 
 /**
@@ -213,23 +216,23 @@ export function is_empty(list) {
  * ## Examples
  *
  * ```gleam
- * assert !contains([], any: 0)
+ * assert !list.contains([], any: 0)
  * ```
  *
  * ```gleam
- * assert [0] |> contains(any: 0)
+ * assert [0] |> list.contains(any: 0)
  * ```
  *
  * ```gleam
- * assert !contains([1], any: 0)
+ * assert !list.contains([1], any: 0)
  * ```
  *
  * ```gleam
- * assert !contains([1, 1], any: 0)
+ * assert !list.contains([1, 1], any: 0)
  * ```
  *
  * ```gleam
- * assert [1, 0] |> contains(any: 0)
+ * assert [1, 0] |> list.contains(any: 0)
  * ```
  */
 export function contains(loop$list, loop$elem) {
@@ -257,15 +260,15 @@ export function contains(loop$list, loop$elem) {
  * ## Examples
  *
  * ```gleam
- * assert first([]) == Error(Nil)
+ * assert list.first([]) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert first([0]) == Ok(0)
+ * assert list.first([0]) == Ok(0)
  * ```
  *
  * ```gleam
- * assert first([1, 2]) == Ok(1)
+ * assert list.first([1, 2]) == Ok(1)
  * ```
  */
 export function first(list) {
@@ -286,15 +289,15 @@ export function first(list) {
  * ## Examples
  *
  * ```gleam
- * assert rest([]) == Error(Nil)
+ * assert list.rest([]) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert rest([0]) == Ok([])
+ * assert list.rest([0]) == Ok([])
  * ```
  *
  * ```gleam
- * assert rest([1, 2]) == Ok([2])
+ * assert list.rest([1, 2]) == Ok([2])
  * ```
  */
 export function rest(list) {
@@ -316,9 +319,8 @@ export function rest(list) {
  * ```gleam
  * import gleam/dict
  *
- * assert
- *   [Ok(3), Error("Wrong"), Ok(200), Ok(73)]
- *   |> group(by: fn(i) {
+ * assert [Ok(3), Error("Wrong"), Ok(200), Ok(73)]
+ *   |> list.group(by: fn(i) {
  *     case i {
  *       Ok(_) -> "Successful"
  *       Error(_) -> "Failed"
@@ -327,14 +329,14 @@ export function rest(list) {
  *   |> dict.to_list
  *   == [
  *     #("Failed", [Error("Wrong")]),
- *     #("Successful", [Ok(73), Ok(200), Ok(3)])
+ *     #("Successful", [Ok(73), Ok(200), Ok(3)]),
  *   ]
  * ```
  *
  * ```gleam
  * import gleam/dict
  *
- * assert group([1,2,3,4,5], by: fn(i) { i - i / 3 * 3 })
+ * assert list.group([1, 2, 3, 4, 5], by: fn(i) { i - i / 3 * 3 })
  *   |> dict.to_list
  *   == [#(0, [3]), #(1, [4, 1]), #(2, [5, 2])]
  * ```
@@ -375,15 +377,15 @@ function filter_loop(loop$list, loop$fun, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert filter([2, 4, 6, 1], fn(x) { x > 2 }) == [4, 6]
+ * assert list.filter([2, 4, 6, 1], fn(x) { x > 2 }) == [4, 6]
  * ```
  *
  * ```gleam
- * assert filter([2, 4, 6, 1], fn(x) { x > 6 }) == []
+ * assert list.filter([2, 4, 6, 1], fn(x) { x > 6 }) == []
  * ```
  */
 export function filter(list, predicate) {
-  return filter_loop(list, predicate, toList([]));
+  return filter_loop(list, predicate, $List$Empty$const);
 }
 
 function filter_map_loop(loop$list, loop$fun, loop$acc) {
@@ -419,15 +421,15 @@ function filter_map_loop(loop$list, loop$fun, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert filter_map([2, 4, 6, 1], Error) == []
+ * assert list.filter_map([2, 4, 6, 1], Error) == []
  * ```
  *
  * ```gleam
- * assert filter_map([2, 4, 6, 1], fn(x) { Ok(x + 1) }) == [3, 5, 7, 2]
+ * assert list.filter_map([2, 4, 6, 1], fn(x) { Ok(x + 1) }) == [3, 5, 7, 2]
  * ```
  */
 export function filter_map(list, fun) {
-  return filter_map_loop(list, fun, toList([]));
+  return filter_map_loop(list, fun, $List$Empty$const);
 }
 
 function map_loop(loop$list, loop$fun, loop$acc) {
@@ -453,11 +455,11 @@ function map_loop(loop$list, loop$fun, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert map([2, 4, 6], fn(x) { x * 2 }) == [4, 8, 12]
+ * assert list.map([2, 4, 6], fn(x) { x * 2 }) == [4, 8, 12]
  * ```
  */
 export function map(list, fun) {
-  return map_loop(list, fun, toList([]));
+  return map_loop(list, fun, $List$Empty$const);
 }
 
 function map2_loop(loop$list1, loop$list2, loop$fun, loop$acc) {
@@ -491,16 +493,16 @@ function map2_loop(loop$list1, loop$list2, loop$fun, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert map2([1, 2, 3], [4, 5, 6], fn(x, y) { x + y }) == [5, 7, 9]
+ * assert list.map2([1, 2, 3], [4, 5, 6], fn(x, y) { x + y }) == [5, 7, 9]
  * ```
  *
  * ```gleam
- * assert map2([1, 2], ["a", "b", "c"], fn(i, x) { #(i, x) })
+ * assert list.map2([1, 2], ["a", "b", "c"], fn(i, x) { #(i, x) })
  *   == [#(1, "a"), #(2, "b")]
  * ```
  */
 export function map2(list1, list2, fun) {
-  return map2_loop(list1, list2, fun, toList([]));
+  return map2_loop(list1, list2, fun, $List$Empty$const);
 }
 
 function map_fold_loop(loop$list, loop$fun, loop$acc, loop$list_acc) {
@@ -515,10 +517,8 @@ function map_fold_loop(loop$list, loop$fun, loop$acc, loop$list_acc) {
       let first$1 = list.head;
       let rest$1 = list.tail;
       let $ = fun(acc, first$1);
-      let acc$1;
-      let first$2;
-      acc$1 = $[0];
-      first$2 = $[1];
+      let acc$1 = $[0];
+      let first$2 = $[1];
       loop$list = rest$1;
       loop$fun = fun;
       loop$acc = acc$1;
@@ -533,17 +533,14 @@ function map_fold_loop(loop$list, loop$fun, loop$acc, loop$list_acc) {
  * ## Examples
  *
  * ```gleam
- * assert
- *   map_fold(
- *     over: [1, 2, 3],
- *     from: 100,
- *     with: fn(memo, i) { #(memo + i, i * 2) }
- *   )
+ * assert list.map_fold(over: [1, 2, 3], from: 100, with: fn(memo, i) {
+ *     #(memo + i, i * 2)
+ *   })
  *   == #(106, [2, 4, 6])
  * ```
  */
 export function map_fold(list, initial, fun) {
-  return map_fold_loop(list, fun, initial, toList([]));
+  return map_fold_loop(list, fun, initial, $List$Empty$const);
 }
 
 function index_map_loop(loop$list, loop$fun, loop$index, loop$acc) {
@@ -576,11 +573,12 @@ function index_map_loop(loop$list, loop$fun, loop$index, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert index_map(["a", "b"], fn(x, i) { #(i, x) }) == [#(0, "a"), #(1, "b")]
+ * assert list.index_map(["a", "b"], fn(x, i) { #(i, x) })
+ *   == [#(0, "a"), #(1, "b")]
  * ```
  */
 export function index_map(list, fun) {
-  return index_map_loop(list, fun, 0, toList([]));
+  return index_map_loop(list, fun, 0, $List$Empty$const);
 }
 
 function try_map_loop(loop$list, loop$fun, loop$acc) {
@@ -620,23 +618,23 @@ function try_map_loop(loop$list, loop$fun, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert try_map([1, 2, 3], fn(x) { Ok(x + 2) }) == Ok([3, 4, 5])
+ * assert list.try_map([1, 2, 3], fn(x) { Ok(x + 2) }) == Ok([3, 4, 5])
  * ```
  *
  * ```gleam
- * assert try_map([1, 2, 3], fn(_) { Error(0) }) == Error(0)
+ * assert list.try_map([1, 2, 3], fn(_) { Error(0) }) == Error(0)
  * ```
  *
  * ```gleam
- * assert try_map([[1], [2, 3]], first) == Ok([1, 2])
+ * assert list.try_map([[1], [2, 3]], list.first) == Ok([1, 2])
  * ```
  *
  * ```gleam
- * assert try_map([[1], [], [2]], first) == Error(Nil)
+ * assert list.try_map([[1], [], [2]], list.first) == Error(Nil)
  * ```
  */
 export function try_map(list, fun) {
-  return try_map_loop(list, fun, toList([]));
+  return try_map_loop(list, fun, $List$Empty$const);
 }
 
 /**
@@ -651,11 +649,11 @@ export function try_map(list, fun) {
  * ## Examples
  *
  * ```gleam
- * assert drop([1, 2, 3, 4], 2) == [3, 4]
+ * assert list.drop([1, 2, 3, 4], 2) == [3, 4]
  * ```
  *
  * ```gleam
- * assert drop([1, 2, 3, 4], 9) == []
+ * assert list.drop([1, 2, 3, 4], 9) == []
  * ```
  */
 export function drop(loop$list, loop$n) {
@@ -711,15 +709,15 @@ function take_loop(loop$list, loop$n, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert take([1, 2, 3, 4], 2) == [1, 2]
+ * assert list.take([1, 2, 3, 4], 2) == [1, 2]
  * ```
  *
  * ```gleam
- * assert take([1, 2, 3, 4], 9) == [1, 2, 3, 4]
+ * assert list.take([1, 2, 3, 4], 9) == [1, 2, 3, 4]
  * ```
  */
 export function take(list, n) {
-  return take_loop(list, n, toList([]));
+  return take_loop(list, n, $List$Empty$const);
 }
 
 /**
@@ -728,11 +726,11 @@ export function take(list, n) {
  * ## Examples
  *
  * ```gleam
- * assert new() == []
+ * assert list.new() == []
  * ```
  */
 export function new$() {
-  return toList([]);
+  return $List$Empty$const;
 }
 
 /**
@@ -741,15 +739,15 @@ export function new$() {
  * ## Examples
  *
  * ```gleam
- * assert wrap(1) == [1]
+ * assert list.wrap(1) == [1]
  * ```
  *
  * ```gleam
- * assert wrap(["a", "b", "c"]) == [["a", "b", "c"]]
+ * assert list.wrap(["a", "b", "c"]) == [["a", "b", "c"]]
  * ```
  *
  * ```gleam
- * assert wrap([[]]) == [[[]]]
+ * assert list.wrap([[]]) == [[[]]]
  * ```
  */
 export function wrap(item) {
@@ -780,7 +778,7 @@ function append_loop(loop$first, loop$second) {
  * ## Examples
  *
  * ```gleam
- * assert append([1, 2], [3]) == [1, 2, 3]
+ * assert list.append([1, 2], [3]) == [1, 2, 3]
  * ```
  */
 export function append(first, second) {
@@ -798,7 +796,7 @@ export function append(first, second) {
  *
  * ```gleam
  * let existing_list = [2, 3, 4]
- * assert prepend(to: existing_list, this: 1) == [1, 2, 3, 4]
+ * assert list.prepend(to: existing_list, this: 1) == [1, 2, 3, 4]
  * ```
  */
 export function prepend(list, item) {
@@ -829,11 +827,11 @@ function flatten_loop(loop$lists, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert flatten([[1], [2, 3], []]) == [1, 2, 3]
+ * assert list.flatten([[1], [2, 3], []]) == [1, 2, 3]
  * ```
  */
 export function flatten(lists) {
-  return flatten_loop(lists, toList([]));
+  return flatten_loop(lists, $List$Empty$const);
 }
 
 /**
@@ -842,7 +840,7 @@ export function flatten(lists) {
  * ## Examples
  *
  * ```gleam
- * assert flat_map([2, 4, 6], fn(x) { [x, x + 1] }) == [2, 3, 4, 5, 6, 7]
+ * assert list.flat_map([2, 4, 6], fn(x) { [x, x + 1] }) == [2, 3, 4, 5, 6, 7]
  * ```
  */
 export function flat_map(list, fun) {
@@ -923,7 +921,7 @@ function index_fold_loop(loop$over, loop$acc, loop$with, loop$index) {
  *
  * ```gleam
  * assert ["a", "b", "c"]
- *   |> index_fold("", fn(acc, item, index) {
+ *   |> list.index_fold("", fn(acc, item, index) {
  *     acc <> int.to_string(index) <> ":" <> item <> " "
  *   })
  *   == "0:a 1:b 2:c"
@@ -931,7 +929,7 @@ function index_fold_loop(loop$over, loop$acc, loop$with, loop$index) {
  *
  * ```gleam
  * assert [10, 20, 30]
- *   |> index_fold(0, fn(acc, item, index) { acc + item * index })
+ *   |> list.index_fold(0, fn(acc, item, index) { acc + item * index })
  *   == 80
  * ```
  */
@@ -950,7 +948,7 @@ export function index_fold(list, initial, fun) {
  *
  * ```gleam
  * assert [1, 2, 3, 4]
- *   |> try_fold(0, fn(acc, i) {
+ *   |> list.try_fold(0, fn(acc, i) {
  *     case i < 3 {
  *       True -> Ok(acc + i)
  *       False -> Error(Nil)
@@ -993,7 +991,7 @@ export function try_fold(loop$list, loop$initial, loop$fun) {
  *
  * ```gleam
  * assert [1, 2, 3, 4]
- *   |> fold_until(0, fn(acc, i) {
+ *   |> list.fold_until(0, fn(acc, i) {
  *     case i < 3 {
  *       True -> Continue(acc + i)
  *       False -> Stop(acc)
@@ -1035,15 +1033,15 @@ export function fold_until(loop$list, loop$initial, loop$fun) {
  * ## Examples
  *
  * ```gleam
- * assert find([1, 2, 3], fn(x) { x > 2 }) == Ok(3)
+ * assert list.find([1, 2, 3], fn(x) { x > 2 }) == Ok(3)
  * ```
  *
  * ```gleam
- * assert find([1, 2, 3], fn(x) { x > 4 }) == Error(Nil)
+ * assert list.find([1, 2, 3], fn(x) { x > 4 }) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert find([], fn(_) { True }) == Error(Nil)
+ * assert list.find([], fn(_) { True }) == Error(Nil)
  * ```
  */
 export function find(loop$list, loop$is_desired) {
@@ -1075,15 +1073,15 @@ export function find(loop$list, loop$is_desired) {
  * ## Examples
  *
  * ```gleam
- * assert find_map([[], [2], [3]], first) == Ok(2)
+ * assert list.find_map([[], [2], [3]], list.first) == Ok(2)
  * ```
  *
  * ```gleam
- * assert find_map([[], []], first) == Error(Nil)
+ * assert list.find_map([[], []], list.first) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert find_map([], first) == Error(Nil)
+ * assert list.find_map([], list.first) == Error(Nil)
  * ```
  */
 export function find_map(loop$list, loop$fun) {
@@ -1114,15 +1112,15 @@ export function find_map(loop$list, loop$fun) {
  * ## Examples
  *
  * ```gleam
- * assert all([], fn(x) { x > 3 })
+ * assert list.all([], fn(x) { x > 3 })
  * ```
  *
  * ```gleam
- * assert all([4, 5], fn(x) { x > 3 })
+ * assert list.all([4, 5], fn(x) { x > 3 })
  * ```
  *
  * ```gleam
- * assert !all([4, 3], fn(x) { x > 3 })
+ * assert !list.all([4, 3], fn(x) { x > 3 })
  * ```
  */
 export function all(loop$list, loop$predicate) {
@@ -1153,19 +1151,19 @@ export function all(loop$list, loop$predicate) {
  * ## Examples
  *
  * ```gleam
- * assert !any([], fn(x) { x > 3 })
+ * assert !list.any([], fn(x) { x > 3 })
  * ```
  *
  * ```gleam
- * assert any([4, 5], fn(x) { x > 3 })
+ * assert list.any([4, 5], fn(x) { x > 3 })
  * ```
  *
  * ```gleam
- * assert any([4, 3], fn(x) { x > 4 })
+ * assert list.any([4, 3], fn(x) { x > 4 })
  * ```
  *
  * ```gleam
- * assert any([3, 4], fn(x) { x > 3 })
+ * assert list.any([3, 4], fn(x) { x > 3 })
  * ```
  */
 export function any(loop$list, loop$predicate) {
@@ -1218,23 +1216,23 @@ function zip_loop(loop$one, loop$other, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert zip([], []) == []
+ * assert list.zip([], []) == []
  * ```
  *
  * ```gleam
- * assert zip([1, 2], [3]) == [#(1, 3)]
+ * assert list.zip([1, 2], [3]) == [#(1, 3)]
  * ```
  *
  * ```gleam
- * assert zip([1], [3, 4]) == [#(1, 3)]
+ * assert list.zip([1], [3, 4]) == [#(1, 3)]
  * ```
  *
  * ```gleam
- * assert zip([1, 2], [3, 4]) == [#(1, 3), #(2, 4)]
+ * assert list.zip([1, 2], [3, 4]) == [#(1, 3), #(2, 4)]
  * ```
  */
 export function zip(list, other) {
-  return zip_loop(list, other, toList([]));
+  return zip_loop(list, other, $List$Empty$const);
 }
 
 function strict_zip_loop(loop$one, loop$other, loop$acc) {
@@ -1270,23 +1268,23 @@ function strict_zip_loop(loop$one, loop$other, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert strict_zip([], []) == Ok([])
+ * assert list.strict_zip([], []) == Ok([])
  * ```
  *
  * ```gleam
- * assert strict_zip([1, 2], [3]) == Error(Nil)
+ * assert list.strict_zip([1, 2], [3]) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert strict_zip([1], [3, 4]) == Error(Nil)
+ * assert list.strict_zip([1], [3, 4]) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert strict_zip([1, 2], [3, 4]) == Ok([#(1, 3), #(2, 4)])
+ * assert list.strict_zip([1, 2], [3, 4]) == Ok([#(1, 3), #(2, 4)])
  * ```
  */
 export function strict_zip(list, other) {
-  return strict_zip_loop(list, other, toList([]));
+  return strict_zip_loop(list, other, $List$Empty$const);
 }
 
 function unzip_loop(loop$input, loop$one, loop$other) {
@@ -1313,15 +1311,15 @@ function unzip_loop(loop$input, loop$one, loop$other) {
  * ## Examples
  *
  * ```gleam
- * assert unzip([#(1, 2), #(3, 4)]) == #([1, 3], [2, 4])
+ * assert list.unzip([#(1, 2), #(3, 4)]) == #([1, 3], [2, 4])
  * ```
  *
  * ```gleam
- * assert unzip([]) == #([], [])
+ * assert list.unzip([]) == #([], [])
  * ```
  */
 export function unzip(input) {
-  return unzip_loop(input, toList([]), toList([]));
+  return unzip_loop(input, $List$Empty$const, $List$Empty$const);
 }
 
 function intersperse_loop(loop$list, loop$separator, loop$acc) {
@@ -1349,11 +1347,11 @@ function intersperse_loop(loop$list, loop$separator, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert intersperse([1, 1, 1], 2) == [1, 2, 1, 2, 1]
+ * assert list.intersperse([1, 1, 1], 2) == [1, 2, 1, 2, 1]
  * ```
  *
  * ```gleam
- * assert intersperse([], 2) == []
+ * assert list.intersperse([], 2) == []
  * ```
  */
 export function intersperse(list, elem) {
@@ -1403,11 +1401,230 @@ function unique_loop(loop$list, loop$seen, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert unique([1, 1, 1, 4, 7, 3, 3, 4]) == [1, 4, 7, 3]
+ * assert list.unique([1, 1, 1, 4, 7, 3, 3, 4]) == [1, 4, 7, 3]
  * ```
  */
 export function unique(list) {
-  return unique_loop(list, $dict.new$(), toList([]));
+  return unique_loop(list, $dict.new$(), $List$Empty$const);
+}
+
+/**
+ * This is exactly the same as merge_ascendings but mirrored: it merges two
+ * lists sorted in descending order into a single list sorted in ascending
+ * order according to the given comparator function.
+ *
+ * This reversing of the sort order is not avoidable if we want to implement
+ * merge as a tail recursive function. We could reverse the accumulator before
+ * returning it but that would end up being less efficient; so the merging
+ * algorithm has to play around this.
+ *
+ * @ignore
+ */
+function merge_descendings(loop$list1, loop$list2, loop$compare, loop$acc) {
+  while (true) {
+    let list1 = loop$list1;
+    let list2 = loop$list2;
+    let compare = loop$compare;
+    let acc = loop$acc;
+    if (list1 instanceof $Empty) {
+      let list = list2;
+      return reverse_and_prepend(list, acc);
+    } else if (list2 instanceof $Empty) {
+      let list = list1;
+      return reverse_and_prepend(list, acc);
+    } else {
+      let first1 = list1.head;
+      let rest1 = list1.tail;
+      let first2 = list2.head;
+      let rest2 = list2.tail;
+      let $ = compare(first1, first2);
+      if ($ instanceof $order.Lt) {
+        loop$list1 = list1;
+        loop$list2 = rest2;
+        loop$compare = compare;
+        loop$acc = listPrepend(first2, acc);
+      } else if ($ instanceof $order.Eq) {
+        loop$list1 = rest1;
+        loop$list2 = list2;
+        loop$compare = compare;
+        loop$acc = listPrepend(first1, acc);
+      } else {
+        loop$list1 = rest1;
+        loop$list2 = list2;
+        loop$compare = compare;
+        loop$acc = listPrepend(first1, acc);
+      }
+    }
+  }
+}
+
+/**
+ * This is the same as merge_ascending_pairs but flipped for descending lists.
+ *
+ * @ignore
+ */
+function merge_descending_pairs(loop$sequences, loop$compare, loop$acc) {
+  while (true) {
+    let sequences = loop$sequences;
+    let compare = loop$compare;
+    let acc = loop$acc;
+    if (sequences instanceof $Empty) {
+      return reverse(acc);
+    } else {
+      let $ = sequences.tail;
+      if ($ instanceof $Empty) {
+        let sequence = sequences.head;
+        return reverse(listPrepend(reverse(sequence), acc));
+      } else {
+        let descending1 = sequences.head;
+        let descending2 = $.head;
+        let rest$1 = $.tail;
+        let ascending = merge_descendings(
+          descending1,
+          descending2,
+          compare,
+          $List$Empty$const,
+        );
+        loop$sequences = rest$1;
+        loop$compare = compare;
+        loop$acc = listPrepend(ascending, acc);
+      }
+    }
+  }
+}
+
+/**
+ * Merges two lists sorted in ascending order into a single list sorted in
+ * descending order according to the given comparator function.
+ *
+ * This reversing of the sort order is not avoidable if we want to implement
+ * merge as a tail recursive function. We could reverse the accumulator before
+ * returning it but that would end up being less efficient; so the merging
+ * algorithm has to play around this.
+ *
+ * @ignore
+ */
+function merge_ascendings(loop$list1, loop$list2, loop$compare, loop$acc) {
+  while (true) {
+    let list1 = loop$list1;
+    let list2 = loop$list2;
+    let compare = loop$compare;
+    let acc = loop$acc;
+    if (list1 instanceof $Empty) {
+      let list = list2;
+      return reverse_and_prepend(list, acc);
+    } else if (list2 instanceof $Empty) {
+      let list = list1;
+      return reverse_and_prepend(list, acc);
+    } else {
+      let first1 = list1.head;
+      let rest1 = list1.tail;
+      let first2 = list2.head;
+      let rest2 = list2.tail;
+      let $ = compare(first1, first2);
+      if ($ instanceof $order.Lt) {
+        loop$list1 = rest1;
+        loop$list2 = list2;
+        loop$compare = compare;
+        loop$acc = listPrepend(first1, acc);
+      } else if ($ instanceof $order.Eq) {
+        loop$list1 = list1;
+        loop$list2 = rest2;
+        loop$compare = compare;
+        loop$acc = listPrepend(first2, acc);
+      } else {
+        loop$list1 = list1;
+        loop$list2 = rest2;
+        loop$compare = compare;
+        loop$acc = listPrepend(first2, acc);
+      }
+    }
+  }
+}
+
+/**
+ * Given a list of ascending lists, it merges adjacent pairs into a single
+ * descending list, halving their number.
+ * It returns a list of the remaining descending lists.
+ *
+ * @ignore
+ */
+function merge_ascending_pairs(loop$sequences, loop$compare, loop$acc) {
+  while (true) {
+    let sequences = loop$sequences;
+    let compare = loop$compare;
+    let acc = loop$acc;
+    if (sequences instanceof $Empty) {
+      return reverse(acc);
+    } else {
+      let $ = sequences.tail;
+      if ($ instanceof $Empty) {
+        let sequence = sequences.head;
+        return reverse(listPrepend(reverse(sequence), acc));
+      } else {
+        let ascending1 = sequences.head;
+        let ascending2 = $.head;
+        let rest$1 = $.tail;
+        let descending = merge_ascendings(
+          ascending1,
+          ascending2,
+          compare,
+          $List$Empty$const,
+        );
+        loop$sequences = rest$1;
+        loop$compare = compare;
+        loop$acc = listPrepend(descending, acc);
+      }
+    }
+  }
+}
+
+/**
+ * Given some some sorted sequences (assumed to be sorted in `direction`) it
+ * merges them all together until we're left with just a list sorted in
+ * ascending order.
+ *
+ * @ignore
+ */
+function merge_all(loop$sequences, loop$direction, loop$compare) {
+  while (true) {
+    let sequences = loop$sequences;
+    let direction = loop$direction;
+    let compare = loop$compare;
+    if (sequences instanceof $Empty) {
+      return sequences;
+    } else if (direction instanceof Ascending) {
+      let $ = sequences.tail;
+      if ($ instanceof $Empty) {
+        let sequence = sequences.head;
+        return sequence;
+      } else {
+        let sequences$1 = merge_ascending_pairs(
+          sequences,
+          compare,
+          $List$Empty$const,
+        );
+        loop$sequences = sequences$1;
+        loop$direction = Sorting$Descending$const;
+        loop$compare = compare;
+      }
+    } else {
+      let $ = sequences.tail;
+      if ($ instanceof $Empty) {
+        let sequence = sequences.head;
+        return reverse(sequence);
+      } else {
+        let sequences$1 = merge_descending_pairs(
+          sequences,
+          compare,
+          $List$Empty$const,
+        );
+        loop$sequences = sequences$1;
+        loop$direction = Sorting$Ascending$const;
+        loop$compare = compare;
+      }
+    }
+  }
 }
 
 /**
@@ -1433,7 +1650,7 @@ export function unique(list) {
  *   it is carried around to check whether we have to keep growing the current
  *   slice or not
  * - `acc` is the accumulator containing the slices sorted in ascending order
- * 
+ *
  * @ignore
  */
 function sequences(
@@ -1493,11 +1710,11 @@ function sequences(
             let _block$1;
             let $1 = compare(new$1, next);
             if ($1 instanceof $order.Lt) {
-              _block$1 = new Ascending();
+              _block$1 = Sorting$Ascending$const;
             } else if ($1 instanceof $order.Eq) {
-              _block$1 = new Ascending();
+              _block$1 = Sorting$Ascending$const;
             } else {
-              _block$1 = new Descending();
+              _block$1 = Sorting$Descending$const;
             }
             let direction$1 = _block$1;
             loop$list = rest$2;
@@ -1524,11 +1741,11 @@ function sequences(
           let _block$1;
           let $1 = compare(new$1, next);
           if ($1 instanceof $order.Lt) {
-            _block$1 = new Ascending();
+            _block$1 = Sorting$Ascending$const;
           } else if ($1 instanceof $order.Eq) {
-            _block$1 = new Ascending();
+            _block$1 = Sorting$Ascending$const;
           } else {
-            _block$1 = new Descending();
+            _block$1 = Sorting$Descending$const;
           }
           let direction$1 = _block$1;
           loop$list = rest$2;
@@ -1554,11 +1771,11 @@ function sequences(
           let _block$1;
           let $1 = compare(new$1, next);
           if ($1 instanceof $order.Lt) {
-            _block$1 = new Ascending();
+            _block$1 = Sorting$Ascending$const;
           } else if ($1 instanceof $order.Eq) {
-            _block$1 = new Ascending();
+            _block$1 = Sorting$Ascending$const;
           } else {
-            _block$1 = new Descending();
+            _block$1 = Sorting$Descending$const;
           }
           let direction$1 = _block$1;
           loop$list = rest$2;
@@ -1581,217 +1798,6 @@ function sequences(
 }
 
 /**
- * Merges two lists sorted in ascending order into a single list sorted in
- * descending order according to the given comparator function.
- *
- * This reversing of the sort order is not avoidable if we want to implement
- * merge as a tail recursive function. We could reverse the accumulator before
- * returning it but that would end up being less efficient; so the merging
- * algorithm has to play around this.
- * 
- * @ignore
- */
-function merge_ascendings(loop$list1, loop$list2, loop$compare, loop$acc) {
-  while (true) {
-    let list1 = loop$list1;
-    let list2 = loop$list2;
-    let compare = loop$compare;
-    let acc = loop$acc;
-    if (list1 instanceof $Empty) {
-      let list = list2;
-      return reverse_and_prepend(list, acc);
-    } else if (list2 instanceof $Empty) {
-      let list = list1;
-      return reverse_and_prepend(list, acc);
-    } else {
-      let first1 = list1.head;
-      let rest1 = list1.tail;
-      let first2 = list2.head;
-      let rest2 = list2.tail;
-      let $ = compare(first1, first2);
-      if ($ instanceof $order.Lt) {
-        loop$list1 = rest1;
-        loop$list2 = list2;
-        loop$compare = compare;
-        loop$acc = listPrepend(first1, acc);
-      } else if ($ instanceof $order.Eq) {
-        loop$list1 = list1;
-        loop$list2 = rest2;
-        loop$compare = compare;
-        loop$acc = listPrepend(first2, acc);
-      } else {
-        loop$list1 = list1;
-        loop$list2 = rest2;
-        loop$compare = compare;
-        loop$acc = listPrepend(first2, acc);
-      }
-    }
-  }
-}
-
-/**
- * Given a list of ascending lists, it merges adjacent pairs into a single
- * descending list, halving their number.
- * It returns a list of the remaining descending lists.
- * 
- * @ignore
- */
-function merge_ascending_pairs(loop$sequences, loop$compare, loop$acc) {
-  while (true) {
-    let sequences = loop$sequences;
-    let compare = loop$compare;
-    let acc = loop$acc;
-    if (sequences instanceof $Empty) {
-      return reverse(acc);
-    } else {
-      let $ = sequences.tail;
-      if ($ instanceof $Empty) {
-        let sequence = sequences.head;
-        return reverse(listPrepend(reverse(sequence), acc));
-      } else {
-        let ascending1 = sequences.head;
-        let ascending2 = $.head;
-        let rest$1 = $.tail;
-        let descending = merge_ascendings(
-          ascending1,
-          ascending2,
-          compare,
-          toList([]),
-        );
-        loop$sequences = rest$1;
-        loop$compare = compare;
-        loop$acc = listPrepend(descending, acc);
-      }
-    }
-  }
-}
-
-/**
- * This is exactly the same as merge_ascendings but mirrored: it merges two
- * lists sorted in descending order into a single list sorted in ascending
- * order according to the given comparator function.
- *
- * This reversing of the sort order is not avoidable if we want to implement
- * merge as a tail recursive function. We could reverse the accumulator before
- * returning it but that would end up being less efficient; so the merging
- * algorithm has to play around this.
- * 
- * @ignore
- */
-function merge_descendings(loop$list1, loop$list2, loop$compare, loop$acc) {
-  while (true) {
-    let list1 = loop$list1;
-    let list2 = loop$list2;
-    let compare = loop$compare;
-    let acc = loop$acc;
-    if (list1 instanceof $Empty) {
-      let list = list2;
-      return reverse_and_prepend(list, acc);
-    } else if (list2 instanceof $Empty) {
-      let list = list1;
-      return reverse_and_prepend(list, acc);
-    } else {
-      let first1 = list1.head;
-      let rest1 = list1.tail;
-      let first2 = list2.head;
-      let rest2 = list2.tail;
-      let $ = compare(first1, first2);
-      if ($ instanceof $order.Lt) {
-        loop$list1 = list1;
-        loop$list2 = rest2;
-        loop$compare = compare;
-        loop$acc = listPrepend(first2, acc);
-      } else if ($ instanceof $order.Eq) {
-        loop$list1 = rest1;
-        loop$list2 = list2;
-        loop$compare = compare;
-        loop$acc = listPrepend(first1, acc);
-      } else {
-        loop$list1 = rest1;
-        loop$list2 = list2;
-        loop$compare = compare;
-        loop$acc = listPrepend(first1, acc);
-      }
-    }
-  }
-}
-
-/**
- * This is the same as merge_ascending_pairs but flipped for descending lists.
- * 
- * @ignore
- */
-function merge_descending_pairs(loop$sequences, loop$compare, loop$acc) {
-  while (true) {
-    let sequences = loop$sequences;
-    let compare = loop$compare;
-    let acc = loop$acc;
-    if (sequences instanceof $Empty) {
-      return reverse(acc);
-    } else {
-      let $ = sequences.tail;
-      if ($ instanceof $Empty) {
-        let sequence = sequences.head;
-        return reverse(listPrepend(reverse(sequence), acc));
-      } else {
-        let descending1 = sequences.head;
-        let descending2 = $.head;
-        let rest$1 = $.tail;
-        let ascending = merge_descendings(
-          descending1,
-          descending2,
-          compare,
-          toList([]),
-        );
-        loop$sequences = rest$1;
-        loop$compare = compare;
-        loop$acc = listPrepend(ascending, acc);
-      }
-    }
-  }
-}
-
-/**
- * Given some some sorted sequences (assumed to be sorted in `direction`) it
- * merges them all together until we're left with just a list sorted in
- * ascending order.
- * 
- * @ignore
- */
-function merge_all(loop$sequences, loop$direction, loop$compare) {
-  while (true) {
-    let sequences = loop$sequences;
-    let direction = loop$direction;
-    let compare = loop$compare;
-    if (sequences instanceof $Empty) {
-      return sequences;
-    } else if (direction instanceof Ascending) {
-      let $ = sequences.tail;
-      if ($ instanceof $Empty) {
-        let sequence = sequences.head;
-        return sequence;
-      } else {
-        let sequences$1 = merge_ascending_pairs(sequences, compare, toList([]));
-        loop$sequences = sequences$1;
-        loop$direction = new Descending();
-        loop$compare = compare;
-      }
-    } else {
-      let $ = sequences.tail;
-      if ($ instanceof $Empty) {
-        let sequence = sequences.head;
-        return reverse(sequence);
-      } else {
-        let sequences$1 = merge_descending_pairs(sequences, compare, toList([]));
-        loop$sequences = sequences$1;
-        loop$direction = new Ascending();
-        loop$compare = compare;
-      }
-    }
-  }
-}
-
-/**
  * Sorts from smallest to largest based upon the ordering specified by a given
  * function.
  *
@@ -1800,7 +1806,8 @@ function merge_all(loop$sequences, loop$direction, loop$compare) {
  * ```gleam
  * import gleam/int
  *
- * assert sort([4, 3, 6, 5, 4, 1, 2], by: int.compare) == [1, 2, 3, 4, 4, 5, 6]
+ * assert list.sort([4, 3, 6, 5, 4, 1, 2], by: int.compare)
+ *   == [1, 2, 3, 4, 4, 5, 6]
  * ```
  */
 export function sort(list, compare) {
@@ -1817,11 +1824,11 @@ export function sort(list, compare) {
       let _block;
       let $1 = compare(x, y);
       if ($1 instanceof $order.Lt) {
-        _block = new Ascending();
+        _block = Sorting$Ascending$const;
       } else if ($1 instanceof $order.Eq) {
-        _block = new Ascending();
+        _block = Sorting$Ascending$const;
       } else {
-        _block = new Descending();
+        _block = Sorting$Descending$const;
       }
       let direction = _block;
       let sequences$1 = sequences(
@@ -1830,35 +1837,11 @@ export function sort(list, compare) {
         toList([x]),
         direction,
         y,
-        toList([]),
+        $List$Empty$const,
       );
-      return merge_all(sequences$1, new Ascending(), compare);
+      return merge_all(sequences$1, Sorting$Ascending$const, compare);
     }
   }
-}
-
-function range_loop(loop$start, loop$stop, loop$acc) {
-  while (true) {
-    let start = loop$start;
-    let stop = loop$stop;
-    let acc = loop$acc;
-    let $ = $int.compare(start, stop);
-    if ($ instanceof $order.Lt) {
-      loop$start = start;
-      loop$stop = stop - 1;
-      loop$acc = listPrepend(stop, acc);
-    } else if ($ instanceof $order.Eq) {
-      return listPrepend(stop, acc);
-    } else {
-      loop$start = start;
-      loop$stop = stop + 1;
-      loop$acc = listPrepend(stop, acc);
-    }
-  }
-}
-
-export function range(start, stop) {
-  return range_loop(start, stop, toList([]));
 }
 
 function repeat_loop(loop$item, loop$times, loop$acc) {
@@ -1883,15 +1866,15 @@ function repeat_loop(loop$item, loop$times, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert repeat("a", times: 0) == []
+ * assert list.repeat("a", times: 0) == []
  * ```
  *
  * ```gleam
- * assert repeat("a", times: 5) == ["a", "a", "a", "a", "a"]
+ * assert list.repeat("a", times: 5) == ["a", "a", "a", "a", "a"]
  * ```
  */
 export function repeat(a, times) {
-  return repeat_loop(a, times, toList([]));
+  return repeat_loop(a, times, $List$Empty$const);
 }
 
 function split_loop(loop$list, loop$n, loop$taken) {
@@ -1904,7 +1887,7 @@ function split_loop(loop$list, loop$n, loop$taken) {
       return [reverse(taken), list];
     } else {
       if (list instanceof $Empty) {
-        return [reverse(taken), toList([])];
+        return [reverse(taken), $List$Empty$const];
       } else {
         let first$1 = list.head;
         let rest$1 = list.tail;
@@ -1925,19 +1908,19 @@ function split_loop(loop$list, loop$n, loop$taken) {
  * ## Examples
  *
  * ```gleam
- * assert split([6, 7, 8, 9], 0) == #([], [6, 7, 8, 9])
+ * assert list.split([6, 7, 8, 9], 0) == #([], [6, 7, 8, 9])
  * ```
  *
  * ```gleam
- * assert split([6, 7, 8, 9], 2) == #([6, 7], [8, 9])
+ * assert list.split([6, 7, 8, 9], 2) == #([6, 7], [8, 9])
  * ```
  *
  * ```gleam
- * assert split([6, 7, 8, 9], 4) == #([6, 7, 8, 9], [])
+ * assert list.split([6, 7, 8, 9], 4) == #([6, 7, 8, 9], [])
  * ```
  */
 export function split(list, index) {
-  return split_loop(list, index, toList([]));
+  return split_loop(list, index, $List$Empty$const);
 }
 
 function split_while_loop(loop$list, loop$f, loop$acc) {
@@ -1946,7 +1929,7 @@ function split_while_loop(loop$list, loop$f, loop$acc) {
     let f = loop$f;
     let acc = loop$acc;
     if (list instanceof $Empty) {
-      return [reverse(acc), toList([])];
+      return [reverse(acc), $List$Empty$const];
     } else {
       let first$1 = list.head;
       let rest$1 = list.tail;
@@ -1972,17 +1955,17 @@ function split_while_loop(loop$list, loop$f, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert split_while([1, 2, 3, 4, 5], fn(x) { x <= 3 })
+ * assert list.split_while([1, 2, 3, 4, 5], fn(x) { x <= 3 })
  *   == #([1, 2, 3], [4, 5])
  * ```
  *
  * ```gleam
- * assert split_while([1, 2, 3, 4, 5], fn(x) { x <= 5 })
+ * assert list.split_while([1, 2, 3, 4, 5], fn(x) { x <= 5 })
  *   == #([1, 2, 3, 4, 5], [])
  * ```
  */
 export function split_while(list, predicate) {
-  return split_while_loop(list, predicate, toList([]));
+  return split_while_loop(list, predicate, $List$Empty$const);
 }
 
 /**
@@ -1997,25 +1980,23 @@ export function split_while(list, predicate) {
  * ## Examples
  *
  * ```gleam
- * assert key_find([#("a", 0), #("b", 1)], "a") == Ok(0)
+ * assert list.key_find([#("a", 0), #("b", 1)], "a") == Ok(0)
  * ```
  *
  * ```gleam
- * assert key_find([#("a", 0), #("b", 1)], "b") == Ok(1)
+ * assert list.key_find([#("a", 0), #("b", 1)], "b") == Ok(1)
  * ```
  *
  * ```gleam
- * assert key_find([#("a", 0), #("b", 1)], "c") == Error(Nil)
+ * assert list.key_find([#("a", 0), #("b", 1)], "c") == Error(Nil)
  * ```
  */
 export function key_find(keyword_list, desired_key) {
   return find_map(
     keyword_list,
     (keyword) => {
-      let key;
-      let value;
-      key = keyword[0];
-      value = keyword[1];
+      let key = keyword[0];
+      let value = keyword[1];
       let $ = isEqual(key, desired_key);
       if ($) {
         return new Ok(value);
@@ -2036,21 +2017,19 @@ export function key_find(keyword_list, desired_key) {
  * ## Examples
  *
  * ```gleam
- * assert key_filter([#("a", 0), #("b", 1), #("a", 2)], "a") == [0, 2]
+ * assert list.key_filter([#("a", 0), #("b", 1), #("a", 2)], "a") == [0, 2]
  * ```
  *
  * ```gleam
- * assert key_filter([#("a", 0), #("b", 1)], "c") == []
+ * assert list.key_filter([#("a", 0), #("b", 1)], "c") == []
  * ```
  */
 export function key_filter(keyword_list, desired_key) {
   return filter_map(
     keyword_list,
     (keyword) => {
-      let key;
-      let value;
-      key = keyword[0];
-      value = keyword[1];
+      let key = keyword[0];
+      let value = keyword[1];
       let $ = isEqual(key, desired_key);
       if ($) {
         return new Ok(value);
@@ -2095,19 +2074,19 @@ function key_pop_loop(loop$list, loop$key, loop$checked) {
  * ## Examples
  *
  * ```gleam
- * assert key_pop([#("a", 0), #("b", 1)], "a") == Ok(#(0, [#("b", 1)]))
+ * assert list.key_pop([#("a", 0), #("b", 1)], "a") == Ok(#(0, [#("b", 1)]))
  * ```
  *
  * ```gleam
- * assert key_pop([#("a", 0), #("b", 1)], "b") == Ok(#(1, [#("a", 0)]))
+ * assert list.key_pop([#("a", 0), #("b", 1)], "b") == Ok(#(1, [#("a", 0)]))
  * ```
  *
  * ```gleam
- * assert key_pop([#("a", 0), #("b", 1)], "c") == Error(Nil)
+ * assert list.key_pop([#("a", 0), #("b", 1)], "c") == Error(Nil)
  * ```
  */
 export function key_pop(list, key) {
-  return key_pop_loop(list, key, toList([]));
+  return key_pop_loop(list, key, $List$Empty$const);
 }
 
 function key_set_loop(loop$list, loop$key, loop$value, loop$inspected) {
@@ -2144,15 +2123,16 @@ function key_set_loop(loop$list, loop$key, loop$value, loop$inspected) {
  * ## Examples
  *
  * ```gleam
- * assert key_set([#(5, 0), #(4, 1)], 4, 100) == [#(5, 0), #(4, 100)]
+ * assert list.key_set([#(5, 0), #(4, 1)], 4, 100) == [#(5, 0), #(4, 100)]
  * ```
  *
  * ```gleam
- * assert key_set([#(5, 0), #(4, 1)], 1, 100) == [#(5, 0), #(4, 1), #(1, 100)]
+ * assert list.key_set([#(5, 0), #(4, 1)], 1, 100)
+ *   == [#(5, 0), #(4, 1), #(1, 100)]
  * ```
  */
 export function key_set(list, key, value) {
-  return key_set_loop(list, key, value, toList([]));
+  return key_set_loop(list, key, value, $List$Empty$const);
 }
 
 /**
@@ -2163,7 +2143,7 @@ export function key_set(list, key, value) {
  * ```gleam
  * import gleam/io
  *
- * assert each(["1", "2", "3"], io.println) == Nil
+ * assert list.each(["1", "2", "3"], io.println) == Nil
  * // 1
  * // 2
  * // 3
@@ -2195,11 +2175,7 @@ export function each(loop$list, loop$f) {
  * ## Examples
  *
  * ```gleam
- * assert
- *   try_each(
- *     over: [1, 2, 3],
- *     with: function_that_might_fail,
- *   )
+ * assert list.try_each(over: [1, 2, 3], with: function_that_might_fail)
  *   == Ok(Nil)
  * ```
  */
@@ -2259,11 +2235,72 @@ function partition_loop(loop$list, loop$categorise, loop$trues, loop$falses) {
  * ```gleam
  * import gleam/int
  *
- * assert [1, 2, 3, 4, 5] |> partition(int.is_odd) == #([1, 3, 5], [2, 4])
+ * assert [1, 2, 3, 4, 5] |> list.partition(int.is_odd) == #([1, 3, 5], [2, 4])
  * ```
  */
 export function partition(list, categorise) {
-  return partition_loop(list, categorise, toList([]), toList([]));
+  return partition_loop(list, categorise, $List$Empty$const, $List$Empty$const);
+}
+
+function permutation_prepend(
+  loop$el,
+  loop$permutations,
+  loop$list_1,
+  loop$list_2,
+  loop$acc
+) {
+  while (true) {
+    let el = loop$el;
+    let permutations = loop$permutations;
+    let list_1 = loop$list_1;
+    let list_2 = loop$list_2;
+    let acc = loop$acc;
+    if (permutations instanceof $Empty) {
+      return permutation_zip(list_1, list_2, acc);
+    } else {
+      let head = permutations.head;
+      let tail = permutations.tail;
+      loop$el = el;
+      loop$permutations = tail;
+      loop$list_1 = list_1;
+      loop$list_2 = list_2;
+      loop$acc = listPrepend(listPrepend(el, head), acc);
+    }
+  }
+}
+
+function permutation_zip(list, rest, acc) {
+  if (list instanceof $Empty) {
+    return reverse(acc);
+  } else {
+    let head = list.head;
+    let tail = list.tail;
+    return permutation_prepend(
+      head,
+      permutations(reverse_and_prepend(rest, tail)),
+      tail,
+      listPrepend(head, rest),
+      acc,
+    );
+  }
+}
+
+/**
+ * Returns all the permutations of a list.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * assert list.permutations([1, 2]) == [[1, 2], [2, 1]]
+ * ```
+ */
+export function permutations(list) {
+  if (list instanceof $Empty) {
+    return toList([$List$Empty$const]);
+  } else {
+    let l = list;
+    return permutation_zip(l, $List$Empty$const, $List$Empty$const);
+  }
 }
 
 function window_loop(loop$acc, loop$list, loop$n) {
@@ -2289,19 +2326,19 @@ function window_loop(loop$acc, loop$list, loop$n) {
  * ## Examples
  *
  * ```gleam
- * assert window([1,2,3,4,5], 3) == [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
+ * assert list.window([1, 2, 3, 4, 5], 3) == [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
  * ```
  *
  * ```gleam
- * assert window([1, 2], 4) == []
+ * assert list.window([1, 2], 4) == []
  * ```
  */
 export function window(list, n) {
   let $ = n <= 0;
   if ($) {
-    return toList([]);
+    return $List$Empty$const;
   } else {
-    return window_loop(toList([]), list, n);
+    return window_loop($List$Empty$const, list, n);
   }
 }
 
@@ -2311,11 +2348,11 @@ export function window(list, n) {
  * ## Examples
  *
  * ```gleam
- * assert window_by_2([1,2,3,4]) == [#(1, 2), #(2, 3), #(3, 4)]
+ * assert list.window_by_2([1, 2, 3, 4]) == [#(1, 2), #(2, 3), #(3, 4)]
  * ```
  *
  * ```gleam
- * assert window_by_2([1]) == []
+ * assert list.window_by_2([1]) == []
  * ```
  */
 export function window_by_2(list) {
@@ -2328,7 +2365,7 @@ export function window_by_2(list) {
  * ## Examples
  *
  * ```gleam
- * assert drop_while([1, 2, 3, 4], fn (x) { x < 3 }) == [3, 4]
+ * assert list.drop_while([1, 2, 3, 4], fn(x) { x < 3 }) == [3, 4]
  * ```
  */
 export function drop_while(loop$list, loop$predicate) {
@@ -2379,11 +2416,11 @@ function take_while_loop(loop$list, loop$predicate, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert take_while([1, 2, 3, 2, 4], fn (x) { x < 3 }) == [1, 2]
+ * assert list.take_while([1, 2, 3, 2, 4], fn(x) { x < 3 }) == [1, 2]
  * ```
  */
 export function take_while(list, predicate) {
-  return take_while_loop(list, predicate, toList([]));
+  return take_while_loop(list, predicate, $List$Empty$const);
 }
 
 function chunk_loop(
@@ -2431,7 +2468,7 @@ function chunk_loop(
  * ## Examples
  *
  * ```gleam
- * assert [1, 2, 2, 3, 4, 4, 6, 7, 7] |> chunk(by: fn(n) { n % 2 })
+ * assert [1, 2, 2, 3, 4, 4, 6, 7, 7] |> list.chunk(by: fn(n) { n % 2 })
  *   == [[1], [2, 2], [3], [4, 4, 6], [7, 7]]
  * ```
  */
@@ -2441,7 +2478,13 @@ export function chunk(list, f) {
   } else {
     let first$1 = list.head;
     let rest$1 = list.tail;
-    return chunk_loop(rest$1, f, f(first$1), toList([first$1]), toList([]));
+    return chunk_loop(
+      rest$1,
+      f,
+      f(first$1),
+      toList([first$1]),
+      $List$Empty$const,
+    );
   }
 }
 
@@ -2480,7 +2523,7 @@ function sized_chunk_loop(
         loop$list = rest$1;
         loop$count = count;
         loop$left = count;
-        loop$current_chunk = toList([]);
+        loop$current_chunk = $List$Empty$const;
         loop$acc = listPrepend(reverse(chunk$1), acc);
       }
     }
@@ -2498,17 +2541,23 @@ function sized_chunk_loop(
  * ## Examples
  *
  * ```gleam
- * assert [1, 2, 3, 4, 5, 6] |> sized_chunk(into: 2)
+ * assert [1, 2, 3, 4, 5, 6] |> list.sized_chunk(into: 2)
  *   == [[1, 2], [3, 4], [5, 6]]
  * ```
  *
  * ```gleam
- * assert [1, 2, 3, 4, 5, 6, 7, 8] |> sized_chunk(into: 3)
+ * assert [1, 2, 3, 4, 5, 6, 7, 8] |> list.sized_chunk(into: 3)
  *   == [[1, 2, 3], [4, 5, 6], [7, 8]]
  * ```
  */
 export function sized_chunk(list, count) {
-  return sized_chunk_loop(list, count, count, toList([]), toList([]));
+  return sized_chunk_loop(
+    list,
+    count,
+    count,
+    $List$Empty$const,
+    $List$Empty$const,
+  );
 }
 
 /**
@@ -2523,11 +2572,11 @@ export function sized_chunk(list, count) {
  * ## Examples
  *
  * ```gleam
- * assert [] |> reduce(fn(acc, x) { acc + x }) == Error(Nil)
+ * assert [] |> list.reduce(fn(acc, x) { acc + x }) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert [1, 2, 3, 4, 5] |> reduce(fn(acc, x) { acc + x }) == Ok(15)
+ * assert [1, 2, 3, 4, 5] |> list.reduce(fn(acc, x) { acc + x }) == Ok(15)
  * ```
  */
 export function reduce(list, fun) {
@@ -2566,12 +2615,12 @@ function scan_loop(loop$list, loop$accumulator, loop$accumulated, loop$fun) {
  * ## Examples
  *
  * ```gleam
- * assert scan(over: [1, 2, 3], from: 100, with: fn(acc, i) { acc + i })
+ * assert list.scan(over: [1, 2, 3], from: 100, with: fn(acc, i) { acc + i })
  *   == [101, 103, 106]
  * ```
  */
 export function scan(list, initial, fun) {
-  return scan_loop(list, initial, toList([]), fun);
+  return scan_loop(list, initial, $List$Empty$const, fun);
 }
 
 /**
@@ -2584,11 +2633,11 @@ export function scan(list, initial, fun) {
  * ## Examples
  *
  * ```gleam
- * assert last([]) == Error(Nil)
+ * assert list.last([]) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert last([1, 2, 3, 4, 5]) == Ok(5)
+ * assert list.last([1, 2, 3, 4, 5]) == Ok(5)
  * ```
  */
 export function last(loop$list) {
@@ -2615,17 +2664,17 @@ export function last(loop$list) {
  * ## Examples
  *
  * ```gleam
- * assert combinations([1, 2, 3], 2) == [[1, 2], [1, 3], [2, 3]]
+ * assert list.combinations([1, 2, 3], 2) == [[1, 2], [1, 3], [2, 3]]
  * ```
  *
  * ```gleam
- * assert combinations([1, 2, 3, 4], 3)
+ * assert list.combinations([1, 2, 3, 4], 3)
  *   == [[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]
  * ```
  */
 export function combinations(items, n) {
   if (n === 0) {
-    return toList([toList([])]);
+    return toList([$List$Empty$const]);
   } else if (items instanceof $Empty) {
     return items;
   } else {
@@ -2672,11 +2721,11 @@ function combination_pairs_loop(loop$items, loop$acc) {
  * ## Examples
  *
  * ```gleam
- * assert combination_pairs([1, 2, 3]) == [#(1, 2), #(1, 3), #(2, 3)]
+ * assert list.combination_pairs([1, 2, 3]) == [#(1, 2), #(1, 3), #(2, 3)]
  * ```
  */
 export function combination_pairs(items) {
-  return combination_pairs_loop(items, toList([]));
+  return combination_pairs_loop(items, $List$Empty$const);
 }
 
 function take_firsts(loop$rows, loop$column, loop$remaining_rows) {
@@ -2713,11 +2762,9 @@ function transpose_loop(loop$rows, loop$columns) {
     if (rows instanceof $Empty) {
       return reverse(columns);
     } else {
-      let $ = take_firsts(rows, toList([]), toList([]));
-      let column;
-      let rest$1;
-      column = $[0];
-      rest$1 = $[1];
+      let $ = take_firsts(rows, $List$Empty$const, $List$Empty$const);
+      let column = $[0];
+      let rest$1 = $[1];
       if (column instanceof $Empty) {
         loop$rows = rest$1;
         loop$columns = columns;
@@ -2739,12 +2786,12 @@ function transpose_loop(loop$rows, loop$columns) {
  * ## Examples
  *
  * ```gleam
- * assert transpose([[1, 2, 3], [101, 102, 103]])
+ * assert list.transpose([[1, 2, 3], [101, 102, 103]])
  *   == [[1, 101], [2, 102], [3, 103]]
  * ```
  */
 export function transpose(list_of_lists) {
-  return transpose_loop(list_of_lists, toList([]));
+  return transpose_loop(list_of_lists, $List$Empty$const);
 }
 
 /**
@@ -2753,7 +2800,7 @@ export function transpose(list_of_lists) {
  * ## Examples
  *
  * ```gleam
- * assert interleave([[1, 2], [101, 102], [201, 202]])
+ * assert list.interleave([[1, 2], [101, 102], [201, 202]])
  *   == [1, 101, 201, 2, 102, 202]
  * ```
  */
@@ -2793,7 +2840,7 @@ function do_shuffle_by_pair_indexes(list_of_pairs) {
  * ## Example
  *
  * ```gleam
- * [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |> shuffle
+ * [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |> list.shuffle
  * // -> [1, 6, 9, 10, 3, 8, 4, 2, 7, 5]
  * ```
  */
@@ -2801,11 +2848,11 @@ export function shuffle(list) {
   let _pipe = list;
   let _pipe$1 = fold(
     _pipe,
-    toList([]),
+    $List$Empty$const,
     (acc, a) => { return listPrepend([$float.random(), a], acc); },
   );
   let _pipe$2 = do_shuffle_by_pair_indexes(_pipe$1);
-  return shuffle_pair_unwrap_loop(_pipe$2, toList([]));
+  return shuffle_pair_unwrap_loop(_pipe$2, $List$Empty$const);
 }
 
 function max_loop(loop$list, loop$compare, loop$max) {
@@ -2859,44 +2906,6 @@ export function max(list, compare) {
   }
 }
 
-function build_reservoir_loop(loop$list, loop$size, loop$reservoir) {
-  while (true) {
-    let list = loop$list;
-    let size = loop$size;
-    let reservoir = loop$reservoir;
-    let reservoir_size = $dict.size(reservoir);
-    let $ = reservoir_size >= size;
-    if ($) {
-      return [reservoir, list];
-    } else {
-      if (list instanceof $Empty) {
-        return [reservoir, toList([])];
-      } else {
-        let first$1 = list.head;
-        let rest$1 = list.tail;
-        let reservoir$1 = $dict.insert(reservoir, reservoir_size, first$1);
-        loop$list = rest$1;
-        loop$size = size;
-        loop$reservoir = reservoir$1;
-      }
-    }
-  }
-}
-
-/**
- * Builds the initial reservoir used by Algorithm L.
- * This is a dictionary with keys ranging from `0` up to `n - 1` where each
- * value is the corresponding element at that position in `list`.
- *
- * This also returns the remaining elements of `list` that didn't end up in
- * the reservoir.
- * 
- * @ignore
- */
-function build_reservoir(list, n) {
-  return build_reservoir_loop(list, n, $dict.new$());
-}
-
 function log_random() {
   let $ = $float.logarithm($float.random() + min_positive);
   let random;
@@ -2907,15 +2916,15 @@ function log_random() {
       "let_assert",
       FILEPATH,
       "gleam/list",
-      2257,
+      2249,
       "log_random",
       "Pattern match failed, no pattern matched the value.",
       {
         value: $,
-        start: 55515,
-        end: 55586,
-        pattern_start: 55526,
-        pattern_end: 55536
+        start: 55759,
+        end: 55830,
+        pattern_start: 55770,
+        pattern_end: 55780
       }
     )
   }
@@ -2939,15 +2948,15 @@ function sample_loop(loop$list, loop$reservoir, loop$n, loop$w) {
           "let_assert",
           FILEPATH,
           "gleam/list",
-          2240,
+          2232,
           "sample_loop",
           "Pattern match failed, no pattern matched the value.",
           {
             value: $,
-            start: 55076,
-            end: 55122,
-            pattern_start: 55087,
-            pattern_end: 55094
+            start: 55320,
+            end: 55366,
+            pattern_start: 55331,
+            pattern_end: 55338
           }
         )
       }
@@ -2972,6 +2981,44 @@ function sample_loop(loop$list, loop$reservoir, loop$n, loop$w) {
   }
 }
 
+function build_reservoir_loop(loop$list, loop$size, loop$reservoir) {
+  while (true) {
+    let list = loop$list;
+    let size = loop$size;
+    let reservoir = loop$reservoir;
+    let reservoir_size = $dict.size(reservoir);
+    let $ = reservoir_size >= size;
+    if ($) {
+      return [reservoir, list];
+    } else {
+      if (list instanceof $Empty) {
+        return [reservoir, $List$Empty$const];
+      } else {
+        let first$1 = list.head;
+        let rest$1 = list.tail;
+        let reservoir$1 = $dict.insert(reservoir, reservoir_size, first$1);
+        loop$list = rest$1;
+        loop$size = size;
+        loop$reservoir = reservoir$1;
+      }
+    }
+  }
+}
+
+/**
+ * Builds the initial reservoir used by Algorithm L.
+ * This is a dictionary with keys ranging from `0` up to `n - 1` where each
+ * value is the corresponding element at that position in `list`.
+ *
+ * This also returns the remaining elements of `list` that didn't end up in
+ * the reservoir.
+ *
+ * @ignore
+ */
+function build_reservoir(list, n) {
+  return build_reservoir_loop(list, n, $dict.new$());
+}
+
 /**
  * Returns a random sample of up to n elements from a list using reservoir
  * sampling via [Algorithm L](https://en.wikipedia.org/wiki/Reservoir_sampling#Optimal:_Algorithm_L).
@@ -2982,82 +3029,19 @@ function sample_loop(loop$list, loop$reservoir, loop$n, loop$w) {
  * ## Examples
  *
  * ```gleam
- * sample([1, 2, 3, 4, 5], 3)
+ * list.sample([1, 2, 3, 4, 5], 3)
  * // -> [2, 4, 5]  // A random sample of 3 items
  * ```
  */
 export function sample(list, n) {
   let $ = build_reservoir(list, n);
-  let reservoir;
-  let rest$1;
-  reservoir = $[0];
-  rest$1 = $[1];
+  let reservoir = $[0];
+  let rest$1 = $[1];
   let $1 = $dict.is_empty(reservoir);
   if ($1) {
-    return toList([]);
+    return $List$Empty$const;
   } else {
     let w = $float.exponential(divideFloat(log_random(), $int.to_float(n)));
     return $dict.values(sample_loop(rest$1, reservoir, n, w));
-  }
-}
-
-function permutation_zip(list, rest, acc) {
-  if (list instanceof $Empty) {
-    return reverse(acc);
-  } else {
-    let head = list.head;
-    let tail = list.tail;
-    return permutation_prepend(
-      head,
-      permutations(reverse_and_prepend(rest, tail)),
-      tail,
-      listPrepend(head, rest),
-      acc,
-    );
-  }
-}
-
-/**
- * Returns all the permutations of a list.
- *
- * ## Examples
- *
- * ```gleam
- * assert permutations([1, 2]) == [[1, 2], [2, 1]]
- * ```
- */
-export function permutations(list) {
-  if (list instanceof $Empty) {
-    return toList([toList([])]);
-  } else {
-    let l = list;
-    return permutation_zip(l, toList([]), toList([]));
-  }
-}
-
-function permutation_prepend(
-  loop$el,
-  loop$permutations,
-  loop$list_1,
-  loop$list_2,
-  loop$acc
-) {
-  while (true) {
-    let el = loop$el;
-    let permutations = loop$permutations;
-    let list_1 = loop$list_1;
-    let list_2 = loop$list_2;
-    let acc = loop$acc;
-    if (permutations instanceof $Empty) {
-      return permutation_zip(list_1, list_2, acc);
-    } else {
-      let head = permutations.head;
-      let tail = permutations.tail;
-      loop$el = el;
-      loop$permutations = tail;
-      loop$list_1 = list_1;
-      loop$list_2 = list_2;
-      loop$acc = listPrepend(listPrepend(el, head), acc);
-    }
   }
 }

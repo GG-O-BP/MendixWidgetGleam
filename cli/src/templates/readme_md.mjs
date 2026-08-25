@@ -1,188 +1,131 @@
-/**
- * README.md template — 3 language versions
- */
+/** README.md template for English, Korean, and Japanese projects. */
 
-export function generateReadmeContent(lang, names, pm, pmConfig, license) {
-  const installCmd =
-    pm === "npm"
-      ? "npm install"
-      : pm === "yarn"
-        ? "yarn add"
-        : pm === "pnpm"
-          ? "pnpm add"
-          : "bun add";
+export function generateReadmeContent(lang, names, pm, license) {
+  const addCommand = {
+    npm: "npm install",
+    yarn: "yarn add",
+    pnpm: "pnpm add",
+    bun: "bun add",
+  }[pm] ?? "npm install";
 
   switch (lang) {
     case "ko":
-      return generateKo(names, pm, installCmd, license);
+      return generateKo(names, pm, addCommand, license);
     case "ja":
-      return generateJa(names, pm, installCmd, license);
+      return generateJa(names, pm, addCommand, license);
     default:
-      return generateEn(names, pm, installCmd, license);
+      return generateEn(names, pm, addCommand, license);
   }
 }
 
-// ---------------------------------------------------------------------------
-// English
-// ---------------------------------------------------------------------------
+function architecture(names) {
+  return `\`\`\`
+src/
+  ${names.snakeCase}.gleam       # Mendix runtime entry point
+  editor_config.gleam          # Studio Pro property configuration
+  editor_preview.gleam         # Studio Pro design preview
+  components/counter.gleam     # Interactive Lustre component
+  ${names.pascalCase}.xml        # Widget definition
+  package.xml                  # MPK manifest
+test/counter_test.gleam        # State-transition tests
+.codex/config.toml             # Project-scoped Codex policy
+AGENTS.md                      # Agent invariants and verification contract
+gleam.toml                     # Glendix 5 / Mendraw 2 dependencies
+package.json                   # Mendix Tools 11.12 / React 19 dependencies
+\`\`\``;
+}
 
-function generateEn(names, pm, installCmd, license) {
+function bindingExample(addCommand) {
+  return `\`\`\`sh
+${addCommand} recharts
+\`\`\`
+
+\`\`\`toml
+[tools.glendix.bindings]
+recharts = ["PieChart", "Pie", "Tooltip"]
+\`\`\`
+
+\`\`\`gleam
+import gleam/result
+import glendix/binding
+import redraw
+import redraw/dom/attribute
+
+pub fn pie_chart(
+  attributes: List(attribute.Attribute),
+  children: List(redraw.Element),
+) -> Result(redraw.Element, binding.BindingError) {
+  use module <- result.try(binding.module("recharts"))
+  use component <- result.try(binding.resolve(module, "PieChart"))
+  Ok(binding.element(component, attributes, children))
+}
+\`\`\`
+
+Regenerate the binding after installation:
+
+\`\`\`sh
+gleam run -m glendix/install
+\`\`\``;
+}
+
+function generateEn(names, pm, addCommand, license) {
   return `# ${names.pascalCase}
 
-A Mendix Pluggable Widget written in Gleam.
+A Mendix Pluggable Widget written in Gleam. The starter renders an interactive
+Lustre counter through Glendix's React bridge and reads Mendix properties through
+Mendraw.
 
-## Core Principles
+## Requirements
 
-The Gleam function \`fn(JsProps) -> Element\` has the same signature as a React functional component. React bindings come from the \`redraw\`/\`redraw_dom\` packages, while mendraw handles Mendix API access and JS interop, so widget projects only need to focus on business logic.
-
-\`\`\`gleam
-// src/${names.snakeCase}.gleam
-import mendraw/mendix.{type JsProps}
-import redraw.{type Element}
-import redraw/dom/attribute
-import redraw/dom/html
-
-pub fn widget(props: JsProps) -> Element {
-  let sample_text = mendix.get_string_prop(props, "sampleText")
-  html.div([attribute.class("widget-hello-world")], [
-    html.text("Hello " <> sample_text),
-  ])
-}
-\`\`\`
-
-Mendix complex types can also be used type-safely from Gleam:
-
-\`\`\`gleam
-import mendraw/mendix.{type JsProps}
-import mendraw/mendix/editable_value
-import mendraw/mendix/action
-import redraw.{type Element}
-
-pub fn widget(props: JsProps) -> Element {
-  // Access EditableValue
-  let name_attr: EditableValue = mendix.get_prop_required(props, "name")
-  let display = editable_value.display_value(name_attr)
-
-  // Execute ActionValue
-  let on_save: Option(ActionValue) = mendix.get_prop(props, "onSave")
-  action.execute_action(on_save)
-  // ...
-}
-\`\`\`
-
-## Getting Started
-
-### Prerequisites
-
-- [Gleam](https://gleam.run/getting-started/installing/) (latest version)
-- [Node.js](https://nodejs.org/) (v18+)
+- Gleam 1.17 or newer
+- Node.js 22.18.x
 - ${pm}
+- Mendix Studio Pro when testing inside a Mendix application
 
-### Installation
+## Start
 
-\`\`\`bash
+\`\`\`sh
 gleam run -m glendix/install
-\`\`\`
-
-### Development
-
-\`\`\`bash
-gleam run -m glendix/dev
-\`\`\`
-
-### Build
-
-\`\`\`bash
+gleam test
 gleam run -m glendix/build
 \`\`\`
 
-Build artifacts (\`.mpk\`) are generated in the \`dist/\` directory.
+The build writes one or more \`.mpk\` files below \`dist/\`.
 
-### Other Commands
+## Commands
 
-\`\`\`bash
-gleam run -m glendix/start      # Link with Mendix test project
-gleam run -m glendix/lint       # Run ESLint
-gleam run -m glendix/lint_fix   # ESLint auto-fix
-gleam run -m glendix/release    # Release build
-gleam run -m mendraw/marketplace # Search/download Marketplace widgets
-gleam run -m glendix/define     # Widget property definition TUI editor
-gleam build --target javascript # Gleam → JS compilation only
-gleam test                      # Run tests
-gleam format                    # Format code
-\`\`\`
+| Command | Purpose |
+| --- | --- |
+| \`gleam run -m glendix/install\` | Install JavaScript dependencies and generate npm bindings |
+| \`gleam run -m glendix/dev\` | Start the development build/server |
+| \`gleam run -m glendix/build\` | Build and package the production MPK |
+| \`gleam run -m glendix/start\` | Connect to the configured Mendix test project |
+| \`gleam run -m glendix/define\` | Edit the widget property definition |
+| \`gleam run -m glendix/lint\` | Run the Mendix toolchain lint task |
+| \`gleam run -m glendix/release\` | Create a release build |
+| \`gleam test\` | Run Gleam tests |
 
-## Project Structure
+## Package boundaries
 
-\`\`\`
-src/
-  ${names.snakeCase}.gleam           # Main widget module
-  editor_config.gleam              # Studio Pro property panel
-  editor_preview.gleam             # Studio Pro design view preview
-  components/
-    hello_world.gleam            # Shared Hello World component
-  ${names.pascalCase}.xml            # Widget property definitions
-package.json                       # npm dependencies (React, external libraries, etc.)
-\`\`\`
+- [Glendix](https://hexdocs.pm/glendix/) owns Mendix build orchestration,
+  external npm bindings, definition editing, and the Lustre bridge.
+- [Mendraw](https://hexdocs.pm/mendraw/) owns Mendix client values and bindings
+  generated from already-installed MPK assets.
+- [mxpak](https://github.com/glendix-labs/mxpak) owns Marketplace search,
+  downloads, caching, and lockfiles. For Marketplace widgets, run \`mxp install\`
+  and then \`gleam run -m mendraw/install\` before the Glendix install/build steps.
 
-React bindings come from [redraw](https://hexdocs.pm/redraw/)/[redraw_dom](https://hexdocs.pm/redraw_dom/), Mendix API bindings from [mendraw](https://hexdocs.pm/mendraw/), and JS Interop from [glendix](https://hexdocs.pm/glendix/).
+## Project layout
 
-## Using External React Components
+${architecture(names)}
 
-React component libraries distributed as npm packages can be used from pure Gleam without writing any \`.mjs\` FFI files.
+## External React components
 
-### Step 1: Install the npm package
+${bindingExample(addCommand)}
 
-\`\`\`bash
-${installCmd} recharts
-\`\`\`
-
-### Step 2: Add bindings to \`gleam.toml\`
-
-Add a \`[tools.glendix.bindings]\` section to your \`gleam.toml\`:
-
-\`\`\`toml
-[tools.glendix.bindings.recharts]
-components = ["PieChart", "Pie", "Cell", "Tooltip", "ResponsiveContainer"]
-\`\`\`
-
-### Step 3: Generate bindings
-
-\`\`\`bash
-gleam run -m glendix/install
-\`\`\`
-
-\`binding_ffi.mjs\` is generated automatically. It is also regenerated on subsequent builds via \`gleam run -m glendix/build\`.
-
-### Step 4: Use from Gleam
-
-\`\`\`gleam
-import glendix/binding
-import mendraw/interop
-import redraw.{type Element}
-import redraw/dom/attribute.{type Attribute}
-
-fn m() { binding.module("recharts") }
-
-pub fn pie_chart(attrs: List(Attribute), children: List(Element)) -> Element {
-  interop.component_el(binding.resolve(m(), "PieChart"), attrs, children)
-}
-
-pub fn tooltip(attrs: List(Attribute)) -> Element {
-  interop.void_component_el(binding.resolve(m(), "Tooltip"), attrs)
-}
-\`\`\`
-
-External React components follow the same calling pattern as \`html.div\`.
-
-## Tech Stack
-
-- **Gleam** → JavaScript compilation
-- **[glendix](https://hexdocs.pm/glendix/)** — Build tools + JS Interop Gleam bindings
-- **[mendraw](https://hexdocs.pm/mendraw/)** — Mendix API Gleam bindings
-- **[redraw](https://hexdocs.pm/redraw/)** / **[redraw_dom](https://hexdocs.pm/redraw_dom/)** — React Gleam bindings
-- **Mendix Pluggable Widget** (React 19)
-- **${pm}** — Package manager
+Do not hand-write JSX or widget bridge files. The source entry point remains
+\`fn(mendix.JsProps) -> redraw.Element\`, while Glendix generates the JavaScript
+bridge consumed by Mendix Pluggable Widgets Tools.
 
 ## License
 
@@ -190,335 +133,128 @@ ${license}
 `;
 }
 
-// ---------------------------------------------------------------------------
-// Korean
-// ---------------------------------------------------------------------------
-
-function generateKo(names, pm, installCmd, license) {
+function generateKo(names, pm, addCommand, license) {
   return `# ${names.pascalCase}
 
-Gleam 언어로 작성된 Mendix Pluggable Widget.
+Gleam으로 작성한 Mendix Pluggable Widget이다. 기본 예제는 Glendix의 React
+브리지를 통해 대화형 Lustre 카운터를 렌더링하고 Mendraw로 Mendix property를
+읽는다.
 
-## 핵심 원리
+## 요구사항
 
-Gleam 함수 \`fn(JsProps) -> Element\`는 React 함수형 컴포넌트와 동일한 시그니처다. React 바인딩은 \`redraw\`/\`redraw_dom\` 패키지가, Mendix API 접근과 JS interop은 mendraw가 제공하므로, 위젯 프로젝트에서는 비즈니스 로직에만 집중하면 된다.
-
-\`\`\`gleam
-// src/${names.snakeCase}.gleam
-import mendraw/mendix.{type JsProps}
-import redraw.{type Element}
-import redraw/dom/attribute
-import redraw/dom/html
-
-pub fn widget(props: JsProps) -> Element {
-  let sample_text = mendix.get_string_prop(props, "sampleText")
-  html.div([attribute.class("widget-hello-world")], [
-    html.text("Hello " <> sample_text),
-  ])
-}
-\`\`\`
-
-Mendix 복합 타입도 Gleam에서 타입 안전하게 사용할 수 있다:
-
-\`\`\`gleam
-import mendraw/mendix.{type JsProps}
-import mendraw/mendix/editable_value
-import mendraw/mendix/action
-import redraw.{type Element}
-
-pub fn widget(props: JsProps) -> Element {
-  // EditableValue 접근
-  let name_attr: EditableValue = mendix.get_prop_required(props, "name")
-  let display = editable_value.display_value(name_attr)
-
-  // ActionValue 실행
-  let on_save: Option(ActionValue) = mendix.get_prop(props, "onSave")
-  action.execute_action(on_save)
-  // ...
-}
-\`\`\`
-
-## 시작하기
-
-### 사전 요구사항
-
-- [Gleam](https://gleam.run/getting-started/installing/) (최신 버전)
-- [Node.js](https://nodejs.org/) (v18+)
+- Gleam 1.17 이상
+- Node.js 22.18.x
 - ${pm}
+- Mendix 애플리케이션 안에서 검증할 때 Mendix Studio Pro
 
-### 설치
+## 시작
 
-\`\`\`bash
+\`\`\`sh
 gleam run -m glendix/install
-\`\`\`
-
-### 개발
-
-\`\`\`bash
-gleam run -m glendix/dev
-\`\`\`
-
-### 빌드
-
-\`\`\`bash
+gleam test
 gleam run -m glendix/build
 \`\`\`
 
-빌드 결과물(\`.mpk\`)은 \`dist/\` 디렉토리에 생성됩니다.
+빌드 결과인 \`.mpk\`는 \`dist/\` 아래에 생성된다.
 
-### 기타 명령어
+## 명령
 
-\`\`\`bash
-gleam run -m glendix/start      # Mendix 테스트 프로젝트 연동
-gleam run -m glendix/lint       # ESLint 실행
-gleam run -m glendix/lint_fix   # ESLint 자동 수정
-gleam run -m glendix/release    # 릴리즈 빌드
-gleam run -m mendraw/marketplace # Marketplace 위젯 검색/다운로드
-gleam run -m glendix/define     # 위젯 프로퍼티 정의 TUI 에디터
-gleam build --target javascript # Gleam → JS 컴파일만
-gleam test                      # 테스트 실행
-gleam format                    # 코드 포맷팅
-\`\`\`
+| 명령 | 역할 |
+| --- | --- |
+| \`gleam run -m glendix/install\` | JavaScript 의존성 설치 및 npm 바인딩 생성 |
+| \`gleam run -m glendix/dev\` | 개발 빌드/서버 시작 |
+| \`gleam run -m glendix/build\` | production MPK 빌드 |
+| \`gleam run -m glendix/start\` | 설정된 Mendix 테스트 프로젝트 연결 |
+| \`gleam run -m glendix/define\` | 위젯 property 정의 편집 |
+| \`gleam run -m glendix/lint\` | Mendix 도구 lint 실행 |
+| \`gleam run -m glendix/release\` | release 빌드 생성 |
+| \`gleam test\` | Gleam 테스트 실행 |
+
+## 패키지 경계
+
+- [Glendix](https://hexdocs.pm/glendix/): Mendix 빌드 실행, 외부 npm 바인딩,
+  definition 편집, Lustre 브리지
+- [Mendraw](https://hexdocs.pm/mendraw/): Mendix client value와 이미 설치된 MPK
+  자산에서 생성하는 바인딩
+- [mxpak](https://github.com/glendix-labs/mxpak): Marketplace 검색·다운로드·캐시·
+  락파일. Marketplace 위젯은 \`mxp install\`, \`gleam run -m mendraw/install\`
+  순서로 준비한 뒤 Glendix install/build를 실행한다.
 
 ## 프로젝트 구조
 
-\`\`\`
-src/
-  ${names.snakeCase}.gleam           # 메인 위젯 모듈
-  editor_config.gleam              # Studio Pro 속성 패널
-  editor_preview.gleam             # Studio Pro 디자인 뷰 미리보기
-  components/
-    hello_world.gleam            # Hello World 공유 컴포넌트
-  ${names.pascalCase}.xml            # 위젯 속성 정의
-package.json                       # npm 의존성 (React, 외부 라이브러리 등)
-\`\`\`
+${architecture(names)}
 
-React 바인딩은 [redraw](https://hexdocs.pm/redraw/)/[redraw_dom](https://hexdocs.pm/redraw_dom/)이, Mendix API 바인딩은 [mendraw](https://hexdocs.pm/mendraw/)가, JS Interop은 [glendix](https://hexdocs.pm/glendix/)가 제공합니다.
+## 외부 React 컴포넌트
 
-## 외부 React 컴포넌트 사용
+${bindingExample(addCommand)}
 
-npm 패키지로 제공되는 React 컴포넌트 라이브러리를 \`.mjs\` FFI 파일 작성 없이 순수 Gleam에서 사용할 수 있다.
+JSX나 위젯 bridge 파일을 직접 작성하지 않는다. 소스 진입점은
+\`fn(mendix.JsProps) -> redraw.Element\`이며, Mendix Pluggable Widgets Tools가
+사용할 JavaScript bridge는 Glendix가 생성한다.
 
-### 1단계: npm 패키지 설치
-
-\`\`\`bash
-${installCmd} recharts
-\`\`\`
-
-### 2단계: \`gleam.toml\`에 바인딩 추가
-
-\`gleam.toml\`에 \`[tools.glendix.bindings]\` 섹션을 추가한다:
-
-\`\`\`toml
-[tools.glendix.bindings.recharts]
-components = ["PieChart", "Pie", "Cell", "Tooltip", "ResponsiveContainer"]
-\`\`\`
-
-### 3단계: 바인딩 생성
-
-\`\`\`bash
-gleam run -m glendix/install
-\`\`\`
-
-\`binding_ffi.mjs\`가 자동 생성된다. 이후 \`gleam run -m glendix/build\` 등 빌드 시에도 자동 갱신된다.
-
-### 4단계: Gleam에서 사용
-
-\`\`\`gleam
-import glendix/binding
-import mendraw/interop
-import redraw.{type Element}
-import redraw/dom/attribute.{type Attribute}
-
-fn m() { binding.module("recharts") }
-
-pub fn pie_chart(attrs: List(Attribute), children: List(Element)) -> Element {
-  interop.component_el(binding.resolve(m(), "PieChart"), attrs, children)
-}
-
-pub fn tooltip(attrs: List(Attribute)) -> Element {
-  interop.void_component_el(binding.resolve(m(), "Tooltip"), attrs)
-}
-\`\`\`
-
-\`html.div\`와 동일한 호출 패턴으로 외부 React 컴포넌트를 사용할 수 있다.
-
-## 기술 스택
-
-- **Gleam** → JavaScript 컴파일
-- **[glendix](https://hexdocs.pm/glendix/)** — 빌드 도구 + JS Interop Gleam 바인딩
-- **[mendraw](https://hexdocs.pm/mendraw/)** — Mendix API Gleam 바인딩
-- **[redraw](https://hexdocs.pm/redraw/)** / **[redraw_dom](https://hexdocs.pm/redraw_dom/)** — React Gleam 바인딩
-- **Mendix Pluggable Widget** (React 19)
-- **${pm}** — 패키지 매니저
-
-## 라이센스
+## 라이선스
 
 ${license}
 `;
 }
 
-// ---------------------------------------------------------------------------
-// Japanese
-// ---------------------------------------------------------------------------
-
-function generateJa(names, pm, installCmd, license) {
+function generateJa(names, pm, addCommand, license) {
   return `# ${names.pascalCase}
 
-Gleam言語で作成されたMendix Pluggable Widget。
+Gleamで作成するMendix Pluggable Widget。スターターはGlendixのReactブリッジで
+対話型Lustreカウンターを描画し、MendrawでMendix propertyを読み取る。
 
-## 基本原理
+## 必要環境
 
-Gleam関数 \`fn(JsProps) -> Element\` はReact関数コンポーネントと同一のシグネチャを持つ。Reactバインディングは\`redraw\`/\`redraw_dom\`パッケージが、Mendix APIアクセスとJS interopはmendrawが提供するため、ウィジェットプロジェクトではビジネスロジックにのみ集中すればよい。
-
-\`\`\`gleam
-// src/${names.snakeCase}.gleam
-import mendraw/mendix.{type JsProps}
-import redraw.{type Element}
-import redraw/dom/attribute
-import redraw/dom/html
-
-pub fn widget(props: JsProps) -> Element {
-  let sample_text = mendix.get_string_prop(props, "sampleText")
-  html.div([attribute.class("widget-hello-world")], [
-    html.text("Hello " <> sample_text),
-  ])
-}
-\`\`\`
-
-Mendixの複合型もGleamから型安全に使用できる：
-
-\`\`\`gleam
-import mendraw/mendix.{type JsProps}
-import mendraw/mendix/editable_value
-import mendraw/mendix/action
-import redraw.{type Element}
-
-pub fn widget(props: JsProps) -> Element {
-  // EditableValueへのアクセス
-  let name_attr: EditableValue = mendix.get_prop_required(props, "name")
-  let display = editable_value.display_value(name_attr)
-
-  // ActionValueの実行
-  let on_save: Option(ActionValue) = mendix.get_prop(props, "onSave")
-  action.execute_action(on_save)
-  // ...
-}
-\`\`\`
-
-## はじめに
-
-### 前提条件
-
-- [Gleam](https://gleam.run/getting-started/installing/)（最新バージョン）
-- [Node.js](https://nodejs.org/)（v18以上）
+- Gleam 1.17以上
+- Node.js 22.18.x
 - ${pm}
+- Mendixアプリ内で検証する場合はMendix Studio Pro
 
-### インストール
+## 開始
 
-\`\`\`bash
+\`\`\`sh
 gleam run -m glendix/install
-\`\`\`
-
-### 開発
-
-\`\`\`bash
-gleam run -m glendix/dev
-\`\`\`
-
-### ビルド
-
-\`\`\`bash
+gleam test
 gleam run -m glendix/build
 \`\`\`
 
-ビルド成果物（\`.mpk\`）は\`dist/\`ディレクトリに生成される。
+ビルドされた\`.mpk\`は\`dist/\`以下に生成される。
 
-### その他のコマンド
+## コマンド
 
-\`\`\`bash
-gleam run -m glendix/start      # Mendixテストプロジェクト連携
-gleam run -m glendix/lint       # ESLint実行
-gleam run -m glendix/lint_fix   # ESLint自動修正
-gleam run -m glendix/release    # リリースビルド
-gleam run -m mendraw/marketplace # Marketplaceウィジェット検索/ダウンロード
-gleam run -m glendix/define     # ウィジェットプロパティ定義TUIエディター
-gleam build --target javascript # Gleam → JSコンパイルのみ
-gleam test                      # テスト実行
-gleam format                    # コードフォーマット
-\`\`\`
+| コマンド | 役割 |
+| --- | --- |
+| \`gleam run -m glendix/install\` | JavaScript依存関係とnpm bindingを生成 |
+| \`gleam run -m glendix/dev\` | 開発ビルド/サーバーを開始 |
+| \`gleam run -m glendix/build\` | production MPKをビルド |
+| \`gleam run -m glendix/start\` | 設定済みMendixテストプロジェクトへ接続 |
+| \`gleam run -m glendix/define\` | widget property定義を編集 |
+| \`gleam run -m glendix/lint\` | Mendix toolchainのlintを実行 |
+| \`gleam run -m glendix/release\` | releaseビルドを作成 |
+| \`gleam test\` | Gleamテストを実行 |
+
+## パッケージ境界
+
+- [Glendix](https://hexdocs.pm/glendix/)：Mendixビルド、外部npm binding、
+  definition編集、Lustre bridge
+- [Mendraw](https://hexdocs.pm/mendraw/)：Mendix client valueとインストール済み
+  MPK assetから生成するbinding
+- [mxpak](https://github.com/glendix-labs/mxpak)：Marketplace検索、ダウンロード、
+  cache、lockfile。Marketplace widgetは\`mxp install\`、
+  \`gleam run -m mendraw/install\`の後にGlendix install/buildを実行する。
 
 ## プロジェクト構成
 
-\`\`\`
-src/
-  ${names.snakeCase}.gleam           # メインウィジェットモジュール
-  editor_config.gleam              # Studio Proプロパティパネル
-  editor_preview.gleam             # Studio Proデザインビュープレビュー
-  components/
-    hello_world.gleam            # Hello World共有コンポーネント
-  ${names.pascalCase}.xml            # ウィジェットプロパティ定義
-package.json                       # npm依存関係（React、外部ライブラリなど）
-\`\`\`
+${architecture(names)}
 
-Reactバインディングは[redraw](https://hexdocs.pm/redraw/)/[redraw_dom](https://hexdocs.pm/redraw_dom/)が、Mendix APIバインディングは[mendraw](https://hexdocs.pm/mendraw/)が、JS Interopは[glendix](https://hexdocs.pm/glendix/)が提供する。
+## 外部Reactコンポーネント
 
-## 外部Reactコンポーネントの使用
+${bindingExample(addCommand)}
 
-npmパッケージとして提供されるReactコンポーネントライブラリを、\`.mjs\` FFIファイルを書くことなく純粋なGleamから使用できる。
-
-### ステップ1：npmパッケージのインストール
-
-\`\`\`bash
-${installCmd} recharts
-\`\`\`
-
-### ステップ2：\`gleam.toml\`にバインディングを追加
-
-\`gleam.toml\`に\`[tools.glendix.bindings]\`セクションを追加する：
-
-\`\`\`toml
-[tools.glendix.bindings.recharts]
-components = ["PieChart", "Pie", "Cell", "Tooltip", "ResponsiveContainer"]
-\`\`\`
-
-### ステップ3：バインディングの生成
-
-\`\`\`bash
-gleam run -m glendix/install
-\`\`\`
-
-\`binding_ffi.mjs\`が自動生成される。以降の\`gleam run -m glendix/build\`等のビルド時にも自動更新される。
-
-### ステップ4：Gleamから使用
-
-\`\`\`gleam
-import glendix/binding
-import mendraw/interop
-import redraw.{type Element}
-import redraw/dom/attribute.{type Attribute}
-
-fn m() { binding.module("recharts") }
-
-pub fn pie_chart(attrs: List(Attribute), children: List(Element)) -> Element {
-  interop.component_el(binding.resolve(m(), "PieChart"), attrs, children)
-}
-
-pub fn tooltip(attrs: List(Attribute)) -> Element {
-  interop.void_component_el(binding.resolve(m(), "Tooltip"), attrs)
-}
-\`\`\`
-
-\`html.div\`と同じ呼び出しパターンで外部Reactコンポーネントを使用できる。
-
-## 技術スタック
-
-- **Gleam** → JavaScriptコンパイル
-- **[glendix](https://hexdocs.pm/glendix/)** — ビルドツール + JS Interop Gleamバインディング
-- **[mendraw](https://hexdocs.pm/mendraw/)** — Mendix API Gleamバインディング
-- **[redraw](https://hexdocs.pm/redraw/)** / **[redraw_dom](https://hexdocs.pm/redraw_dom/)** — React Gleamバインディング
-- **Mendix Pluggable Widget**（React 19）
-- **${pm}** — パッケージマネージャー
+JSXやwidget bridgeファイルを手書きしない。ソースのentry pointは
+\`fn(mendix.JsProps) -> redraw.Element\`であり、Mendix Pluggable Widgets Toolsが
+利用するJavaScript bridgeはGlendixが生成する。
 
 ## ライセンス
 

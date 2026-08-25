@@ -1,6 +1,20 @@
-/*
-Place your custom CSS here
-*/
-.widget-hello-world {
+.widget-counter {
+    display: grid;
+    gap: 0.75rem;
+    justify-items: start;
+}
 
+.widget-counter__label {
+    margin: 0;
+}
+
+.widget-counter__button {
+    appearance: none;
+    background: #146ff5;
+    border: 0;
+    border-radius: 0.5rem;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    padding: 0.6rem 1rem;
 }

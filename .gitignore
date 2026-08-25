@@ -3,13 +3,6 @@ node_modules/
 .yarn/
 .pnp.*
 
-# 패키지 매니저 lock 파일
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-bun.lockb
-bun.lock
-
 # 패키지 매니저 캐시/설정
 .npmrc
 .yarnrc
@@ -17,15 +10,15 @@ bun.lock
 .pnpmfile.cjs
 .npmignore
 
-# Gleam lock 파일
-manifest.toml
-
 # Gleam 컴파일 출력
 /build/
 
 # CLI TUI 빌드 캐시/Erlang 전용 파일 제외
 cli/tui/build/dev/javascript/**/_gleam_artefacts/
 cli/tui/build/dev/javascript/**/*.erl
+cli/tui/build/dev/javascript/fingerprint
+cli/tui/build/lsp/
+cli/tui/build/*.lock
 cli/tui/build/packages/
 
 # Mendix 위젯 빌드 출력
@@ -68,4 +61,3 @@ src/*.js
 
 # Mendix marketplace 캐시/설정
 .marketplace-cache/
-

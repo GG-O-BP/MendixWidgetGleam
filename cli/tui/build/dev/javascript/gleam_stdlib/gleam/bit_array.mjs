@@ -1,4 +1,4 @@
-import { Ok, toList, bitArraySlice, bitArraySliceToInt } from "../gleam.mjs";
+import { Ok, toList, toBitArray, bitArraySlice, bitArraySliceToInt, sizedInt } from "../gleam.mjs";
 import * as $int from "../gleam/int.mjs";
 import * as $order from "../gleam/order.mjs";
 import * as $string from "../gleam/string.mjs";
@@ -6,16 +6,15 @@ import {
   bit_array_from_string as from_string,
   bit_array_bit_size as bit_size,
   bit_array_byte_size as byte_size,
-  bit_array_pad_to_bytes as pad_to_bytes,
-  bit_array_slice as slice,
   bit_array_concat as concat,
+  bit_array_slice as slice,
+  bit_array_to_string as to_string,
   base64_encode,
   base64_decode as decode64,
   base16_encode,
   base16_decode,
   bit_array_to_int_and_size,
   bit_array_starts_with as starts_with,
-  bit_array_to_string as to_string,
 } from "../gleam_stdlib.mjs";
 
 export {
@@ -26,11 +25,24 @@ export {
   byte_size,
   concat,
   from_string,
-  pad_to_bytes,
   slice,
   starts_with,
   to_string,
 };
+
+/**
+ * Pads a bit array with zeros so that it is a whole number of bytes.
+ */
+export function pad_to_bytes(data) {
+  let $ = bit_size(data) % 8;
+  if ($ === 0) {
+    return data;
+  } else {
+    let trailing_bit_count = $;
+    let padding_bits = 8 - trailing_bit_count;
+    return toBitArray([data, sizedInt(0, padding_bits, true)]);
+  }
+}
 
 /**
  * Creates a new bit array by joining two bit arrays.
@@ -38,12 +50,31 @@ export {
  * ## Examples
  *
  * ```gleam
- * assert append(to: from_string("butter"), suffix: from_string("fly"))
- *   == from_string("butterfly")
+ * assert bit_array.append(
+ *     to: bit_array.from_string("butter"),
+ *     suffix: bit_array.from_string("fly"),
+ *   )
+ *   == bit_array.from_string("butterfly")
  * ```
  */
 export function append(first, second) {
   return concat(toList([first, second]));
+}
+
+function is_utf8_loop(bits) {
+  let $ = to_string(bits);
+  if ($ instanceof Ok) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Tests to see whether a bit array is valid UTF-8.
+ */
+export function is_utf8(bits) {
+  return is_utf8_loop(bits);
 }
 
 /**
@@ -142,11 +173,11 @@ function inspect_loop(loop$input, loop$accumulator) {
  * ## Examples
  *
  * ```gleam
- * assert inspect(<<0, 20, 0x20, 255>>) == "<<0, 20, 32, 255>>"
+ * assert bit_array.inspect(<<0, 20, 0x20, 255>>) == "<<0, 20, 32, 255>>"
  * ```
  *
  * ```gleam
- * assert inspect(<<100, 5:3>>) == "<<100, 5:size(3)>>"
+ * assert bit_array.inspect(<<100, 5:3>>) == "<<100, 5:size(3)>>"
  * ```
  */
 export function inspect(input) {
@@ -159,15 +190,15 @@ export function inspect(input) {
  * ## Examples
  *
  * ```gleam
- * assert compare(<<1>>, <<2>>) == Lt
+ * assert bit_array.compare(<<1>>, <<2>>) == Lt
  * ```
  *
  * ```gleam
- * assert compare(<<"AB":utf8>>, <<"AA":utf8>>) == Gt
+ * assert bit_array.compare(<<"AB":utf8>>, <<"AA":utf8>>) == Gt
  * ```
  *
  * ```gleam
- * assert compare(<<1, 2:size(2)>>, with: <<1, 2:size(2)>>) == Eq
+ * assert bit_array.compare(<<1, 2:size(2)>>, with: <<1, 2:size(2)>>) == Eq
  * ```
  */
 export function compare(loop$a, loop$b) {
@@ -183,19 +214,19 @@ export function compare(loop$a, loop$b) {
         let f = first_byte;
         let s = second_byte;
         if (f > s) {
-          return new $order.Gt();
+          return $order.Order$Gt$const;
         } else {
           let f = first_byte;
           let s = second_byte;
           if (f < s) {
-            return new $order.Lt();
+            return $order.Order$Lt$const;
           } else {
             loop$a = first_rest;
             loop$b = second_rest;
           }
         }
       } else if (b.bitSize === 0) {
-        return new $order.Gt();
+        return $order.Order$Gt$const;
       } else {
         let first = a;
         let second = b;
@@ -204,24 +235,24 @@ export function compare(loop$a, loop$b) {
         let a$1 = $[0];
         let b$1 = $1[0];
         if (a$1 > b$1) {
-          return new $order.Gt();
+          return $order.Order$Gt$const;
         } else {
           let a$1 = $[0];
           let b$1 = $1[0];
           if (a$1 < b$1) {
-            return new $order.Lt();
+            return $order.Order$Lt$const;
           } else {
             let size_a = $[1];
             let size_b = $1[1];
             if (size_a > size_b) {
-              return new $order.Gt();
+              return $order.Order$Gt$const;
             } else {
               let size_a = $[1];
               let size_b = $1[1];
               if (size_a < size_b) {
-                return new $order.Lt();
+                return $order.Order$Lt$const;
               } else {
-                return new $order.Eq();
+                return $order.Order$Eq$const;
               }
             }
           }
@@ -229,12 +260,12 @@ export function compare(loop$a, loop$b) {
       }
     } else if (b.bitSize === 0) {
       if (a.bitSize === 0) {
-        return new $order.Eq();
+        return $order.Order$Eq$const;
       } else {
-        return new $order.Gt();
+        return $order.Order$Gt$const;
       }
     } else if (a.bitSize === 0) {
-      return new $order.Lt();
+      return $order.Order$Lt$const;
     } else {
       let first = a;
       let second = b;
@@ -243,44 +274,28 @@ export function compare(loop$a, loop$b) {
       let a$1 = $[0];
       let b$1 = $1[0];
       if (a$1 > b$1) {
-        return new $order.Gt();
+        return $order.Order$Gt$const;
       } else {
         let a$1 = $[0];
         let b$1 = $1[0];
         if (a$1 < b$1) {
-          return new $order.Lt();
+          return $order.Order$Lt$const;
         } else {
           let size_a = $[1];
           let size_b = $1[1];
           if (size_a > size_b) {
-            return new $order.Gt();
+            return $order.Order$Gt$const;
           } else {
             let size_a = $[1];
             let size_b = $1[1];
             if (size_a < size_b) {
-              return new $order.Lt();
+              return $order.Order$Lt$const;
             } else {
-              return new $order.Eq();
+              return $order.Order$Eq$const;
             }
           }
         }
       }
     }
-  }
-}
-
-/**
- * Tests to see whether a bit array is valid UTF-8.
- */
-export function is_utf8(bits) {
-  return is_utf8_loop(bits);
-}
-
-function is_utf8_loop(bits) {
-  let $ = to_string(bits);
-  if ($ instanceof Ok) {
-    return true;
-  } else {
-    return false;
   }
 }

@@ -2,11 +2,11 @@ import { Ok, Error, Empty as $Empty, remainderInt, divideInt } from "../gleam.mj
 import * as $float from "../gleam/float.mjs";
 import * as $order from "../gleam/order.mjs";
 import {
+  identity as to_float,
   parse_int as parse,
   int_from_base_string as do_base_parse,
   to_string,
   int_to_base_string as do_to_base_string,
-  identity as to_float,
   bitwise_and,
   bitwise_not,
   bitwise_or,
@@ -33,11 +33,11 @@ export {
  * ## Examples
  *
  * ```gleam
- * assert absolute_value(-12) == 12
+ * assert int.absolute_value(-12) == 12
  * ```
  *
  * ```gleam
- * assert absolute_value(10) == 10
+ * assert int.absolute_value(10) == 10
  * ```
  */
 export function absolute_value(x) {
@@ -50,29 +50,83 @@ export function absolute_value(x) {
 }
 
 /**
- * Parses a given string as an int in a given base if possible.
- * Supports only bases 2 to 36, for values outside of which this function returns an `Error(Nil)`.
+ * Returns the result of the base being raised to the power of the
+ * exponent, as a `Float`.
  *
  * ## Examples
  *
  * ```gleam
- * assert base_parse("10", 2) == Ok(2)
+ * assert int.power(2, -1.0) == Ok(0.5)
  * ```
  *
  * ```gleam
- * assert base_parse("30", 16) == Ok(48)
+ * assert int.power(2, 2.0) == Ok(4.0)
  * ```
  *
  * ```gleam
- * assert base_parse("1C", 36) == Ok(48)
+ * assert int.power(8, 1.5) == Ok(22.627416997969522)
  * ```
  *
  * ```gleam
- * assert base_parse("48", 1) == Error(Nil)
+ * assert 4 |> int.power(of: 2.0) == Ok(16.0)
  * ```
  *
  * ```gleam
- * assert base_parse("48", 37) == Error(Nil)
+ * assert int.power(-1, 0.5) == Error(Nil)
+ * ```
+ */
+export function power(base, exponent) {
+  let _pipe = base;
+  let _pipe$1 = to_float(_pipe);
+  return $float.power(_pipe$1, exponent);
+}
+
+/**
+ * Returns the square root of the input as a `Float`.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * assert int.square_root(4) == Ok(2.0)
+ * ```
+ *
+ * ```gleam
+ * assert int.square_root(-16) == Error(Nil)
+ * ```
+ */
+export function square_root(x) {
+  let _pipe = x;
+  let _pipe$1 = to_float(_pipe);
+  return $float.square_root(_pipe$1);
+}
+
+/**
+ * Parses a given string as an int in a given base, returning an error if the
+ * input was not a valid number for the given base.
+ *
+ * Supports only bases 2 to 36, for values outside of which this function
+ * returns an `Error(Nil)`.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * assert int.base_parse("10", 2) == Ok(2)
+ * ```
+ *
+ * ```gleam
+ * assert int.base_parse("30", 16) == Ok(48)
+ * ```
+ *
+ * ```gleam
+ * assert int.base_parse("1C", 36) == Ok(48)
+ * ```
+ *
+ * ```gleam
+ * assert int.base_parse("48", 1) == Error(Nil)
+ * ```
+ *
+ * ```gleam
+ * assert int.base_parse("48", 37) == Error(Nil)
  * ```
  */
 export function base_parse(string, base) {
@@ -92,23 +146,23 @@ export function base_parse(string, base) {
  * ## Examples
  *
  * ```gleam
- * assert to_base_string(2, 2) == Ok("10")
+ * assert int.to_base_string(2, 2) == Ok("10")
  * ```
  *
  * ```gleam
- * assert to_base_string(48, 16) == Ok("30")
+ * assert int.to_base_string(48, 16) == Ok("30")
  * ```
  *
  * ```gleam
- * assert to_base_string(48, 36) == Ok("1C")
+ * assert int.to_base_string(48, 36) == Ok("1C")
  * ```
  *
  * ```gleam
- * assert to_base_string(48, 1) == Error(Nil)
+ * assert int.to_base_string(48, 1) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert to_base_string(48, 37) == Error(Nil)
+ * assert int.to_base_string(48, 37) == Error(Nil)
  * ```
  */
 export function to_base_string(x, base) {
@@ -126,7 +180,7 @@ export function to_base_string(x, base) {
  * ## Examples
  *
  * ```gleam
- * assert to_base2(2) == "10"
+ * assert int.to_base2(2) == "10"
  * ```
  */
 export function to_base2(x) {
@@ -139,7 +193,7 @@ export function to_base2(x) {
  * ## Examples
  *
  * ```gleam
- * assert to_base8(15) == "17"
+ * assert int.to_base8(15) == "17"
  * ```
  */
 export function to_base8(x) {
@@ -152,7 +206,7 @@ export function to_base8(x) {
  * ## Examples
  *
  * ```gleam
- * assert to_base16(48) == "30"
+ * assert int.to_base16(48) == "30"
  * ```
  */
 export function to_base16(x) {
@@ -165,7 +219,7 @@ export function to_base16(x) {
  * ## Examples
  *
  * ```gleam
- * assert to_base36(48) == "1C"
+ * assert int.to_base36(48) == "1C"
  * ```
  */
 export function to_base36(x) {
@@ -173,84 +227,20 @@ export function to_base36(x) {
 }
 
 /**
- * Returns the result of the base being raised to the power of the
- * exponent, as a `Float`.
+ * Compares two ints, returning the larger of the two.
  *
  * ## Examples
  *
  * ```gleam
- * assert power(2, -1.0) == Ok(0.5)
- * ```
- *
- * ```gleam
- * assert power(2, 2.0) == Ok(4.0)
- * ```
- *
- * ```gleam
- * assert power(8, 1.5) == Ok(22.627416997969522)
- * ```
- *
- * ```gleam
- * assert 4 |> power(of: 2.0) == Ok(16.0)
- * ```
- *
- * ```gleam
- * assert power(-1, 0.5) == Error(Nil)
+ * assert int.max(2, 3) == 3
  * ```
  */
-export function power(base, exponent) {
-  let _pipe = base;
-  let _pipe$1 = to_float(_pipe);
-  return $float.power(_pipe$1, exponent);
-}
-
-/**
- * Returns the square root of the input as a `Float`.
- *
- * ## Examples
- *
- * ```gleam
- * assert square_root(4) == Ok(2.0)
- * ```
- *
- * ```gleam
- * assert square_root(-16) == Error(Nil)
- * ```
- */
-export function square_root(x) {
-  let _pipe = x;
-  let _pipe$1 = to_float(_pipe);
-  return $float.square_root(_pipe$1);
-}
-
-/**
- * Compares two ints, returning an order.
- *
- * ## Examples
- *
- * ```gleam
- * assert compare(2, 3) == Lt
- * ```
- *
- * ```gleam
- * assert compare(4, 3) == Gt
- * ```
- *
- * ```gleam
- * assert compare(3, 3) == Eq
- * ```
- */
-export function compare(a, b) {
-  let $ = a === b;
+export function max(a, b) {
+  let $ = a > b;
   if ($) {
-    return new $order.Eq();
+    return a;
   } else {
-    let $1 = a < b;
-    if ($1) {
-      return new $order.Lt();
-    } else {
-      return new $order.Gt();
-    }
+    return b;
   }
 }
 
@@ -260,29 +250,11 @@ export function compare(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert min(2, 3) == 2
+ * assert int.min(2, 3) == 2
  * ```
  */
 export function min(a, b) {
   let $ = a < b;
-  if ($) {
-    return a;
-  } else {
-    return b;
-  }
-}
-
-/**
- * Compares two ints, returning the larger of the two.
- *
- * ## Examples
- *
- * ```gleam
- * assert max(2, 3) == 3
- * ```
- */
-export function max(a, b) {
-  let $ = a > b;
   if ($) {
     return a;
   } else {
@@ -300,11 +272,11 @@ export function max(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert clamp(40, min: 50, max: 60) == 50
+ * assert int.clamp(40, min: 50, max: 60) == 50
  * ```
  *
  * ```gleam
- * assert clamp(40, min: 50, max: 30) == 40
+ * assert int.clamp(40, min: 50, max: 30) == 40
  * ```
  */
 export function clamp(x, min_bound, max_bound) {
@@ -321,16 +293,47 @@ export function clamp(x, min_bound, max_bound) {
 }
 
 /**
+ * Compares two ints, returning an order.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * assert int.compare(2, 3) == Lt
+ * ```
+ *
+ * ```gleam
+ * assert int.compare(4, 3) == Gt
+ * ```
+ *
+ * ```gleam
+ * assert int.compare(3, 3) == Eq
+ * ```
+ */
+export function compare(a, b) {
+  let $ = a === b;
+  if ($) {
+    return $order.Order$Eq$const;
+  } else {
+    let $1 = a < b;
+    if ($1) {
+      return $order.Order$Lt$const;
+    } else {
+      return $order.Order$Gt$const;
+    }
+  }
+}
+
+/**
  * Returns whether the value provided is even.
  *
  * ## Examples
  *
  * ```gleam
- * assert is_even(2)
+ * assert int.is_even(2)
  * ```
  *
  * ```gleam
- * assert !is_even(3)
+ * assert !int.is_even(3)
  * ```
  */
 export function is_even(x) {
@@ -343,11 +346,11 @@ export function is_even(x) {
  * ## Examples
  *
  * ```gleam
- * assert is_odd(3)
+ * assert int.is_odd(3)
  * ```
  *
  * ```gleam
- * assert !is_odd(2)
+ * assert !int.is_odd(2)
  * ```
  */
 export function is_odd(x) {
@@ -360,7 +363,7 @@ export function is_odd(x) {
  * ## Examples
  *
  * ```gleam
- * assert negate(1) == -1
+ * assert int.negate(1) == -1
  * ```
  */
 export function negate(x) {
@@ -388,7 +391,7 @@ function sum_loop(loop$numbers, loop$initial) {
  * ## Example
  *
  * ```gleam
- * assert sum([1, 2, 3]) == 6
+ * assert int.sum([1, 2, 3]) == 6
  * ```
  */
 export function sum(numbers) {
@@ -416,7 +419,7 @@ function product_loop(loop$numbers, loop$initial) {
  * ## Example
  *
  * ```gleam
- * assert product([2, 3, 4]) == 24
+ * assert int.product([2, 3, 4]) == 24
  * ```
  */
 export function product(numbers) {
@@ -431,17 +434,17 @@ export function product(numbers) {
  * ## Examples
  *
  * ```gleam
- * random(10)
+ * int.random(10)
  * // -> 4
  * ```
  *
  * ```gleam
- * random(1)
+ * int.random(1)
  * // -> 0
  * ```
  *
  * ```gleam
- * random(-1)
+ * int.random(-1)
  * // -> -1
  * ```
  */
@@ -460,19 +463,19 @@ export function random(max) {
  * ## Examples
  *
  * ```gleam
- * assert divide(0, 1) == Ok(0)
+ * assert int.divide(0, 1) == Ok(0)
  * ```
  *
  * ```gleam
- * assert divide(1, 0) == Error(Nil)
+ * assert int.divide(1, 0) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert divide(5, 2) == Ok(2)
+ * assert int.divide(5, 2) == Ok(2)
  * ```
  *
  * ```gleam
- * assert divide(-99, 2) == Ok(-49)
+ * assert int.divide(-99, 2) == Ok(-49)
  * ```
  */
 export function divide(dividend, divisor) {
@@ -496,31 +499,31 @@ export function divide(dividend, divisor) {
  * ## Examples
  *
  * ```gleam
- * assert remainder(3, 2) == Ok(1)
+ * assert int.remainder(3, 2) == Ok(1)
  * ```
  *
  * ```gleam
- * assert remainder(1, 0) == Error(Nil)
+ * assert int.remainder(1, 0) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert remainder(10, -1) == Ok(0)
+ * assert int.remainder(10, -1) == Ok(0)
  * ```
  *
  * ```gleam
- * assert remainder(13, by: 3) == Ok(1)
+ * assert int.remainder(13, by: 3) == Ok(1)
  * ```
  *
  * ```gleam
- * assert remainder(-13, by: 3) == Ok(-1)
+ * assert int.remainder(-13, by: 3) == Ok(-1)
  * ```
  *
  * ```gleam
- * assert remainder(13, by: -3) == Ok(1)
+ * assert int.remainder(13, by: -3) == Ok(1)
  * ```
  *
  * ```gleam
- * assert remainder(-13, by: -3) == Ok(-1)
+ * assert int.remainder(-13, by: -3) == Ok(-1)
  * ```
  */
 export function remainder(dividend, divisor) {
@@ -544,27 +547,27 @@ export function remainder(dividend, divisor) {
  * ## Examples
  *
  * ```gleam
- * assert modulo(3, 2) == Ok(1)
+ * assert int.modulo(3, 2) == Ok(1)
  * ```
  *
  * ```gleam
- * assert modulo(1, 0) == Error(Nil)
+ * assert int.modulo(1, 0) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert modulo(10, -1) == Ok(0)
+ * assert int.modulo(10, -1) == Ok(0)
  * ```
  *
  * ```gleam
- * assert modulo(13, by: 3) == Ok(1)
+ * assert int.modulo(13, by: 3) == Ok(1)
  * ```
  *
  * ```gleam
- * assert modulo(-13, by: 3) == Ok(2)
+ * assert int.modulo(-13, by: 3) == Ok(2)
  * ```
  *
  * ```gleam
- * assert modulo(13, by: -3) == Ok(-2)
+ * assert int.modulo(13, by: -3) == Ok(-2)
  * ```
  */
 export function modulo(dividend, divisor) {
@@ -594,19 +597,19 @@ export function modulo(dividend, divisor) {
  * ## Examples
  *
  * ```gleam
- * assert floor_divide(1, 0) == Error(Nil)
+ * assert int.floor_divide(1, 0) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert floor_divide(5, 2) == Ok(2)
+ * assert int.floor_divide(5, 2) == Ok(2)
  * ```
  *
  * ```gleam
- * assert floor_divide(6, -4) == Ok(-2)
+ * assert int.floor_divide(6, -4) == Ok(-2)
  * ```
  *
  * ```gleam
- * assert floor_divide(-99, 2) == Ok(-50)
+ * assert int.floor_divide(-99, 2) == Ok(-50)
  * ```
  */
 export function floor_divide(dividend, divisor) {
@@ -632,16 +635,17 @@ export function floor_divide(dividend, divisor) {
  * ## Examples
  *
  * ```gleam
- * assert add(1, 2) == 3
+ * assert int.add(1, 2) == 3
  * ```
  *
  * ```gleam
  * import gleam/list
- * assert list.fold([1, 2, 3], 0, add) == 6
+ *
+ * assert list.fold([1, 2, 3], 0, int.add) == 6
  * ```
  *
  * ```gleam
- * assert 3 |> add(2) == 5
+ * assert 3 |> int.add(2) == 5
  * ```
  */
 export function add(a, b) {
@@ -657,17 +661,17 @@ export function add(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert multiply(2, 4) == 8
+ * assert int.multiply(2, 4) == 8
  * ```
  *
  * ```gleam
  * import gleam/list
  *
- * assert list.fold([2, 3, 4], 1, multiply) == 24
+ * assert list.fold([2, 3, 4], 1, int.multiply) == 24
  * ```
  *
  * ```gleam
- * assert 3 |> multiply(2) == 6
+ * assert 3 |> int.multiply(2) == 6
  * ```
  */
 export function multiply(a, b) {
@@ -683,21 +687,21 @@ export function multiply(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert subtract(3, 1) == 2
+ * assert int.subtract(3, 1) == 2
  * ```
  *
  * ```gleam
  * import gleam/list
  *
- * assert list.fold([1, 2, 3], 10, subtract) == 4
+ * assert list.fold([1, 2, 3], 10, int.subtract) == 4
  * ```
  *
  * ```gleam
- * assert 3 |> subtract(2) == 1
+ * assert 3 |> int.subtract(2) == 1
  * ```
  *
  * ```gleam
- * assert 3 |> subtract(2, _) == -1
+ * assert 3 |> int.subtract(2, _) == -1
  * ```
  */
 export function subtract(a, b) {
@@ -740,15 +744,14 @@ function range_loop(
  * ## Examples
  *
  * ```gleam
- * assert
- *   range(from: 0, to: 3, with: "", run: fn(acc, i) {
- *     acc <> to_string(i)
+ * assert int.range(from: 0, to: 3, with: "", run: fn(acc, i) {
+ *     acc <> int.to_string(i)
  *   })
  *   == "012"
  * ```
  *
  * ```gleam
- * assert range(from: 1, to: -2, with: [], run: list.prepend) == [-1, 0, 1]
+ * assert int.range(from: 1, to: -2, with: [], run: list.prepend) == [-1, 0, 1]
  * ```
  */
 export function range(start, stop, acc, reducer) {

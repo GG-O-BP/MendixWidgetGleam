@@ -18,7 +18,7 @@ export function process_exit(code) {
 }
 
 export function is_valid_name(name) {
-  return /^[a-zA-Z][a-zA-Z0-9\-_]*$/.test(name);
+  return /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(name);
 }
 
 export function get_current_year() {
@@ -30,7 +30,7 @@ export function is_valid_version(v) {
 }
 
 export function is_valid_org(v) {
-  return /^[a-z][a-z0-9\-]*$/.test(v);
+  return /^[a-z][a-z0-9]*$/.test(v);
 }
 
 export function split_words(input) {

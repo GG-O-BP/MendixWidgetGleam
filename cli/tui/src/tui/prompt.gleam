@@ -2,6 +2,7 @@
 
 import etch/command
 import etch/event
+import etch/javascript/input
 import etch/stdout
 import etch/style
 import etch/terminal
@@ -39,19 +40,58 @@ fn draw_banner_lines(lines: List(#(String, String))) {
 
 fn banner_lines() -> List(#(String, String)) {
   [
-    #("                   ████                                               ████   ████", ""),
-    #("                   ████                                               ████  ██████", ""),
-    #("                   ████                                               ████   ████", ""),
-    #("                   ████                                               ████", "           █▓█"),
-    #("   ████████ ████   ████      ████████     ████ ███████        ███████ ████   ████", "    ▓░▓█"),
-    #(" ███████████████   ████    ████████████   ██████████████    ██████████████   ████", "    ▓░░▓▓▓▓"),
-    #("█████     ██████   ████   ████     █████  █████     ████   █████     █████   ████", "  ▓▓░░░░░░▓"),
-    #("████       █████   ████  ████       ████  █████     ████   ████      █████   ████", " ▓░░░░░▒░▒█"),
-    #("████        ████   ████  ███████████████  █████     ████   ████       ████   ████", " █▓░▒░▒░░▓"),
-    #("█████      █████   ████  ████             █████     ████   ████      █████   ████", "  █▓░░▒░░▓"),
-    #(" ███████████████   ████   █████     ██    █████     ████   █████    ██████   ████", "   ▓░░░░░▓"),
-    #("  █████████ ████   ████    ████████████   █████     ████    ██████████████   ████", "   ▓░▒▓█▓▓"),
-    #("            ████   ████      ████████     █████     ████      ██████  ████   ████", "   █▓█"),
+    #(
+      "                   ████                                               ████   ████",
+      "",
+    ),
+    #(
+      "                   ████                                               ████  ██████",
+      "",
+    ),
+    #(
+      "                   ████                                               ████   ████",
+      "",
+    ),
+    #(
+      "                   ████                                               ████",
+      "           █▓█",
+    ),
+    #(
+      "   ████████ ████   ████      ████████     ████ ███████        ███████ ████   ████",
+      "    ▓░▓█",
+    ),
+    #(
+      " ███████████████   ████    ████████████   ██████████████    ██████████████   ████",
+      "    ▓░░▓▓▓▓",
+    ),
+    #(
+      "█████     ██████   ████   ████     █████  █████     ████   █████     █████   ████",
+      "  ▓▓░░░░░░▓",
+    ),
+    #(
+      "████       █████   ████  ████       ████  █████     ████   ████      █████   ████",
+      " ▓░░░░░▒░▒█",
+    ),
+    #(
+      "████        ████   ████  ███████████████  █████     ████   ████       ████   ████",
+      " █▓░▒░▒░░▓",
+    ),
+    #(
+      "█████      █████   ████  ████             █████     ████   ████      █████   ████",
+      "  █▓░░▒░░▓",
+    ),
+    #(
+      " ███████████████   ████   █████     ██    █████     ████   █████    ██████   ████",
+      "   ▓░░░░░▓",
+    ),
+    #(
+      "  █████████ ████   ████    ████████████   █████     ████    ██████████████   ████",
+      "   ▓░▒▓█▓▓",
+    ),
+    #(
+      "            ████   ████      ████████     █████     ████      ██████  ████   ████",
+      "   █▓█",
+    ),
     #("   █       ████", ""),
     #("  █████████████", ""),
     #("   ██████████", ""),
@@ -103,22 +143,31 @@ fn display_width(str: String) -> Int {
 
 fn is_wide_char(code: Int) -> Bool {
   // Hangul Syllables (가-힣)
-  code >= 0xAC00 && code <= 0xD7A3
+  code >= 0xAC00
+  && code <= 0xD7A3
   // Hangul Jamo
-  || code >= 0x1100 && code <= 0x11FF
+  || code >= 0x1100
+  && code <= 0x11FF
   // Hangul Compatibility Jamo
-  || code >= 0x3130 && code <= 0x318F
+  || code >= 0x3130
+  && code <= 0x318F
   // CJK Symbols, Hiragana, Katakana, Bopomofo
-  || code >= 0x3000 && code <= 0x30FF
+  || code >= 0x3000
+  && code <= 0x30FF
   // CJK Unified Ideographs Extension A
-  || code >= 0x3400 && code <= 0x4DBF
+  || code >= 0x3400
+  && code <= 0x4DBF
   // CJK Unified Ideographs
-  || code >= 0x4E00 && code <= 0x9FFF
+  || code >= 0x4E00
+  && code <= 0x9FFF
   // CJK Compatibility Ideographs
-  || code >= 0xF900 && code <= 0xFAFF
+  || code >= 0xF900
+  && code <= 0xFAFF
   // Fullwidth Forms
-  || code >= 0xFF01 && code <= 0xFF60
-  || code >= 0xFFE0 && code <= 0xFFE6
+  || code >= 0xFF01
+  && code <= 0xFF60
+  || code >= 0xFFE0
+  && code <= 0xFFE6
 }
 
 // ── Select 컴포넌트 ─────────────────────────────────────────
@@ -190,7 +239,7 @@ fn select_loop(
   count: Int,
   hint: String,
 ) -> Promise(Int) {
-  use evt <- promise.await(event.read())
+  use evt <- promise.await(input.read())
   case evt {
     // 위로
     Some(Ok(event.Key(event.KeyEvent(code: event.UpArrow, kind: event.Press, ..)))) -> {
@@ -324,7 +373,7 @@ fn input_loop(
   preview: fn(String) -> List(String),
   hint: String,
 ) -> Promise(Result(String, Nil)) {
-  use evt <- promise.await(event.read())
+  use evt <- promise.await(input.read())
   case evt {
     // 문자 입력 — 커서 위치에 삽입
     Some(Ok(event.Key(event.KeyEvent(
@@ -334,8 +383,7 @@ fn input_loop(
       ..,
     )))) -> {
       let before = string.slice(value, 0, cursor)
-      let after =
-        string.slice(value, cursor, string.length(value) - cursor)
+      let after = string.slice(value, cursor, string.length(value) - cursor)
       let v = before <> c <> after
       let cur = cursor + 1
       render_input(completed, title, v, cur, validate(v), preview(v), hint)
@@ -350,13 +398,10 @@ fn input_loop(
       case cursor > 0 {
         True -> {
           let before = string.slice(value, 0, cursor - 1)
-          let after =
-            string.slice(value, cursor, string.length(value) - cursor)
+          let after = string.slice(value, cursor, string.length(value) - cursor)
           let v = before <> after
           let cur = cursor - 1
-          render_input(
-            completed, title, v, cur, validate(v), preview(v), hint,
-          )
+          render_input(completed, title, v, cur, validate(v), preview(v), hint)
           input_loop(completed, title, v, cur, validate, preview, hint)
         }
         False ->
@@ -364,11 +409,7 @@ fn input_loop(
       }
     }
     // Delete — 커서 뒤 문자 삭제
-    Some(Ok(event.Key(event.KeyEvent(
-      code: event.Delete,
-      kind: event.Press,
-      ..,
-    )))) -> {
+    Some(Ok(event.Key(event.KeyEvent(code: event.Delete, kind: event.Press, ..)))) -> {
       let len = string.length(value)
       case cursor < len {
         True -> {
@@ -376,7 +417,13 @@ fn input_loop(
           let after = string.slice(value, cursor + 1, len - cursor - 1)
           let v = before <> after
           render_input(
-            completed, title, v, cursor, validate(v), preview(v), hint,
+            completed,
+            title,
+            v,
+            cursor,
+            validate(v),
+            preview(v),
+            hint,
           )
           input_loop(completed, title, v, cursor, validate, preview, hint)
         }
@@ -394,7 +441,12 @@ fn input_loop(
         True -> {
           let cur = cursor - 1
           render_input(
-            completed, title, value, cur, validate(value), preview(value),
+            completed,
+            title,
+            value,
+            cur,
+            validate(value),
+            preview(value),
             hint,
           )
           input_loop(completed, title, value, cur, validate, preview, hint)
@@ -414,7 +466,12 @@ fn input_loop(
         True -> {
           let cur = cursor + 1
           render_input(
-            completed, title, value, cur, validate(value), preview(value),
+            completed,
+            title,
+            value,
+            cur,
+            validate(value),
+            preview(value),
             hint,
           )
           input_loop(completed, title, value, cur, validate, preview, hint)
@@ -424,25 +481,29 @@ fn input_loop(
       }
     }
     // Home — 맨 앞으로
-    Some(Ok(event.Key(event.KeyEvent(
-      code: event.Home,
-      kind: event.Press,
-      ..,
-    )))) -> {
+    Some(Ok(event.Key(event.KeyEvent(code: event.Home, kind: event.Press, ..)))) -> {
       render_input(
-        completed, title, value, 0, validate(value), preview(value), hint,
+        completed,
+        title,
+        value,
+        0,
+        validate(value),
+        preview(value),
+        hint,
       )
       input_loop(completed, title, value, 0, validate, preview, hint)
     }
     // End — 맨 뒤로
-    Some(Ok(event.Key(event.KeyEvent(
-      code: event.End,
-      kind: event.Press,
-      ..,
-    )))) -> {
+    Some(Ok(event.Key(event.KeyEvent(code: event.End, kind: event.Press, ..)))) -> {
       let len = string.length(value)
       render_input(
-        completed, title, value, len, validate(value), preview(value), hint,
+        completed,
+        title,
+        value,
+        len,
+        validate(value),
+        preview(value),
+        hint,
       )
       input_loop(completed, title, value, len, validate, preview, hint)
     }

@@ -3,37 +3,13 @@ import * as $event from "../../etch/etch/event.mjs";
 import * as $stdout from "../../etch/etch/stdout.mjs";
 import * as $style from "../../etch/etch/style.mjs";
 import * as $terminal from "../../etch/etch/terminal.mjs";
+import * as $input from "../../etch_javascript/etch/javascript/input.mjs";
 import * as $promise from "../../gleam_javascript/gleam/javascript/promise.mjs";
 import * as $list from "../../gleam_stdlib/gleam/list.mjs";
 import * as $option from "../../gleam_stdlib/gleam/option.mjs";
 import { None, Some } from "../../gleam_stdlib/gleam/option.mjs";
 import * as $string from "../../gleam_stdlib/gleam/string.mjs";
 import { Ok, Error, toList, Empty as $Empty } from "../gleam.mjs";
-
-function draw_banner_lines(loop$lines) {
-  while (true) {
-    let lines = loop$lines;
-    if (lines instanceof $Empty) {
-      return undefined;
-    } else {
-      let rest = lines.tail;
-      let glendi = lines.head[0];
-      let lucy = lines.head[1];
-      $stdout.execute(
-        toList([
-          new $command.SetForegroundColor(new $style.Cyan()),
-          new $command.SetAttributes(toList([new $style.Bold()])),
-          new $command.Print(glendi),
-          new $command.ResetStyle(),
-          new $command.SetForegroundColor(new $style.Magenta()),
-          new $command.Println(lucy),
-          new $command.ResetStyle(),
-        ]),
-      );
-      loop$lines = rest;
-    }
-  }
-}
 
 function banner_lines() {
   return toList([
@@ -95,6 +71,31 @@ function banner_lines() {
   ]);
 }
 
+function draw_banner_lines(loop$lines) {
+  while (true) {
+    let lines = loop$lines;
+    if (lines instanceof $Empty) {
+      return undefined;
+    } else {
+      let rest = lines.tail;
+      let glendi = lines.head[0];
+      let lucy = lines.head[1];
+      $stdout.execute(
+        toList([
+          new $command.SetForegroundColor($style.Color$Cyan$const),
+          new $command.SetAttributes(toList([$style.Attribute$Bold$const])),
+          new $command.Print(glendi),
+          $command.Command$ResetStyle$const,
+          new $command.SetForegroundColor($style.Color$Magenta$const),
+          new $command.Println(lucy),
+          $command.Command$ResetStyle$const,
+        ]),
+      );
+      loop$lines = rest;
+    }
+  }
+}
+
 export function draw_header() {
   draw_banner_lines(banner_lines());
   return $stdout.execute(toList([new $command.Println("")]));
@@ -104,18 +105,16 @@ export function draw_completed(steps) {
   return $list.each(
     steps,
     (step) => {
-      let label;
-      let value;
-      label = step[0];
-      value = step[1];
+      let label = step[0];
+      let value = step[1];
       return $stdout.execute(
         toList([
-          new $command.SetForegroundColor(new $style.Green()),
+          new $command.SetForegroundColor($style.Color$Green$const),
           new $command.Print("  ✓ "),
-          new $command.ResetStyle(),
-          new $command.SetAttributes(toList([new $style.Bold()])),
+          $command.Command$ResetStyle$const,
+          new $command.SetAttributes(toList([$style.Attribute$Bold$const])),
           new $command.Print(label),
-          new $command.ResetStyle(),
+          $command.Command$ResetStyle$const,
           new $command.Println(": " + value),
         ]),
       );
@@ -127,16 +126,19 @@ function draw_hint(hint) {
   return $stdout.execute(
     toList([
       new $command.Println(""),
-      new $command.SetForegroundColor(new $style.BrightGrey()),
+      new $command.SetForegroundColor($style.Color$BrightGrey$const),
       new $command.Println("  " + hint),
-      new $command.ResetStyle(),
+      $command.Command$ResetStyle$const,
     ]),
   );
 }
 
 function clear_screen() {
   return $stdout.execute(
-    toList([new $command.Clear(new $terminal.All()), new $command.MoveTo(0, 0)]),
+    toList([
+      new $command.Clear($terminal.ClearType$All$const),
+      new $command.MoveTo(0, 0),
+    ]),
   );
 }
 
@@ -174,20 +176,20 @@ function render_items(loop$items, loop$selected, loop$i) {
       if ($) {
         $stdout.execute(
           toList([
-            new $command.SetForegroundColor(new $style.Cyan()),
-            new $command.SetAttributes(toList([new $style.Bold()])),
+            new $command.SetForegroundColor($style.Color$Cyan$const),
+            new $command.SetAttributes(toList([$style.Attribute$Bold$const])),
             new $command.Println("  ❯ " + item),
-            new $command.ResetStyle(),
+            $command.Command$ResetStyle$const,
           ]),
-        )
+        );
       } else {
         $stdout.execute(
           toList([
-            new $command.SetForegroundColor(new $style.White()),
+            new $command.SetForegroundColor($style.Color$White$const),
             new $command.Println("    " + item),
-            new $command.ResetStyle(),
+            $command.Command$ResetStyle$const,
           ]),
-        )
+        );
       }
       loop$items = rest;
       loop$selected = selected;
@@ -201,15 +203,15 @@ function render_select(completed, title, items, selected, hint) {
   draw_header();
   draw_completed(completed);
   if (completed instanceof $Empty) {
-    undefined
+    undefined;
   } else {
-    $stdout.execute(toList([new $command.Println("")]))
+    $stdout.execute(toList([new $command.Println("")]));
   }
   $stdout.execute(
     toList([
-      new $command.SetAttributes(toList([new $style.Bold()])),
+      new $command.SetAttributes(toList([$style.Attribute$Bold$const])),
       new $command.Println("  " + title),
-      new $command.ResetStyle(),
+      $command.Command$ResetStyle$const,
       new $command.Println(""),
     ]),
   );
@@ -219,7 +221,7 @@ function render_select(completed, title, items, selected, hint) {
 
 function select_loop(completed, title, items, selected, count, hint) {
   return $promise.await$(
-    $event.read(),
+    $input.read(),
     (evt) => {
       if (evt instanceof Some) {
         let $ = evt[0];
@@ -335,9 +337,9 @@ function render_input(
   $stdout.execute(
     toList([
       new $command.Println(""),
-      new $command.SetAttributes(toList([new $style.Bold()])),
+      new $command.SetAttributes(toList([$style.Attribute$Bold$const])),
       new $command.Print(prefix),
-      new $command.ResetStyle(),
+      $command.Command$ResetStyle$const,
       new $command.Println(value),
     ]),
   );
@@ -345,14 +347,14 @@ function render_input(
     let err = error[0];
     $stdout.execute(
       toList([
-        new $command.SetForegroundColor(new $style.Red()),
+        new $command.SetForegroundColor($style.Color$Red$const),
         new $command.Println("  " + err),
-        new $command.ResetStyle(),
+        $command.Command$ResetStyle$const,
       ]),
-    )
+    );
   } else {
     if (preview_lines instanceof $Empty) {
-      $stdout.execute(toList([new $command.Println("")]))
+      $stdout.execute(toList([new $command.Println("")]));
     } else {
       let lines = preview_lines;
       $stdout.execute(toList([new $command.Println("")]));
@@ -361,13 +363,13 @@ function render_input(
         (line) => {
           return $stdout.execute(
             toList([
-              new $command.SetForegroundColor(new $style.BrightGrey()),
+              new $command.SetForegroundColor($style.Color$BrightGrey$const),
               new $command.Println("    " + line),
-              new $command.ResetStyle(),
+              $command.Command$ResetStyle$const,
             ]),
           );
         },
-      )
+      );
     }
   }
   draw_hint(hint);
@@ -378,14 +380,14 @@ function render_input(
   return $stdout.execute(
     toList([
       new $command.MoveTo(input_col, input_row),
-      new $command.ShowCursor(),
+      $command.Command$ShowCursor$const,
     ]),
   );
 }
 
 function input_loop(completed, title, value, cursor, validate, preview, hint) {
   return $promise.await$(
-    $event.read(),
+    $input.read(),
     (evt) => {
       if (evt instanceof Some) {
         let $ = evt[0];

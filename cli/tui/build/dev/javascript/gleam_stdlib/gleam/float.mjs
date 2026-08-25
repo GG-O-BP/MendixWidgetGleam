@@ -17,30 +17,20 @@ import {
 export { ceiling, exponential, floor, parse, random, to_string, truncate };
 
 /**
- * Compares two `Float`s, returning an `Order`:
- * `Lt` for lower than, `Eq` for equals, or `Gt` for greater than.
+ * Compares two `Float`s, returning the larger of the two.
  *
  * ## Examples
  *
  * ```gleam
- * assert compare(2.0, 2.3) == Lt
+ * assert float.max(2.0, 2.3) == 2.3
  * ```
- *
- * To handle
- * [Floating Point Imprecision](https://en.wikipedia.org/wiki/Floating-point_arithmetic#Accuracy_problems)
- * you may use [`loosely_compare`](#loosely_compare) instead.
  */
-export function compare(a, b) {
-  let $ = a === b;
+export function max(a, b) {
+  let $ = a > b;
   if ($) {
-    return new $order.Eq();
+    return a;
   } else {
-    let $1 = a < b;
-    if ($1) {
-      return new $order.Lt();
-    } else {
-      return new $order.Gt();
-    }
+    return b;
   }
 }
 
@@ -50,29 +40,11 @@ export function compare(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert min(2.0, 2.3) == 2.0
+ * assert float.min(2.0, 2.3) == 2.0
  * ```
  */
 export function min(a, b) {
   let $ = a < b;
-  if ($) {
-    return a;
-  } else {
-    return b;
-  }
-}
-
-/**
- * Compares two `Float`s, returning the larger of the two.
- *
- * ## Examples
- *
- * ```gleam
- * assert max(2.0, 2.3) == 2.3
- * ```
- */
-export function max(a, b) {
-  let $ = a > b;
   if ($) {
     return a;
   } else {
@@ -91,11 +63,11 @@ export function max(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert clamp(1.2, min: 1.4, max: 1.6) == 1.4
+ * assert float.clamp(1.2, min: 1.4, max: 1.6) == 1.4
  * ```
  *
  * ```gleam
- * assert clamp(1.2, min: 1.4, max: 0.6) == 1.2
+ * assert float.clamp(1.2, min: 1.4, max: 0.6) == 1.2
  * ```
  */
 export function clamp(x, min_bound, max_bound) {
@@ -112,16 +84,44 @@ export function clamp(x, min_bound, max_bound) {
 }
 
 /**
+ * Compares two `Float`s, returning an `Order`:
+ * `Lt` for lower than, `Eq` for equals, or `Gt` for greater than.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * assert float.compare(2.0, 2.3) == Lt
+ * ```
+ *
+ * To handle
+ * [Floating Point Imprecision](https://en.wikipedia.org/wiki/Floating-point_arithmetic#Accuracy_problems)
+ * you may use [`loosely_compare`](#loosely_compare) instead.
+ */
+export function compare(a, b) {
+  let $ = a === b;
+  if ($) {
+    return $order.Order$Eq$const;
+  } else {
+    let $1 = a < b;
+    if ($1) {
+      return $order.Order$Lt$const;
+    } else {
+      return $order.Order$Gt$const;
+    }
+  }
+}
+
+/**
  * Returns the absolute value of the input as a `Float`.
  *
  * ## Examples
  *
  * ```gleam
- * assert absolute_value(-12.5) == 12.5
+ * assert float.absolute_value(-12.5) == 12.5
  * ```
  *
  * ```gleam
- * assert absolute_value(10.2) == 10.2
+ * assert float.absolute_value(10.2) == 10.2
  * ```
  */
 export function absolute_value(x) {
@@ -146,7 +146,7 @@ export function absolute_value(x) {
  * ## Examples
  *
  * ```gleam
- * assert loosely_compare(5.0, with: 5.3, tolerating: 0.5) == Eq
+ * assert float.loosely_compare(5.0, with: 5.3, tolerating: 0.5) == Eq
  * ```
  *
  * If you want to check only for equality you may use
@@ -156,7 +156,7 @@ export function loosely_compare(a, b, tolerance) {
   let difference = absolute_value(a - b);
   let $ = difference <= tolerance;
   if ($) {
-    return new $order.Eq();
+    return $order.Order$Eq$const;
   } else {
     return compare(a, b);
   }
@@ -175,11 +175,11 @@ export function loosely_compare(a, b, tolerance) {
  * ## Examples
  *
  * ```gleam
- * assert loosely_equals(5.0, with: 5.3, tolerating: 0.5)
+ * assert float.loosely_equals(5.0, with: 5.3, tolerating: 0.5)
  * ```
  *
  * ```gleam
- * assert !loosely_equals(5.0, with: 5.1, tolerating: 0.1)
+ * assert !float.loosely_equals(5.0, with: 5.1, tolerating: 0.1)
  * ```
  */
 export function loosely_equals(a, b, tolerance) {
@@ -188,65 +188,12 @@ export function loosely_equals(a, b, tolerance) {
 }
 
 /**
- * Returns the result of the base being raised to the power of the
- * exponent, as a `Float`.
- *
- * ## Examples
- *
- * ```gleam
- * assert power(2.0, -1.0) == Ok(0.5)
- * ```
- *
- * ```gleam
- * assert power(2.0, 2.0) == Ok(4.0)
- * ```
- *
- * ```gleam
- * assert power(8.0, 1.5) == Ok(22.627416997969522)
- * ```
- *
- * ```gleam
- * assert 4.0 |> power(of: 2.0) == Ok(16.0)
- * ```
- *
- * ```gleam
- * assert power(-1.0, 0.5) == Error(Nil)
- * ```
- */
-export function power(base, exponent) {
-  let fractional = (ceiling(exponent) - exponent) > 0.0;
-  let $ = ((base < 0.0) && fractional) || ((base === 0.0) && (exponent < 0.0));
-  if ($) {
-    return new Error(undefined);
-  } else {
-    return new Ok(do_power(base, exponent));
-  }
-}
-
-/**
- * Returns the square root of the input as a `Float`.
- *
- * ## Examples
- *
- * ```gleam
- * assert square_root(4.0) == Ok(2.0)
- * ```
- *
- * ```gleam
- * assert square_root(-16.0) == Error(Nil)
- * ```
- */
-export function square_root(x) {
-  return power(x, 0.5);
-}
-
-/**
  * Returns the negative of the value provided.
  *
  * ## Examples
  *
  * ```gleam
- * assert negate(1.0) == -1.0
+ * assert float.negate(1.0) == -1.0
  * ```
  */
 export function negate(x) {
@@ -259,11 +206,11 @@ export function negate(x) {
  * ## Examples
  *
  * ```gleam
- * assert round(2.3) == 2
+ * assert float.round(2.3) == 2
  * ```
  *
  * ```gleam
- * assert round(2.5) == 3
+ * assert float.round(2.5) == 3
  * ```
  */
 export function round(x) {
@@ -284,11 +231,11 @@ export function round(x) {
  * ## Examples
  *
  * ```gleam
- * assert to_precision(2.43434348473, 2) == 2.43
+ * assert float.to_precision(2.43434348473, 2) == 2.43
  * ```
  *
  * ```gleam
- * assert to_precision(547890.453444, -3) == 548000.0
+ * assert float.to_precision(547_890.453444, -3) == 548_000.0
  * ```
  */
 export function to_precision(x, precision) {
@@ -300,6 +247,59 @@ export function to_precision(x, precision) {
     let factor = do_power(10.0, do_to_float(precision));
     return divideFloat(do_to_float(round(x * factor)), factor);
   }
+}
+
+/**
+ * Returns the result of the base being raised to the power of the
+ * exponent, as a `Float`.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * assert float.power(2.0, -1.0) == Ok(0.5)
+ * ```
+ *
+ * ```gleam
+ * assert float.power(2.0, 2.0) == Ok(4.0)
+ * ```
+ *
+ * ```gleam
+ * assert float.power(8.0, 1.5) == Ok(22.627416997969522)
+ * ```
+ *
+ * ```gleam
+ * assert 4.0 |> float.power(of: 2.0) == Ok(16.0)
+ * ```
+ *
+ * ```gleam
+ * assert float.power(-1.0, 0.5) == Error(Nil)
+ * ```
+ */
+export function power(base, exponent) {
+  let fractional = (ceiling(exponent) - exponent) > 0.0;
+  let $ = ((base < 0.0) && fractional) || ((base === 0.0) && (exponent < 0.0));
+  if ($) {
+    return new Error(undefined);
+  } else {
+    return new Ok(do_power(base, exponent));
+  }
+}
+
+/**
+ * Returns the square root of the input as a `Float`.
+ *
+ * ## Examples
+ *
+ * ```gleam
+ * assert float.square_root(4.0) == Ok(2.0)
+ * ```
+ *
+ * ```gleam
+ * assert float.square_root(-16.0) == Error(Nil)
+ * ```
+ */
+export function square_root(x) {
+  return power(x, 0.5);
 }
 
 function sum_loop(loop$numbers, loop$initial) {
@@ -323,7 +323,7 @@ function sum_loop(loop$numbers, loop$initial) {
  * ## Example
  *
  * ```gleam
- * assert sum([1.0, 2.2, 3.3]) == 6.5
+ * assert float.sum([1.0, 2.2, 3.3]) == 6.5
  * ```
  */
 export function sum(numbers) {
@@ -351,7 +351,7 @@ function product_loop(loop$numbers, loop$initial) {
  * ## Example
  *
  * ```gleam
- * assert product([2.5, 3.2, 4.2]) == 33.6
+ * assert float.product([2.5, 3.2, 4.2]) == 33.6
  * ```
  */
 export function product(numbers) {
@@ -369,19 +369,19 @@ export function product(numbers) {
  * ## Examples
  *
  * ```gleam
- * assert modulo(13.3, by: 3.3) == Ok(0.1)
+ * assert float.modulo(13.3, by: 3.3) == Ok(0.1)
  * ```
  *
  * ```gleam
- * assert modulo(-13.3, by: 3.3) == Ok(3.2)
+ * assert float.modulo(-13.3, by: 3.3) == Ok(3.2)
  * ```
  *
  * ```gleam
- * assert modulo(13.3, by: -3.3) == Ok(-3.2)
+ * assert float.modulo(13.3, by: -3.3) == Ok(-3.2)
  * ```
  *
  * ```gleam
- * assert modulo(-13.3, by: -3.3) == Ok(-0.1)
+ * assert float.modulo(-13.3, by: -3.3) == Ok(-0.1)
  * ```
  */
 export function modulo(dividend, divisor) {
@@ -398,11 +398,11 @@ export function modulo(dividend, divisor) {
  * ## Examples
  *
  * ```gleam
- * assert divide(0.0, 1.0) == Ok(0.0)
+ * assert float.divide(0.0, 1.0) == Ok(0.0)
  * ```
  *
  * ```gleam
- * assert divide(1.0, 0.0) == Error(Nil)
+ * assert float.divide(1.0, 0.0) == Error(Nil)
  * ```
  */
 export function divide(a, b) {
@@ -423,17 +423,17 @@ export function divide(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert add(1.0, 2.0) == 3.0
+ * assert float.add(1.0, 2.0) == 3.0
  * ```
  *
  * ```gleam
  * import gleam/list
  *
- * assert list.fold([1.0, 2.0, 3.0], 0.0, add) == 6.0
+ * assert list.fold([1.0, 2.0, 3.0], 0.0, float.add) == 6.0
  * ```
  *
  * ```gleam
- * assert 3.0 |> add(2.0) == 5.0
+ * assert 3.0 |> float.add(2.0) == 5.0
  * ```
  */
 export function add(a, b) {
@@ -449,17 +449,17 @@ export function add(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert multiply(2.0, 4.0) == 8.0
+ * assert float.multiply(2.0, 4.0) == 8.0
  * ```
  *
  * ```gleam
  * import gleam/list
  *
- * assert list.fold([2.0, 3.0, 4.0], 1.0, multiply) == 24.0
+ * assert list.fold([2.0, 3.0, 4.0], 1.0, float.multiply) == 24.0
  * ```
  *
  * ```gleam
- * assert 3.0 |> multiply(2.0) == 6.0
+ * assert 3.0 |> float.multiply(2.0) == 6.0
  * ```
  */
 export function multiply(a, b) {
@@ -475,21 +475,21 @@ export function multiply(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert subtract(3.0, 1.0) == 2.0
+ * assert float.subtract(3.0, 1.0) == 2.0
  * ```
  *
  * ```gleam
  * import gleam/list
  *
- * assert list.fold([1.0, 2.0, 3.0], 10.0, subtract) == 4.0
+ * assert list.fold([1.0, 2.0, 3.0], 10.0, float.subtract) == 4.0
  * ```
  *
  * ```gleam
- * assert 3.0 |> subtract(_, 2.0) == 1.0
+ * assert 3.0 |> float.subtract(2.0) == 1.0
  * ```
  *
  * ```gleam
- * assert 3.0 |> subtract(2.0, _) == -1.0
+ * assert 3.0 |> float.subtract(2.0, _) == -1.0
  * ```
  */
 export function subtract(a, b) {
@@ -503,19 +503,19 @@ export function subtract(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert logarithm(1.0) == Ok(0.0)
+ * assert float.logarithm(1.0) == Ok(0.0)
  * ```
  *
  * ```gleam
- * assert logarithm(2.718281828459045) == Ok(1.0)
+ * assert float.logarithm(2.718281828459045) == Ok(1.0)
  * ```
  *
  * ```gleam
- * assert logarithm(0.0) == Error(Nil)
+ * assert float.logarithm(0.0) == Error(Nil)
  * ```
  *
  * ```gleam
- * assert logarithm(-1.0) == Error(Nil)
+ * assert float.logarithm(-1.0) == Error(Nil)
  * ```
  */
 export function logarithm(x) {

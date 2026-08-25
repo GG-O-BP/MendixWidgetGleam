@@ -6,7 +6,7 @@ import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { splitWords } from "./naming.mjs";
+import { generateNames, splitWords } from "./naming.mjs";
 import { PM_CHOICES, detectPm } from "./pm.mjs";
 import { LANG_CHOICES, getLangLabel, t } from "./i18n.mjs";
 
@@ -34,7 +34,7 @@ function validateName(lang, name) {
   if (words.length === 0) {
     return t(lang, "validate.needAlpha");
   }
-  if (!/^[a-zA-Z][a-zA-Z0-9\-_]*$/.test(name.trim())) {
+  if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(name.trim())) {
     return t(lang, "validate.invalidChars");
   }
   return null;
@@ -97,7 +97,8 @@ export async function collectOptions(cliProjectName) {
     projectName = projectName.trim();
 
     // Check directory conflict
-    const targetDir = resolve(process.cwd(), projectName);
+    const names = generateNames(projectName);
+    const targetDir = resolve(process.cwd(), names.kebabCase);
     if (existsSync(targetDir)) {
       done = true;
       rl.close();
@@ -108,7 +109,7 @@ export async function collectOptions(cliProjectName) {
     }
 
     // 3. Organization
-    const defaultOrg = "mendix";
+    const defaultOrg = "example";
     let orgAnswer = "";
     try {
       orgAnswer = await rl.question(
@@ -119,7 +120,7 @@ export async function collectOptions(cliProjectName) {
     }
     const organization = orgAnswer.trim() || defaultOrg;
 
-    if (!/^[a-z][a-z0-9\-]*$/.test(organization)) {
+    if (!/^[a-z][a-z0-9]*$/.test(organization)) {
       done = true;
       rl.close();
       console.error(`\n${YELLOW}${t(lang, "validate.orgInvalid")}${RESET}`);
@@ -128,7 +129,7 @@ export async function collectOptions(cliProjectName) {
 
     // 4. Copyright
     const year = new Date().getFullYear();
-    const defaultCopyright = `© Mendix Technology BV ${year}. All rights reserved.`;
+    const defaultCopyright = `© ${year}. All rights reserved.`;
     let copyrightAnswer = "";
     try {
       copyrightAnswer = await rl.question(

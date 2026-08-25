@@ -5,14 +5,17 @@
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { collect_options } from "../tui/build/dev/javascript/tui/tui.mjs";
 import { collectOptions } from "./prompts.mjs";
 import { generateNames } from "./naming.mjs";
-import { getPmConfig } from "./pm.mjs";
 import { scaffold } from "./scaffold.mjs";
 import { t, getTemplateComments, getLangLabel } from "./i18n.mjs";
-import { generateClaudeMdContent } from "./templates/claude_md.mjs";
+import {
+  generateAgentsMdContent,
+  generateClaudeMdContent,
+} from "./templates/claude_md.mjs";
 import { generateReadmeContent } from "./templates/readme_md.mjs";
 import { generateLicenseContent } from "./licenses.mjs";
 
@@ -126,8 +129,13 @@ export async function main(args) {
     process.exit(1);
   }
 
-  const pmConfig = getPmConfig(pm);
   const targetDir = resolve(process.cwd(), names.kebabCase);
+  if (existsSync(targetDir)) {
+    console.error(
+      `${YELLOW}${t(lang, "error.dirExists", { name: names.kebabCase })}${RESET}`,
+    );
+    process.exit(1);
+  }
 
   // Summary
   console.log(`\n${BOLD}${t(lang, "summary.title")}${RESET}`);
@@ -153,11 +161,25 @@ export async function main(args) {
   };
 
   // Scaffold options
-  const scaffoldOptions = { organization, copyright, license, version, author, projectPath };
+  const scaffoldOptions = {
+    organization,
+    copyright,
+    license,
+    version,
+    author,
+    projectPath,
+    packageManager: pm,
+  };
 
   // Scaffold templates
   console.log(`${DIM}${t(lang, "progress.generatingFiles")}${RESET}`);
-  const created = await scaffold(TEMPLATE_DIR, targetDir, names, pmConfig, templateComments, scaffoldOptions);
+  const created = await scaffold(
+    TEMPLATE_DIR,
+    targetDir,
+    names,
+    templateComments,
+    scaffoldOptions,
+  );
   console.log(`${GREEN}✓${RESET} ${t(lang, "progress.filesCreated", { count: created.length })}`);
 
   // Generate LICENSE
@@ -168,10 +190,18 @@ export async function main(args) {
   );
   console.log(`${GREEN}✓${RESET} ${t(lang, "progress.licenseCreated")}`);
 
+  // Generate AGENTS.md for Codex and other compatible coding agents.
+  await writeFile(
+    join(targetDir, "AGENTS.md"),
+    generateAgentsMdContent(lang, names, pm, organization),
+    "utf-8",
+  );
+  console.log(`${GREEN}✓${RESET} ${t(lang, "progress.agentsMdCreated")}`);
+
   // Generate CLAUDE.md (always English, comment lang instruction varies)
   await writeFile(
     join(targetDir, "CLAUDE.md"),
-    generateClaudeMdContent(lang, names, pm, pmConfig, organization),
+    generateClaudeMdContent(lang, names, pm, organization),
     "utf-8",
   );
   console.log(`${GREEN}✓${RESET} ${t(lang, "progress.claudeMdCreated")}`);
@@ -179,7 +209,7 @@ export async function main(args) {
   // Generate README.md
   await writeFile(
     join(targetDir, "README.md"),
-    generateReadmeContent(lang, names, pm, pmConfig, license),
+    generateReadmeContent(lang, names, pm, license),
     "utf-8",
   );
   console.log(`${GREEN}✓${RESET} ${t(lang, "progress.readmeCreated")}`);
@@ -192,39 +222,8 @@ export async function main(args) {
     // git not available — continue
   }
 
-  // Gleam → JS compilation (pipe로 Erlang 관련 Unused value warning 숨김)
-  console.log(`\n${BOLD}${t(lang, "progress.gleamCompiling")}${RESET}`);
-  try {
-    execSync("gleam build --target javascript", {
-      cwd: targetDir,
-      stdio: "pipe",
-    });
-    console.log(`${GREEN}✓${RESET} ${t(lang, "progress.gleamCompiled")}`);
-  } catch (e) {
-    const output = (e.stderr || e.stdout || "").toString();
-    if (output) console.error(output);
-    console.error(
-      `\n${YELLOW}${t(lang, "error.gleamCompileFail")}${RESET}`,
-    );
-    console.error(`  ${CYAN}gleam build --target javascript${RESET}\n`);
-  }
-
-  // Install dependencies
-  console.log(`\n${BOLD}${t(lang, "progress.depsInstalling", { pm })}${RESET}\n`);
-  try {
-    execSync(pmConfig.install, {
-      cwd: targetDir,
-      stdio: "inherit",
-    });
-    console.log(`\n${GREEN}✓${RESET} ${t(lang, "progress.depsInstalled")}`);
-  } catch {
-    console.error(
-      `\n${YELLOW}${t(lang, "error.depsInstallFail")}${RESET}`,
-    );
-    console.error(`  ${CYAN}${pmConfig.install}${RESET}\n`);
-  }
-
-  // Run glendix/install
+  // Glendix resolves Gleam packages, runs the selected JS package manager,
+  // and generates external npm bindings in one authoritative install step.
   console.log(`\n${BOLD}${t(lang, "progress.glendixInstalling")}${RESET}\n`);
   try {
     execSync("gleam run -m glendix/install", {
@@ -237,6 +236,7 @@ export async function main(args) {
       `\n${YELLOW}${t(lang, "error.glendixInstallFail")}${RESET}`,
     );
     console.error(`  ${CYAN}gleam run -m glendix/install${RESET}\n`);
+    process.exit(1);
   }
 
   // Production build
@@ -252,6 +252,7 @@ export async function main(args) {
       `\n${YELLOW}${t(lang, "error.buildFail")}${RESET}`,
     );
     console.error(`  ${CYAN}gleam run -m glendix/build${RESET}\n`);
+    process.exit(1);
   }
 
   // Done
@@ -263,7 +264,6 @@ ${BOLD}${t(lang, "done.nextSteps")}${RESET}
   ${CYAN}cd ${names.kebabCase}${RESET}
   ${CYAN}gleam run -m glendix/dev${RESET}             ${DIM}${t(lang, "done.devServer")}${RESET}
   ${CYAN}gleam run -m glendix/build${RESET}           ${DIM}${t(lang, "done.prodBuild")}${RESET}
-  ${CYAN}gleam run -m mendraw/marketplace${RESET}     ${DIM}${t(lang, "done.marketplace")}${RESET}
 `);
 
   // etch TUI 이벤트 서버의 stdin 리스너가 이벤트 루프를 유지하므로 명시적 종료

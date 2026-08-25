@@ -1,195 +1,129 @@
 # MendixWidgetGleam
 
-**[English](README.md)** | **[한국어](README.ko.md)** | **[日本語](README.ja.md)**
+**English** | [한국어](README.ko.md) | [日本語](README.ja.md)
 
-**Build Mendix Pluggable Widgets with Gleam — no JSX required.**
+A reference Mendix Pluggable Widget and project generator built with Gleam.
+The widget demonstrates a stateful Lustre component rendered through Glendix's
+React bridge, while Mendraw supplies typed access to Mendix runtime values.
 
-Write React components entirely in Gleam and run them as Mendix Studio Pro widgets. React bindings are provided by [redraw](https://hexdocs.pm/redraw/)/[redraw_dom](https://hexdocs.pm/redraw_dom/), Mendix API bindings by [mendraw](https://hexdocs.pm/mendraw/), and build tools + JS interop by [glendix](https://hexdocs.pm/glendix/).
+## Current baseline
 
-## Why Gleam?
+- Gleam 1.17 or newer
+- Glendix 5.x and Mendraw 2.x from Hex
+- Lustre 5.7 and Redraw 19.2
+- Node.js 22.18.x
+- Mendix Pluggable Widgets Tools 11.12 and React 19.2
 
-- **Static type safety** — Gleam's robust type system catches runtime errors at compile time
-- **Immutable data** — Predictable state management
-- **JavaScript target support** — `gleam build --target javascript` outputs ES modules
-- **glendix + mendraw packages** — Type-safe Gleam bindings for React + Mendix API + JS Interop, supporting `EditableValue`, `ActionValue`, `ListValue` and all other Mendix Pluggable Widget API types
+## Package boundaries
 
-## Architecture
+- **Glendix** owns widget build orchestration, definition editing, external npm
+  bindings, and the Lustre-to-React bridge.
+- **Mendraw** owns Mendix client values and generated bindings for already
+  installed MPK assets.
+- **mxpak** owns Marketplace search, downloads, caching, and lockfiles.
+- **Glendam** owns browser automation in the Glendix Family workspace.
 
-```
-src/
-  mendix_widget_gleam.gleam           # Main widget module
-  editor_config.gleam                 # Studio Pro property panel configuration
-  editor_preview.gleam                # Studio Pro design view preview
-  components/
-    hello_world.gleam               # Shared Hello World component
-  MendixWidget.xml                    # Widget property definitions
-  package.xml                         # Mendix package manifest
-package.json                            # npm dependencies (React, external libraries, etc.)
-gleam.toml                            # Includes glendix >= 4.0.5 + mendraw dependency
-```
+Marketplace access is therefore not a Mendraw command. The complete optional
+flow is `mxp install`, `mendraw/install`, `glendix/install`, then
+`glendix/build`.
 
-React/Mendix FFI and JS Interop bindings are not included in this project — they are provided by the [glendix](https://hexdocs.pm/glendix/) and [mendraw](https://hexdocs.pm/mendraw/) Hex packages.
+## Start
 
-### Build Pipeline
-
-```
-Widget code (.gleam) + glendix package (Hex)
-    |  gleam run -m glendix/build (Gleam compilation runs automatically)
-ES modules (.mjs) — build/dev/javascript/...
-    |  Bridge JS (auto-generated) handles imports
-    |  Rollup (pluggable-widgets-tools)
-.mpk widget package — dist/
+```sh
+gleam run -m glendix/install
+gleam test --runtime bun
+gleam run -m glendix/build --runtime bun
 ```
 
-### Core Principles
+The final command creates a validated widget package below `dist/`.
 
-The Gleam function `fn(JsProps) -> Element` has an identical signature to a React functional component. React bindings are provided by [redraw](https://hexdocs.pm/redraw/) / [redraw_dom](https://hexdocs.pm/redraw_dom/), while mendraw provides Mendix runtime type accessors and glendix provides JS interop, so widget projects need only focus on business logic.
+Useful development commands:
+
+```sh
+gleam format --check src test cli/tui/src
+gleam check
+gleam build --warnings-as-errors
+gleam docs build
+gleam run -m glendix/dev --runtime bun
+gleam run -m glendix/define --runtime bun
+npm --prefix cli run build:tui
+bun --cwd cli test
+```
+
+## Widget architecture
+
+The Mendix runtime calls the following Gleam signature as a React functional
+component:
 
 ```gleam
-// src/mendix_widget_gleam.gleam
-import mendraw/mendix.{type JsProps}
-import redraw.{type Element}
-import redraw/dom/attribute
-import redraw/dom/html
-
-pub fn widget(props: JsProps) -> Element {
-  let sample_text = mendix.get_string_prop(props, "sampleText")
-  html.div([attribute.class("widget-hello-world")], [
-    html.text("Hello " <> sample_text),
-  ])
-}
+pub fn widget(props: mendix.JsProps) -> redraw.Element
 ```
 
-Mendix complex types can also be used in a type-safe manner from Gleam:
+`src/components/counter.gleam` uses `glendix/lustre.use_simple` to keep its own
+model and update function. The same component is rendered by the runtime entry
+point and Studio Pro preview. Its empty label fallback and ordered state
+transitions are covered by Gleam tests.
 
-```gleam
-import mendraw/mendix
-import mendraw/mendix/editable_value
-import mendraw/mendix/action
-
-pub fn widget(props: JsProps) -> Element {
-  // Access EditableValue
-  let name_attr: EditableValue = mendix.get_prop_required(props, "name")
-  let display = editable_value.display_value(name_attr)
-
-  // Execute ActionValue
-  let on_save: Option(ActionValue) = mendix.get_prop(props, "onSave")
-  action.execute_action(on_save)
-  // ...
-}
+```text
+src/*.gleam
+  -> Gleam JavaScript modules
+  -> Glendix-generated widget bridge
+  -> Mendix Pluggable Widgets Tools / Rollup
+  -> dist/*.mpk
 ```
 
-## Getting Started
+## External React components
 
-### Prerequisites
-
-- [Gleam](https://gleam.run/getting-started/installing/) (v1.0+)
-- [Node.js](https://nodejs.org/) (v16+)
-- [Mendix Studio Pro](https://marketplace.mendix.com/link/studiopro/) (for widget testing)
-
-### Installation
-
-```bash
-gleam run -m glendix/install   # Auto-downloads Gleam deps + installs npm deps + generates binding code (external React packages must be installed manually beforehand)
-```
-
-### Build
-
-```bash
-gleam run -m glendix/build     # Gleam compilation + widget build (.mpk output)
-```
-
-Build artefacts are output as `.mpk` files in the `dist/` directory.
-
-### Development
-
-```bash
-gleam run -m glendix/dev       # Gleam compilation + dev server (HMR, port 3000)
-gleam run -m glendix/start     # Linked development with Mendix test project
-```
-
-## Commands
-
-All commands are unified under `gleam`. `gleam run -m` automatically compiles Gleam before running the script.
-
-| Command | Description |
-|---------|-------------|
-| `gleam run -m glendix/install` | Install dependencies (Gleam + npm) + generate binding code |
-| `gleam run -m glendix/build` | Production build (.mpk output) |
-| `gleam run -m glendix/dev` | Development server (HMR, port 3000) |
-| `gleam run -m glendix/start` | Linked development with Mendix test project |
-| `gleam run -m glendix/lint` | Run ESLint |
-| `gleam run -m glendix/lint_fix` | ESLint auto-fix |
-| `gleam run -m glendix/release` | Release build |
-| `gleam run -m mendraw/marketplace` | Search/download Mendix Marketplace widgets |
-| `gleam run -m glendix/define` | Widget property definition TUI editor |
-| `gleam build --target javascript` | Gleam to JS compilation only |
-| `gleam test` | Run Gleam tests |
-| `gleam format` | Format Gleam code |
-
-## Using External React Components
-
-React component libraries distributed as npm packages can be used from pure Gleam without writing any `.mjs` FFI files.
-
-### Step 1: Install the npm package
-
-```bash
-npm install recharts
-```
-
-### Step 2: Add bindings to `gleam.toml`
-
-Add a `[tools.glendix.bindings]` section to your `gleam.toml`:
+Install the npm package and list the exports in `gleam.toml`:
 
 ```toml
-[tools.glendix.bindings.recharts]
-components = ["PieChart", "Pie", "Cell", "Tooltip", "ResponsiveContainer"]
+[tools.glendix.bindings]
+recharts = ["PieChart", "Pie", "Tooltip"]
 ```
 
-### Step 3: Generate bindings
-
-```bash
-gleam run -m glendix/install
-```
-
-A `binding_ffi.mjs` file is generated automatically. It is also regenerated on subsequent builds via `gleam run -m glendix/build`.
-
-### Step 4: Use from Gleam
+Glendix 5 returns typed lookup errors:
 
 ```gleam
+import gleam/result
 import glendix/binding
-import mendraw/interop
-import redraw.{type Element}
-import redraw/dom/attribute.{type Attribute}
+import redraw
+import redraw/dom/attribute
 
-fn m() { binding.module("recharts") }
-
-pub fn pie_chart(attrs: List(Attribute), children: List(Element)) -> Element {
-  interop.component_el(binding.resolve(m(), "PieChart"), attrs, children)
-}
-
-pub fn tooltip(attrs: List(Attribute)) -> Element {
-  interop.void_component_el(binding.resolve(m(), "Tooltip"), attrs)
+pub fn pie_chart(
+  attributes: List(attribute.Attribute),
+  children: List(redraw.Element),
+) -> Result(redraw.Element, binding.BindingError) {
+  use module <- result.try(binding.module("recharts"))
+  use component <- result.try(binding.resolve(module, "PieChart"))
+  Ok(binding.element(component, attributes, children))
 }
 ```
 
-External React components follow the same calling pattern as `html.div`.
+Run `gleam run -m glendix/install` again after changing npm bindings.
 
-## Tech Stack
+## Project generator
 
-- **Gleam** — Widget logic and UI (compiled to JavaScript target)
-- **[glendix](https://hexdocs.pm/glendix/)** — Build tools + JS Interop Gleam bindings (Hex package)
-- **[mendraw](https://hexdocs.pm/mendraw/)** — Mendix API Gleam bindings (Hex package)
-- **React 19** — Mendix Pluggable Widget runtime
-- **Rollup** — Bundling via `@mendix/pluggable-widgets-tools`
+```sh
+npx create-mendix-widget-gleam my-widget
+```
 
-## Limitations
+The CLI generates the widget, tests, `AGENTS.md`, and project-scoped
+`.codex/config.toml`, then installs dependencies and proves that the generated
+project builds an MPK. It exits non-zero when installation or packaging fails.
 
-- The Gleam to JS to Mendix Widget pipeline is not an officially supported combination; build configuration customisation may be required
-- JSX files are not used — all React logic is implemented via Gleam + glendix
-- React bindings use redraw/redraw_dom via glendix — other Gleam React libraries are not used
-- FFI files are not written directly in the widget project — React/Mendix FFI is provided by glendix
+## End-to-end verification
 
-## Licence
+Inside the Glendix Family workspace, run:
 
-Apache License 2.0 — see [LICENSE](./LICENSE)
+```sh
+../scripts/family.sh widget-build "$PWD"
+../scripts/family.sh downstream-e2e
+```
+
+The downstream route covers the checked-in widget, CLI-generated project,
+MPK inspection, Lustre browser embedding, and the managed Mendix runtime path.
+Do not claim browser or Mendix compatibility unless that route passes.
+
+## License
+
+[Apache License 2.0](LICENSE)

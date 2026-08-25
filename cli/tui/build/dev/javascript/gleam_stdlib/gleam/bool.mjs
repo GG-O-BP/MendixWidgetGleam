@@ -7,19 +7,19 @@
  * ## Examples
  *
  * ```gleam
- * assert and(True, True)
+ * assert bool.and(True, True)
  * ```
  *
  * ```gleam
- * assert !and(False, True)
+ * assert !bool.and(False, True)
  * ```
  *
  * ```gleam
- * assert !and(False, True)
+ * assert !bool.and(False, True)
  * ```
  *
  * ```gleam
- * assert !and(False, False)
+ * assert !bool.and(False, False)
  * ```
  */
 export function and(a, b) {
@@ -35,19 +35,19 @@ export function and(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert or(True, True)
+ * assert bool.or(True, True)
  * ```
  *
  * ```gleam
- * assert or(False, True)
+ * assert bool.or(False, True)
  * ```
  *
  * ```gleam
- * assert or(True, False)
+ * assert bool.or(True, False)
  * ```
  *
  * ```gleam
- * assert !or(False, False)
+ * assert !bool.or(False, False)
  * ```
  */
 export function or(a, b) {
@@ -62,11 +62,11 @@ export function or(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert !negate(True)
+ * assert !bool.negate(True)
  * ```
  *
  * ```gleam
- * assert negate(False)
+ * assert bool.negate(False)
  * ```
  */
 export function negate(bool) {
@@ -79,19 +79,19 @@ export function negate(bool) {
  * ## Examples
  *
  * ```gleam
- * assert nor(False, False)
+ * assert bool.nor(False, False)
  * ```
  *
  * ```gleam
- * assert !nor(False, True)
+ * assert !bool.nor(False, True)
  * ```
  *
  * ```gleam
- * assert !nor(True, False)
+ * assert !bool.nor(True, False)
  * ```
  *
  * ```gleam
- * assert !nor(True, True)
+ * assert !bool.nor(True, True)
  * ```
  */
 export function nor(a, b) {
@@ -104,19 +104,19 @@ export function nor(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert nand(False, False)
+ * assert bool.nand(False, False)
  * ```
  *
  * ```gleam
- * assert nand(False, True)
+ * assert bool.nand(False, True)
  * ```
  *
  * ```gleam
- * assert nand(True, False)
+ * assert bool.nand(True, False)
  * ```
  *
  * ```gleam
- * assert !nand(True, True)
+ * assert !bool.nand(True, True)
  * ```
  */
 export function nand(a, b) {
@@ -129,19 +129,19 @@ export function nand(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert !exclusive_or(False, False)
+ * assert !bool.exclusive_or(False, False)
  * ```
  *
  * ```gleam
- * assert exclusive_or(False, True)
+ * assert bool.exclusive_or(False, True)
  * ```
  *
  * ```gleam
- * assert exclusive_or(True, False)
+ * assert bool.exclusive_or(True, False)
  * ```
  *
  * ```gleam
- * assert !exclusive_or(True, True)
+ * assert !bool.exclusive_or(True, True)
  * ```
  */
 export function exclusive_or(a, b) {
@@ -154,19 +154,19 @@ export function exclusive_or(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert exclusive_nor(False, False)
+ * assert bool.exclusive_nor(False, False)
  * ```
  *
  * ```gleam
- * assert !exclusive_nor(False, True)
+ * assert !bool.exclusive_nor(False, True)
  * ```
  *
  * ```gleam
- * assert !exclusive_nor(True, False)
+ * assert !bool.exclusive_nor(True, False)
  * ```
  *
  * ```gleam
- * assert exclusive_nor(True, True)
+ * assert bool.exclusive_nor(True, True)
  * ```
  */
 export function exclusive_nor(a, b) {
@@ -179,11 +179,11 @@ export function exclusive_nor(a, b) {
  * ## Examples
  *
  * ```gleam
- * assert to_string(True) == "True"
+ * assert bool.to_string(True) == "True"
  * ```
  *
  * ```gleam
- * assert to_string(False) == "False"
+ * assert bool.to_string(False) == "False"
  * ```
  */
 export function to_string(bool) {
@@ -211,7 +211,8 @@ export function to_string(bool) {
  * In Gleam with a `use` expression:
  *
  * ```gleam
- * use <- guard(when: predicate, return: value)
+ * use <- bool.guard(when: predicate, return: value)
+ * todo
  * // ...
  * ```
  *
@@ -221,7 +222,8 @@ export function to_string(bool) {
  *
  * ```gleam
  * let x = {
- *   use <- guard(when: predicate, return: value)
+ *   use <- bool.guard(when: predicate, return: value)
+ *   todo
  *   // ...
  * }
  * ```
@@ -235,14 +237,14 @@ export function to_string(bool) {
  *
  * ```gleam
  * let name = ""
- * use <- guard(when: name == "", return: "Welcome!")
+ * use <- bool.guard(when: name == "", return: "Welcome!")
  * "Hello, " <> name
  * // -> "Welcome!"
  * ```
  *
  * ```gleam
  * let name = "Kamaka"
- * use <- guard(when: name == "", return: "Welcome!")
+ * use <- bool.guard(when: name == "", return: "Welcome!")
  * "Hello, " <> name
  * // -> "Hello, Kamaka"
  * ```
@@ -269,7 +271,7 @@ export function guard(requirement, consequence, alternative) {
  * ```gleam
  * let name = "Kamaka"
  * let inquiry = fn() { "How may we address you?" }
- * use <- lazy_guard(when: name == "", return: inquiry)
+ * use <- bool.lazy_guard(when: name == "", return: inquiry)
  * "Hello, " <> name
  * // -> "Hello, Kamaka"
  * ```
@@ -279,7 +281,7 @@ export function guard(requirement, consequence, alternative) {
  *
  * let name = ""
  * let greeting = fn() { "Hello, " <> name }
- * use <- lazy_guard(when: name == "", otherwise: greeting)
+ * use <- bool.lazy_guard(when: name == "", otherwise: greeting)
  * let number = int.random(99)
  * let name = "User " <> int.to_string(number)
  * "Welcome, " <> name

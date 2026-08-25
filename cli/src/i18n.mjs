@@ -36,18 +36,11 @@ const messages = {
     "summary.projectPath": "Project path:",
     "progress.generatingFiles": "Generating files...",
     "progress.filesCreated": "{count} files created",
+    "progress.agentsMdCreated": "AGENTS.md created",
     "progress.claudeMdCreated": "CLAUDE.md created",
     "progress.readmeCreated": "README.md created",
     "progress.licenseCreated": "LICENSE created",
     "progress.gitInit": "Git repository initialized",
-    "progress.gleamCompiling": "Compiling Gleam...",
-    "progress.gleamCompiled": "Gleam compilation complete",
-    "error.gleamCompileFail":
-      "⚠ Gleam compilation failed. Run manually in the project directory:",
-    "progress.depsInstalling": "Installing dependencies... ({pm})",
-    "progress.depsInstalled": "Dependencies installed",
-    "error.depsInstallFail":
-      "⚠ Dependency installation failed. Run manually in the project directory:",
     "progress.glendixInstalling": "Running glendix/install...",
     "progress.glendixInstalled": "glendix/install complete",
     "error.glendixInstallFail":
@@ -60,7 +53,6 @@ const messages = {
     "done.nextSteps": "Next steps:",
     "done.devServer": "# Start dev server",
     "done.prodBuild": "# Production build",
-    "done.marketplace": "# Download Marketplace widgets",
 
     // prompts.mjs
     "prompt.projectName": "Project name:",
@@ -78,7 +70,7 @@ const messages = {
     "prompt.projectPath": "Test project path:",
     "validate.orgRequired": "Please enter an organization name.",
     "validate.orgInvalid":
-      "Must start with lowercase letter (a-z, 0-9, hyphens only).",
+      "Must start with a lowercase letter and contain only lowercase letters or numbers.",
     "validate.copyrightRequired": "Please enter copyright text.",
     "validate.versionInvalid": "Must be semver format (e.g. 0.0.1).",
     "validate.authorRequired": "Please enter author name.",
@@ -106,18 +98,11 @@ const messages = {
     "summary.projectPath": "프로젝트 경로:",
     "progress.generatingFiles": "파일 생성 중...",
     "progress.filesCreated": "{count}개 파일 생성 완료",
+    "progress.agentsMdCreated": "AGENTS.md 생성 완료",
     "progress.claudeMdCreated": "CLAUDE.md 생성 완료",
     "progress.readmeCreated": "README.md 생성 완료",
     "progress.licenseCreated": "LICENSE 생성 완료",
     "progress.gitInit": "git 저장소 초기화 완료",
-    "progress.gleamCompiling": "Gleam 컴파일 중...",
-    "progress.gleamCompiled": "Gleam 컴파일 완료",
-    "error.gleamCompileFail":
-      "⚠ Gleam 컴파일 실패. 프로젝트 디렉토리에서 직접 실행하세요:",
-    "progress.depsInstalling": "의존성 설치 중... ({pm})",
-    "progress.depsInstalled": "의존성 설치 완료",
-    "error.depsInstallFail":
-      "⚠ 의존성 설치 실패. 프로젝트 디렉토리에서 직접 실행하세요:",
     "progress.glendixInstalling": "glendix/install 실행 중...",
     "progress.glendixInstalled": "glendix/install 완료",
     "error.glendixInstallFail":
@@ -130,7 +115,6 @@ const messages = {
     "done.nextSteps": "다음 단계:",
     "done.devServer": "# 개발 서버 시작",
     "done.prodBuild": "# 프로덕션 빌드",
-    "done.marketplace": "# Marketplace 위젯 다운로드",
 
     // prompts.mjs
     "prompt.projectName": "프로젝트 이름:",
@@ -148,7 +132,7 @@ const messages = {
     "prompt.projectPath": "테스트 프로젝트 경로:",
     "validate.orgRequired": "조직 이름을 입력해주세요.",
     "validate.orgInvalid":
-      "소문자로 시작, 소문자/숫자/하이픈만 사용 가능합니다.",
+      "소문자로 시작해야 하며 소문자/숫자만 사용 가능합니다.",
     "validate.copyrightRequired": "저작권 문구를 입력해주세요.",
     "validate.versionInvalid": "semver 형식이어야 합니다 (예: 0.0.1).",
     "validate.authorRequired": "작성자를 입력해주세요.",
@@ -176,18 +160,11 @@ const messages = {
     "summary.projectPath": "プロジェクトパス:",
     "progress.generatingFiles": "ファイル生成中...",
     "progress.filesCreated": "{count}個のファイル生成完了",
+    "progress.agentsMdCreated": "AGENTS.md 生成完了",
     "progress.claudeMdCreated": "CLAUDE.md 生成完了",
     "progress.readmeCreated": "README.md 生成完了",
     "progress.licenseCreated": "LICENSE 生成完了",
     "progress.gitInit": "gitリポジトリ初期化完了",
-    "progress.gleamCompiling": "Gleamコンパイル中...",
-    "progress.gleamCompiled": "Gleamコンパイル完了",
-    "error.gleamCompileFail":
-      "⚠ Gleamコンパイル失敗。プロジェクトディレクトリで直接実行してください:",
-    "progress.depsInstalling": "依存関係インストール中... ({pm})",
-    "progress.depsInstalled": "依存関係インストール完了",
-    "error.depsInstallFail":
-      "⚠ 依存関係インストール失敗。プロジェクトディレクトリで直接実行してください:",
     "progress.glendixInstalling": "glendix/installを実行中...",
     "progress.glendixInstalled": "glendix/install完了",
     "error.glendixInstallFail":
@@ -200,7 +177,6 @@ const messages = {
     "done.nextSteps": "次のステップ:",
     "done.devServer": "# 開発サーバー起動",
     "done.prodBuild": "# プロダクションビルド",
-    "done.marketplace": "# Marketplaceウィジェットダウンロード",
 
     // prompts.mjs
     "prompt.projectName": "プロジェクト名:",
@@ -218,7 +194,7 @@ const messages = {
     "prompt.projectPath": "テストプロジェクトパス:",
     "validate.orgRequired": "組織名を入力してください。",
     "validate.orgInvalid":
-      "小文字で始まり、小文字/数字/ハイフンのみ使用可能です。",
+      "小文字で始まり、小文字/数字のみ使用可能です。",
     "validate.copyrightRequired": "著作権テキストを入力してください。",
     "validate.versionInvalid": "semver形式でなければなりません（例：0.0.1）。",
     "validate.authorRequired": "作者名を入力してください。",
@@ -246,9 +222,8 @@ export function t(lang, key, params = {}) {
 const templateComments = {
   en: {
     // __widget_name__.gleam
-    widget_main_1: '// Mendix Pluggable Widget - "Hello World"',
-    widget_main_2:
-      "// React functional component: fn(JsProps) -> Element",
+    widget_main_1:
+      "//// Mendix widget entry point backed by a Lustre component.",
     widget_main_doc:
       "/// Main widget function - called by Mendix runtime as a React component",
 
@@ -266,15 +241,14 @@ const templateComments = {
     editor_preview_doc:
       "/// Studio Pro design view preview - renders the widget's visual representation",
 
-    // components/hello_world.gleam
-    hello_world_1: "// Hello World component",
-    hello_world_2:
-      "// Shared between widget runtime and Studio Pro preview",
-    hello_world_doc: "/// Render Hello World UI",
+    // components/counter.gleam
+    counter_module:
+      "//// Connects an interactive Lustre counter to a Mendix/React element.",
+    counter_doc:
+      "/// Renders a counter with independent Lustre state as a React element.",
 
     // _gitignore
     gitignore_deps: "# Dependencies",
-    gitignore_lockfiles: "# Package manager lock files",
     gitignore_pm_cache: "# Package manager cache/config",
     gitignore_gleam_build: "# Gleam compilation output",
     gitignore_mendix_build: "# Mendix widget build output",
@@ -292,9 +266,8 @@ const templateComments = {
 
   ko: {
     // __widget_name__.gleam
-    widget_main_1: '// Mendix Pluggable Widget - "Hello World"',
-    widget_main_2:
-      "// React 함수형 컴포넌트: fn(JsProps) -> Element",
+    widget_main_1:
+      "//// Lustre 컴포넌트를 사용하는 Mendix 위젯 진입점이다.",
     widget_main_doc:
       "/// 위젯 메인 함수 - Mendix 런타임이 React 컴포넌트로 호출",
 
@@ -312,14 +285,14 @@ const templateComments = {
     editor_preview_doc:
       "/// Studio Pro 디자인 뷰 미리보기 - 위젯의 시각적 표현을 렌더링",
 
-    // components/hello_world.gleam
-    hello_world_1: "// Hello World 컴포넌트",
-    hello_world_2: "// 위젯 런타임과 Studio Pro 미리보기에서 공유",
-    hello_world_doc: "/// Hello World UI 렌더링",
+    // components/counter.gleam
+    counter_module:
+      "//// 대화형 Lustre 카운터를 Mendix/React element로 연결한다.",
+    counter_doc:
+      "/// 독립적인 Lustre 상태를 가진 카운터를 React element로 렌더링한다.",
 
     // _gitignore
     gitignore_deps: "# 의존성",
-    gitignore_lockfiles: "# 패키지 매니저 lock 파일",
     gitignore_pm_cache: "# 패키지 매니저 캐시/설정",
     gitignore_gleam_build: "# Gleam 컴파일 출력",
     gitignore_mendix_build: "# Mendix 위젯 빌드 출력",
@@ -337,9 +310,8 @@ const templateComments = {
 
   ja: {
     // __widget_name__.gleam
-    widget_main_1: '// Mendix Pluggable Widget - "Hello World"',
-    widget_main_2:
-      "// React関数コンポーネント: fn(JsProps) -> Element",
+    widget_main_1:
+      "//// Lustreコンポーネントを使うMendixウィジェットのエントリーポイント。",
     widget_main_doc:
       "/// ウィジェットメイン関数 - MendixランタイムがReactコンポーネントとして呼び出し",
 
@@ -357,15 +329,14 @@ const templateComments = {
     editor_preview_doc:
       "/// Studio Proデザインビュープレビュー - ウィジェットのビジュアル表現をレンダリング",
 
-    // components/hello_world.gleam
-    hello_world_1: "// Hello Worldコンポーネント",
-    hello_world_2:
-      "// ウィジェットランタイムとStudio Proプレビューで共有",
-    hello_world_doc: "/// Hello World UIのレンダリング",
+    // components/counter.gleam
+    counter_module:
+      "//// 対話型LustreカウンターをMendix/React elementへ接続する。",
+    counter_doc:
+      "/// 独立したLustre状態を持つカウンターをReact elementとして描画する。",
 
     // _gitignore
     gitignore_deps: "# 依存関係",
-    gitignore_lockfiles: "# パッケージマネージャーlockファイル",
     gitignore_pm_cache: "# パッケージマネージャーキャッシュ/設定",
     gitignore_gleam_build: "# Gleamコンパイル出力",
     gitignore_mendix_build: "# Mendixウィジェットビルド出力",

@@ -17,6 +17,12 @@ export function splitWords(input) {
     .filter((w) => w.length > 0);
 }
 
+/** Mendix widget/module/file 이름으로 안전하게 변환할 수 있는지 검증 */
+export function isValidProjectName(input) {
+  return typeof input === "string"
+    && /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(input.trim());
+}
+
 /** PascalCase: MyCoolWidget */
 export function toPascalCase(words) {
   return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("");
@@ -44,6 +50,7 @@ export function toKebabCase(words) {
 
 /** 모든 형식을 한 번에 생성 */
 export function generateNames(input) {
+  if (!isValidProjectName(input)) return null;
   const words = splitWords(input);
   if (words.length === 0) return null;
   return {

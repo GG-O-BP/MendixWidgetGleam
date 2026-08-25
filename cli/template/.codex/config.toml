@@ -1,0 +1,15 @@
+# Project-scoped Codex policy. Execution permissions remain user/launcher owned.
+web_search = "cached"
+
+[shell_environment_policy]
+inherit = "all"
+ignore_default_excludes = false
+
+[shell_environment_policy.filters]
+"MENDIX_*" = "exclude"
+"*_KEY" = "exclude"
+"*_TOKEN" = "exclude"
+"*_SECRET" = "exclude"
+
+[agents]
+max_concurrent_threads_per_session = 4

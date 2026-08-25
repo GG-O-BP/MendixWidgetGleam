@@ -49,7 +49,7 @@ export function tap(promise, callback) {
  * The function is only called if the value is `Ok`, and the returned becomes
  * the new value contained by the promise.
  *
- * This is a convenience functin that combines the `map` function with `result.try`.
+ * This is a convenience function that combines the `map` function with `result.try`.
  */
 export function map_try(promise, callback) {
   let _pipe = promise;
@@ -73,7 +73,7 @@ export function map_try(promise, callback) {
  * The function is only called if the value is `Ok`, and the returned becomes
  * the new value contained by the promise.
  *
- * This is a convenience functin that combines the `await` function with
+ * This is a convenience function that combines the `await` function with
  * `result.try`.
  */
 export function try_await(promise, callback) {
@@ -96,7 +96,8 @@ export function try_await(promise, callback) {
  * Chain an asynchronous operation onto an list of promises, so it runs after the
  * promises have resolved.
  *
- * This is the equivilent of the `Promise.all` JavaScript static method.
+ * This is the equivalent of the [`Promise.all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all)
+ * JavaScript static method.
  */
 export function await_list(xs) {
   let _pipe = xs;

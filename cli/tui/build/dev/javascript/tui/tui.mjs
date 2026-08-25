@@ -1,16 +1,22 @@
 import * as $command from "../etch/etch/command.mjs";
-import * as $event from "../etch/etch/event.mjs";
 import * as $stdout from "../etch/etch/stdout.mjs";
-import * as $terminal from "../etch/etch/terminal.mjs";
+import * as $tty from "../etch_javascript/etch/javascript/tty.mjs";
 import * as $array from "../gleam_javascript/gleam/javascript/array.mjs";
 import * as $promise from "../gleam_javascript/gleam/javascript/promise.mjs";
 import * as $io from "../gleam_stdlib/gleam/io.mjs";
 import * as $list from "../gleam_stdlib/gleam/list.mjs";
 import * as $option from "../gleam_stdlib/gleam/option.mjs";
-import { None, Some } from "../gleam_stdlib/gleam/option.mjs";
+import { Some, Option$None$const } from "../gleam_stdlib/gleam/option.mjs";
 import * as $result from "../gleam_stdlib/gleam/result.mjs";
 import * as $string from "../gleam_stdlib/gleam/string.mjs";
-import { Ok, toList, Empty as $Empty, CustomType as $CustomType, makeError } from "./gleam.mjs";
+import {
+  Ok,
+  toList,
+  Empty as $Empty,
+  List$Empty$const as $List$Empty$const,
+  CustomType as $CustomType,
+  makeError,
+} from "./gleam.mjs";
 import * as $prompt from "./tui/prompt.mjs";
 import {
   dir_exists,
@@ -23,7 +29,7 @@ import {
   split_words as split_words_ffi,
 } from "./tui_ffi.mjs";
 
-const FILEPATH = "src\\tui.gleam";
+const FILEPATH = "src/tui.gleam";
 
 export class Options extends $CustomType {
   constructor(project_name, organization, copyright, license, version, author, project_path, pm, lang) {
@@ -145,7 +151,7 @@ function t(lang, key) {
     }
   } else if (key === "name.invalid") {
     if (lang === "en") {
-      return "Must start with a letter (a-z, A-Z, 0-9, -, _ only)";
+      return "Must start with a letter (letters, numbers, -, _ only)";
     } else if (lang === "ko") {
       return "영문자로 시작, 영문자/숫자/-/_ 만 사용 가능";
     } else if (lang === "ja") {
@@ -185,11 +191,11 @@ function t(lang, key) {
     }
   } else if (key === "org.invalid") {
     if (lang === "en") {
-      return "Lowercase letters, numbers, and hyphens only (a-z start)";
+      return "Lowercase letters and numbers only (a-z start)";
     } else if (lang === "ko") {
-      return "소문자로 시작, 소문자/숫자/하이픈만 사용 가능";
+      return "소문자로 시작, 소문자/숫자만 사용 가능";
     } else if (lang === "ja") {
-      return "小文字で始まり、小文字/数字/ハイフンのみ使用可能";
+      return "小文字で始まり、小文字/数字のみ使用可能";
     } else {
       return key;
     }
@@ -333,7 +339,7 @@ function validate_name(lang, value) {
       if ($1) {
         return new Some(t(lang, "name.exists"));
       } else {
-        return new None();
+        return Option$None$const;
       }
     } else {
       return new Some(t(lang, "name.invalid"));
@@ -348,7 +354,7 @@ function validate_org(lang, value) {
   } else {
     let $ = is_valid_org(trimmed);
     if ($) {
-      return new None();
+      return Option$None$const;
     } else {
       return new Some(t(lang, "org.invalid"));
     }
@@ -358,7 +364,7 @@ function validate_org(lang, value) {
 function validate_version(lang, value) {
   let $ = is_valid_version($string.trim(value));
   if ($) {
-    return new None();
+    return Option$None$const;
   } else {
     return new Some(t(lang, "version.invalid"));
   }
@@ -369,7 +375,7 @@ function validate_not_empty(lang, error_key, value) {
   if ($ === "") {
     return new Some(t(lang, error_key));
   } else {
-    return new None();
+    return Option$None$const;
   }
 }
 
@@ -386,14 +392,17 @@ function name_preview(lang, value) {
 }
 
 function no_preview(_) {
-  return toList([]);
+  return $List$Empty$const;
 }
 
 function cleanup() {
   $stdout.execute(
-    toList([new $command.ShowCursor(), new $command.LeaveAlternateScreen()]),
+    toList([
+      $command.Command$ShowCursor$const,
+      $command.Command$LeaveAlternateScreen$const,
+    ]),
   );
-  let $ = $terminal.exit_raw();
+  let $ = $tty.exit_raw();
   
   return undefined;
 }
@@ -406,48 +415,49 @@ function cancel(lang) {
 }
 
 export function collect_options(cli_name) {
-  let $ = $terminal.enter_raw();
+  let $ = $tty.enter_raw();
   if (!($ instanceof Ok)) {
     throw makeError(
       "let_assert",
       FILEPATH,
       "tui",
-      265,
+      263,
       "collect_options",
       "Pattern match failed, no pattern matched the value.",
       {
         value: $,
-        start: 8812,
-        end: 8851,
-        pattern_start: 8823,
-        pattern_end: 8828
+        start: 8763,
+        end: 8797,
+        pattern_start: 8774,
+        pattern_end: 8779
       }
     )
   }
   $stdout.execute(
-    toList([new $command.EnterAlternateScreen(), new $command.HideCursor()]),
+    toList([
+      $command.Command$EnterAlternateScreen$const,
+      $command.Command$HideCursor$const,
+    ]),
   );
-  let $1 = $event.init_event_server();
-  
   let languages = toList(["English", "한국어", "日本語"]);
   let lang_codes = toList(["en", "ko", "ja"]);
   return $promise.await$(
     $prompt.select(
-      toList([]),
+      $List$Empty$const,
       t("en", "lang.title"),
       languages,
       0,
       t("en", "hint.select"),
     ),
     (lang_idx) => {
-      let $2 = lang_idx < 0;
-      if ($2) {
+      let $1 = lang_idx < 0;
+      if ($1) {
         return cancel("en");
       } else {
         let lang = $result.unwrap(list_at(lang_codes, lang_idx), "en");
         let lang_label = $result.unwrap(list_at(languages, lang_idx), "English");
         let completed = toList([["Language", lang_label]]);
-        $stdout.execute(toList([new $command.ShowCursor()]));
+        $stdout.execute(toList([$command.Command$ShowCursor$const]));
         return $promise.await$(
           $prompt.text_input(
             completed,
@@ -468,7 +478,7 @@ export function collect_options(cli_name) {
                 $prompt.text_input(
                   completed$1,
                   t(lang, "org.title"),
-                  "mendix",
+                  "example",
                   (_capture) => { return validate_org(lang, _capture); },
                   no_preview,
                   t(lang, "hint.input"),
@@ -481,7 +491,7 @@ export function collect_options(cli_name) {
                       toList([[t(lang, "org.title"), org]]),
                     );
                     let year = get_current_year();
-                    let default_copyright = ("© Mendix Technology BV " + year) + ". All rights reserved.";
+                    let default_copyright = ("© " + year) + ". All rights reserved.";
                     return $promise.await$(
                       $prompt.text_input(
                         completed$2,
@@ -504,7 +514,9 @@ export function collect_options(cli_name) {
                             completed$2,
                             toList([[t(lang, "copyright.title"), copyright]]),
                           );
-                          $stdout.execute(toList([new $command.HideCursor()]));
+                          $stdout.execute(
+                            toList([$command.Command$HideCursor$const]),
+                          );
                           let licenses = toList([
                             "Apache-2.0",
                             "BlueOak-1.0.0",
@@ -522,8 +534,8 @@ export function collect_options(cli_name) {
                               t(lang, "hint.select"),
                             ),
                             (license_idx) => {
-                              let $3 = license_idx < 0;
-                              if ($3) {
+                              let $2 = license_idx < 0;
+                              if ($2) {
                                 return cancel(lang);
                               } else {
                                 let license = $result.unwrap(
@@ -535,7 +547,7 @@ export function collect_options(cli_name) {
                                   toList([[t(lang, "license.title"), license]]),
                                 );
                                 $stdout.execute(
-                                  toList([new $command.ShowCursor()]),
+                                  toList([$command.Command$ShowCursor$const]),
                                 );
                                 return $promise.await$(
                                   $prompt.text_input(
@@ -613,7 +625,7 @@ export function collect_options(cli_name) {
                                                   );
                                                   $stdout.execute(
                                                     toList([
-                                                      new $command.HideCursor(),
+                                                      $command.Command$HideCursor$const,
                                                     ]),
                                                   );
                                                   let detected = detect_pm();
@@ -637,8 +649,8 @@ export function collect_options(cli_name) {
                                                   let pm_labels = $list.map(
                                                     pms,
                                                     (pm) => {
-                                                      let $4 = pm === detected;
-                                                      if ($4) {
+                                                      let $3 = pm === detected;
+                                                      if ($3) {
                                                         return (pm + "  ← ") + t(
                                                           lang,
                                                           "pm.detected",
@@ -657,8 +669,8 @@ export function collect_options(cli_name) {
                                                       t(lang, "hint.select"),
                                                     ),
                                                     (pm_idx) => {
-                                                      let $4 = pm_idx < 0;
-                                                      if ($4) {
+                                                      let $3 = pm_idx < 0;
+                                                      if ($3) {
                                                         return cancel(lang);
                                                       } else {
                                                         let pm = $result.unwrap(

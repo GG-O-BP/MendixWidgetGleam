@@ -1,15 +1,27 @@
 import { CustomType as $CustomType, isEqual } from "../gleam.mjs";
 
+/**
+ * Less-than
+ */
 export class Lt extends $CustomType {}
-export const Order$Lt = () => new Lt();
+export const Order$Lt$const = new Lt();
+export const Order$Lt = () => Order$Lt$const;
 export const Order$isLt = (value) => value instanceof Lt;
 
+/**
+ * Equal
+ */
 export class Eq extends $CustomType {}
-export const Order$Eq = () => new Eq();
+export const Order$Eq$const = new Eq();
+export const Order$Eq = () => Order$Eq$const;
 export const Order$isEq = (value) => value instanceof Eq;
 
+/**
+ * Greater than
+ */
 export class Gt extends $CustomType {}
-export const Order$Gt = () => new Gt();
+export const Order$Gt$const = new Gt();
+export const Order$Gt = () => Order$Gt$const;
 export const Order$isGt = (value) => value instanceof Gt;
 
 /**
@@ -19,24 +31,24 @@ export const Order$isGt = (value) => value instanceof Gt;
  * ## Examples
  *
  * ```gleam
- * assert negate(Lt) == Gt
+ * assert order.negate(Lt) == Gt
  * ```
  *
  * ```gleam
- * assert negate(Eq) == Eq
+ * assert order.negate(Eq) == Eq
  * ```
  *
  * ```gleam
- * assert negate(Gt) == Lt
+ * assert order.negate(Gt) == Lt
  * ```
  */
 export function negate(order) {
   if (order instanceof Lt) {
-    return new Gt();
+    return Order$Gt$const;
   } else if (order instanceof Eq) {
     return order;
   } else {
-    return new Lt();
+    return Order$Lt$const;
   }
 }
 
@@ -46,15 +58,15 @@ export function negate(order) {
  * ## Examples
  *
  * ```gleam
- * assert to_int(Lt) == -1
+ * assert order.to_int(Lt) == -1
  * ```
  *
  * ```gleam
- * assert to_int(Eq) == 0
+ * assert order.to_int(Eq) == 0
  * ```
  *
  * ```gleam
- * assert to_int(Gt) == 1
+ * assert order.to_int(Gt) == 1
  * ```
  */
 export function to_int(order) {
@@ -73,20 +85,20 @@ export function to_int(order) {
  * ## Examples
  *
  * ```gleam
- * assert compare(Eq, with: Lt) == Gt
+ * assert order.compare(Eq, with: Lt) == Gt
  * ```
  */
 export function compare(a, b) {
   let x = a;
   let y = b;
   if (isEqual(x, y)) {
-    return new Eq();
+    return Order$Eq$const;
   } else if (a instanceof Lt) {
-    return new Lt();
+    return Order$Lt$const;
   } else if (a instanceof Eq && b instanceof Gt) {
-    return new Lt();
+    return Order$Lt$const;
   } else {
-    return new Gt();
+    return Order$Gt$const;
   }
 }
 
@@ -100,7 +112,7 @@ export function compare(a, b) {
  * import gleam/int
  * import gleam/list
  *
- * assert list.sort([1, 5, 4], by: reverse(int.compare)) == [5, 4, 1]
+ * assert list.sort([1, 5, 4], by: order.reverse(int.compare)) == [5, 4, 1]
  * ```
  */
 export function reverse(orderer) {
@@ -115,13 +127,13 @@ export function reverse(orderer) {
  * ```gleam
  * import gleam/int
  *
- * assert break_tie(in: int.compare(1, 1), with: Lt) == Lt
+ * assert order.break_tie(in: int.compare(1, 1), with: Lt) == Lt
  * ```
  *
  * ```gleam
  * import gleam/int
  *
- * assert break_tie(in: int.compare(1, 0), with: Eq) == Gt
+ * assert order.break_tie(in: int.compare(1, 0), with: Eq) == Gt
  * ```
  */
 export function break_tie(order, other) {
@@ -146,13 +158,13 @@ export function break_tie(order, other) {
  * ```gleam
  * import gleam/int
  *
- * assert lazy_break_tie(in: int.compare(1, 1), with: fn() { Lt }) == Lt
+ * assert order.lazy_break_tie(in: int.compare(1, 1), with: fn() { Lt }) == Lt
  * ```
  *
  * ```gleam
  * import gleam/int
  *
- * assert lazy_break_tie(in: int.compare(1, 0), with: fn() { Eq }) == Gt
+ * assert order.lazy_break_tie(in: int.compare(1, 0), with: fn() { Eq }) == Gt
  * ```
  */
 export function lazy_break_tie(order, comparison) {

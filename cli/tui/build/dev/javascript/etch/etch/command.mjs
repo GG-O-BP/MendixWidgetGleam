@@ -196,21 +196,37 @@ export const Command$MoveTo$0 = (value) => value.column;
 export const Command$MoveTo$row = (value) => value.row;
 export const Command$MoveTo$1 = (value) => value.row;
 
+/**
+ * Saves cursor position.
+ */
 export class SavePosition extends $CustomType {}
-export const Command$SavePosition = () => new SavePosition();
+export const Command$SavePosition$const = new SavePosition();
+export const Command$SavePosition = () => Command$SavePosition$const;
 export const Command$isSavePosition = (value) => value instanceof SavePosition;
 
+/**
+ * Restores cursor position.
+ */
 export class RestorePosition extends $CustomType {}
-export const Command$RestorePosition = () => new RestorePosition();
+export const Command$RestorePosition$const = new RestorePosition();
+export const Command$RestorePosition = () => Command$RestorePosition$const;
 export const Command$isRestorePosition = (value) =>
   value instanceof RestorePosition;
 
+/**
+ * Shows cursor.
+ */
 export class ShowCursor extends $CustomType {}
-export const Command$ShowCursor = () => new ShowCursor();
+export const Command$ShowCursor$const = new ShowCursor();
+export const Command$ShowCursor = () => Command$ShowCursor$const;
 export const Command$isShowCursor = (value) => value instanceof ShowCursor;
 
+/**
+ * Hides cursor.
+ */
 export class HideCursor extends $CustomType {}
-export const Command$HideCursor = () => new HideCursor();
+export const Command$HideCursor$const = new HideCursor();
+export const Command$HideCursor = () => Command$HideCursor$const;
 export const Command$isHideCursor = (value) => value instanceof HideCursor;
 
 /**
@@ -301,39 +317,71 @@ export const Command$isSetTitle = (value) => value instanceof SetTitle;
 export const Command$SetTitle$title = (value) => value.title;
 export const Command$SetTitle$0 = (value) => value.title;
 
+/**
+ * Disables line wrap.
+ */
 export class DisableLineWrap extends $CustomType {}
-export const Command$DisableLineWrap = () => new DisableLineWrap();
+export const Command$DisableLineWrap$const = new DisableLineWrap();
+export const Command$DisableLineWrap = () => Command$DisableLineWrap$const;
 export const Command$isDisableLineWrap = (value) =>
   value instanceof DisableLineWrap;
 
+/**
+ * Enables line wrap.
+ */
 export class EnableLineWrap extends $CustomType {}
-export const Command$EnableLineWrap = () => new EnableLineWrap();
+export const Command$EnableLineWrap$const = new EnableLineWrap();
+export const Command$EnableLineWrap = () => Command$EnableLineWrap$const;
 export const Command$isEnableLineWrap = (value) =>
   value instanceof EnableLineWrap;
 
+/**
+ * Enters the alternate screen. Working in the alternate screen
+ * will not affect the main screen buffer. A good example of using an
+ * alternate screen is Vim.
+ */
 export class EnterAlternateScreen extends $CustomType {}
-export const Command$EnterAlternateScreen = () => new EnterAlternateScreen();
+export const Command$EnterAlternateScreen$const = new EnterAlternateScreen();
+export const Command$EnterAlternateScreen = () =>
+  Command$EnterAlternateScreen$const;
 export const Command$isEnterAlternateScreen = (value) =>
   value instanceof EnterAlternateScreen;
 
+/**
+ * Leaves the alternate screen. Working in the alternate screen
+ * will not affect the main screen buffer. A good example of using an
+ * alternate screen is Vim.
+ */
 export class LeaveAlternateScreen extends $CustomType {}
-export const Command$LeaveAlternateScreen = () => new LeaveAlternateScreen();
+export const Command$LeaveAlternateScreen$const = new LeaveAlternateScreen();
+export const Command$LeaveAlternateScreen = () =>
+  Command$LeaveAlternateScreen$const;
 export const Command$isLeaveAlternateScreen = (value) =>
   value instanceof LeaveAlternateScreen;
 
+/**
+ * Enables mouse capture. See [`event`](event.html)
+ */
 export class EnableMouseCapture extends $CustomType {}
-export const Command$EnableMouseCapture = () => new EnableMouseCapture();
+export const Command$EnableMouseCapture$const = new EnableMouseCapture();
+export const Command$EnableMouseCapture = () =>
+  Command$EnableMouseCapture$const;
 export const Command$isEnableMouseCapture = (value) =>
   value instanceof EnableMouseCapture;
 
+/**
+ * Disables mouse capture. See [`event`](event.html)
+ */
 export class DisableMouseCapture extends $CustomType {}
-export const Command$DisableMouseCapture = () => new DisableMouseCapture();
+export const Command$DisableMouseCapture$const = new DisableMouseCapture();
+export const Command$DisableMouseCapture = () =>
+  Command$DisableMouseCapture$const;
 export const Command$isDisableMouseCapture = (value) =>
   value instanceof DisableMouseCapture;
 
 /**
  * Pushes keyboard enhancement flags.
- * See https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement
+ * See <https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement>
  */
 export class PushKeyboardEnhancementFlags extends $CustomType {
   constructor(flags) {
@@ -349,19 +397,34 @@ export const Command$PushKeyboardEnhancementFlags$flags = (value) =>
   value.flags;
 export const Command$PushKeyboardEnhancementFlags$0 = (value) => value.flags;
 
+/**
+ * Pops keyboard enhancement flags.
+ * See <https://sw.kovidgoyal.net/kitty/keyboard-protocol/#progressive-enhancement>
+ */
 export class PopKeyboardEnhancementFlags extends $CustomType {}
-export const Command$PopKeyboardEnhancementFlags = () =>
+export const Command$PopKeyboardEnhancementFlags$const =
   new PopKeyboardEnhancementFlags();
+export const Command$PopKeyboardEnhancementFlags = () =>
+  Command$PopKeyboardEnhancementFlags$const;
 export const Command$isPopKeyboardEnhancementFlags = (value) =>
   value instanceof PopKeyboardEnhancementFlags;
 
+/**
+ * Enables focus change. See [`event`](event.html)
+ */
 export class EnableFocusChange extends $CustomType {}
-export const Command$EnableFocusChange = () => new EnableFocusChange();
+export const Command$EnableFocusChange$const = new EnableFocusChange();
+export const Command$EnableFocusChange = () => Command$EnableFocusChange$const;
 export const Command$isEnableFocusChange = (value) =>
   value instanceof EnableFocusChange;
 
+/**
+ * Disables focus change. See [`event`](event.html)
+ */
 export class DisableFocusChange extends $CustomType {}
-export const Command$DisableFocusChange = () => new DisableFocusChange();
+export const Command$DisableFocusChange$const = new DisableFocusChange();
+export const Command$DisableFocusChange = () =>
+  Command$DisableFocusChange$const;
 export const Command$isDisableFocusChange = (value) =>
   value instanceof DisableFocusChange;
 
@@ -440,21 +503,45 @@ export const Command$isSetStyle = (value) => value instanceof SetStyle;
 export const Command$SetStyle$style = (value) => value.style;
 export const Command$SetStyle$0 = (value) => value.style;
 
+/**
+ * Resets [`Attributes`](style.html#Attribute) and
+ * foreground and background [`Colors`](style.html#Color).
+ * Example:
+ * ```gleam
+ * execute([
+ *   command.SetStyle(Style(fg: style.Red, bg: style.Black, attributes: [style.Underline])),
+ *   command.Print("my string"),
+ *   command.ResetStyle,
+ * ])
+ */
 export class ResetStyle extends $CustomType {}
-export const Command$ResetStyle = () => new ResetStyle();
+export const Command$ResetStyle$const = new ResetStyle();
+export const Command$ResetStyle = () => Command$ResetStyle$const;
 export const Command$isResetStyle = (value) => value instanceof ResetStyle;
 
+/**
+ * Resets foreground and background [`Colors`](style.html#Color).
+ */
 export class ResetColor extends $CustomType {}
-export const Command$ResetColor = () => new ResetColor();
+export const Command$ResetColor$const = new ResetColor();
+export const Command$ResetColor = () => Command$ResetColor$const;
 export const Command$isResetColor = (value) => value instanceof ResetColor;
 
+/**
+ * Resets foreground [`Colors`](style.html#Color).
+ */
 export class ResetForeground extends $CustomType {}
-export const Command$ResetForeground = () => new ResetForeground();
+export const Command$ResetForeground$const = new ResetForeground();
+export const Command$ResetForeground = () => Command$ResetForeground$const;
 export const Command$isResetForeground = (value) =>
   value instanceof ResetForeground;
 
+/**
+ * Resets foreground [`Colors`](style.html#Color).
+ */
 export class ResetBackground extends $CustomType {}
-export const Command$ResetBackground = () => new ResetBackground();
+export const Command$ResetBackground$const = new ResetBackground();
+export const Command$ResetBackground = () => Command$ResetBackground$const;
 export const Command$isResetBackground = (value) =>
   value instanceof ResetBackground;
 
@@ -473,7 +560,11 @@ export const Command$isSetAttributes = (value) =>
 export const Command$SetAttributes$attrs = (value) => value.attrs;
 export const Command$SetAttributes$0 = (value) => value.attrs;
 
+/**
+ * Resets [`Attributes`](style.html#Attribute).
+ */
 export class ResetAttributes extends $CustomType {}
-export const Command$ResetAttributes = () => new ResetAttributes();
+export const Command$ResetAttributes$const = new ResetAttributes();
+export const Command$ResetAttributes = () => Command$ResetAttributes$const;
 export const Command$isResetAttributes = (value) =>
   value instanceof ResetAttributes;

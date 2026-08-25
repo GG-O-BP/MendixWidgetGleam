@@ -3,13 +3,6 @@ node_modules/
 .yarn/
 .pnp.*
 
-{{I18N:gitignore_lockfiles}}
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-bun.lockb
-bun.lock
-
 {{I18N:gitignore_pm_cache}}
 .npmrc
 .yarnrc
@@ -55,4 +48,3 @@ src/*.js
 
 {{I18N:gitignore_marketplace}}
 .marketplace-cache/
-

@@ -100,7 +100,11 @@ import {
   set_size,
   set_title,
 } from "../etch/terminal.mjs";
-import { toList, Empty as $Empty, CustomType as $CustomType } from "../gleam.mjs";
+import {
+  Empty as $Empty,
+  List$Empty$const as $List$Empty$const,
+  CustomType as $CustomType,
+} from "../gleam.mjs";
 
 export class Queue extends $CustomType {
   constructor(commands) {
@@ -363,7 +367,7 @@ function flush_inner(loop$commands, loop$tree) {
 export function flush(queue) {
   let tree = $stree.new$();
   flush_inner(queue.commands, tree);
-  return new Queue(toList([]));
+  return new Queue($List$Empty$const);
 }
 
 /**

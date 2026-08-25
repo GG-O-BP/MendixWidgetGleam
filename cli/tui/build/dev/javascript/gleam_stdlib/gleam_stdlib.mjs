@@ -15,6 +15,7 @@ import {
   CustomType,
 } from "./gleam.mjs";
 import { Some, None } from "./gleam/option.mjs";
+import { pad_to_bytes as bits_pad_to_bytes } from "./gleam/bit_array.mjs";
 import {
   default as Dict,
   fold as dict_fold,
@@ -301,40 +302,6 @@ export function bit_array_byte_size(bit_array) {
   return bit_array.byteSize;
 }
 
-export function bit_array_pad_to_bytes(bit_array) {
-  const trailingBitsCount = bit_array.bitSize % 8;
-
-  // If the bit array is a whole number of bytes it can be returned unchanged
-  if (trailingBitsCount === 0) {
-    return bit_array;
-  }
-
-  const finalByte = bit_array.byteAt(bit_array.byteSize - 1);
-
-  // The required final byte has its unused trailing bits set to zero
-  const unusedBitsCount = 8 - trailingBitsCount;
-  const correctFinalByte = (finalByte >> unusedBitsCount) << unusedBitsCount;
-
-  // If the unused bits in the final byte are already set to zero then the
-  // existing buffer can be re-used, avoiding a copy
-  if (finalByte === correctFinalByte) {
-    return new BitArray(
-      bit_array.rawBuffer,
-      bit_array.byteSize * 8,
-      bit_array.bitOffset,
-    );
-  }
-
-  // Copy the bit array into a new aligned buffer and set the correct final byte
-  const buffer = new Uint8Array(bit_array.byteSize);
-  for (let i = 0; i < buffer.length - 1; i++) {
-    buffer[i] = bit_array.byteAt(i);
-  }
-  buffer[buffer.length - 1] = correctFinalByte;
-
-  return new BitArray(buffer);
-}
-
 export function bit_array_concat(bit_arrays) {
   return toBitArray(bit_arrays.toArray());
 }
@@ -482,7 +449,7 @@ function unsafe_percent_decode(string) {
 }
 
 function unsafe_percent_decode_query(string) {
-  return decodeURIComponent((string || "").replace("+", " "));
+  return decodeURIComponent((string || "").replaceAll("+", " "));
 }
 
 export function percent_decode(string) {
@@ -494,7 +461,7 @@ export function percent_decode(string) {
 }
 
 export function percent_encode(string) {
-  return encodeURIComponent(string).replace("%2B", "+");
+  return encodeURIComponent(string).replaceAll("%2B", "+");
 }
 
 export function parse_query(query) {
@@ -527,7 +494,7 @@ let b64TextDecoder;
 export function base64_encode(bit_array, padding) {
   b64TextDecoder ??= new TextDecoder();
 
-  bit_array = bit_array_pad_to_bytes(bit_array);
+  bit_array = bits_pad_to_bytes(bit_array);
 
   const m = bit_array.byteSize;
   const k = m % 3;
@@ -660,7 +627,8 @@ const MAX_SAFE = Number.MAX_SAFE_INTEGER;
 const MIN_SAFE = Number.MIN_SAFE_INTEGER;
 
 export function bitwise_and(x, y) {
-  if (x >= MIN_I32 && x <= MAX_I32 && y >= MIN_I32 && y <= MAX_I32) return x & y;
+  if (x >= MIN_I32 && x <= MAX_I32 && y >= MIN_I32 && y <= MAX_I32)
+    return x & y;
   if (x < MIN_SAFE || x > MAX_SAFE || y < MIN_SAFE || y > MAX_SAFE)
     return Number(BigInt(x) & BigInt(y));
 
@@ -668,7 +636,8 @@ export function bitwise_and(x, y) {
 }
 
 export function bitwise_or(x, y) {
-  if (x >= MIN_I32 && x <= MAX_I32 && y >= MIN_I32 && y <= MAX_I32) return x | y;
+  if (x >= MIN_I32 && x <= MAX_I32 && y >= MIN_I32 && y <= MAX_I32)
+    return x | y;
   if (x < MIN_SAFE || x > MAX_SAFE || y < MIN_SAFE || y > MAX_SAFE)
     return Number(BigInt(x) | BigInt(y));
 
@@ -676,7 +645,8 @@ export function bitwise_or(x, y) {
 }
 
 export function bitwise_exclusive_or(x, y) {
-  if (x >= MIN_I32 && x <= MAX_I32 && y >= MIN_I32 && y <= MAX_I32) return x ^ y;
+  if (x >= MIN_I32 && x <= MAX_I32 && y >= MIN_I32 && y <= MAX_I32)
+    return x ^ y;
   if (x < MIN_SAFE || x > MAX_SAFE || y < MIN_SAFE || y > MAX_SAFE)
     return Number(BigInt(x) ^ BigInt(y));
 
@@ -1130,4 +1100,18 @@ function isList(data) {
 
 function isResult(data) {
   return Result$isOk(data) || Result$isError(data);
+}
+
+export function string_remove_prefix(string, prefix) {
+  if (string.startsWith(prefix)) {
+    return string.slice(prefix.length);
+  }
+  return string;
+}
+
+export function string_remove_suffix(string, suffix) {
+  if (string.endsWith(suffix)) {
+    return string.slice(0, string.length - suffix.length);
+  }
+  return string;
 }

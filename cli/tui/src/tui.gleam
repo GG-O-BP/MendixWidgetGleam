@@ -1,9 +1,8 @@
 // create-mendix-widget-gleam TUI — etch 기반 인터랙티브 프롬프트
 
 import etch/command
-import etch/event
+import etch/javascript/tty
 import etch/stdout
-import etch/terminal
 import gleam/io
 import gleam/javascript/array.{type Array as JsArray}
 import gleam/javascript/promise.{type Promise}
@@ -103,7 +102,7 @@ fn t(lang: String, key: String) -> String {
     "ja", "name.empty" -> "プロジェクト名を入力してください。"
 
     "en", "name.invalid" ->
-      "Must start with a letter (a-z, A-Z, 0-9, -, _ only)"
+      "Must start with a letter (letters, numbers, -, _ only)"
     "ko", "name.invalid" -> "영문자로 시작, 영문자/숫자/-/_ 만 사용 가능"
     "ja", "name.invalid" -> "英字で始まり、英字/数字/-/_ のみ使用可能"
 
@@ -119,10 +118,9 @@ fn t(lang: String, key: String) -> String {
     "ko", "org.empty" -> "조직 이름을 입력해주세요."
     "ja", "org.empty" -> "組織名を入力してください。"
 
-    "en", "org.invalid" ->
-      "Lowercase letters, numbers, and hyphens only (a-z start)"
-    "ko", "org.invalid" -> "소문자로 시작, 소문자/숫자/하이픈만 사용 가능"
-    "ja", "org.invalid" -> "小文字で始まり、小文字/数字/ハイフンのみ使用可能"
+    "en", "org.invalid" -> "Lowercase letters and numbers only (a-z start)"
+    "ko", "org.invalid" -> "소문자로 시작, 소문자/숫자만 사용 가능"
+    "ja", "org.invalid" -> "小文字で始まり、小文字/数字のみ使用可能"
 
     "en", "copyright.title" -> "Copyright"
     "ko", "copyright.title" -> "저작권"
@@ -254,17 +252,16 @@ fn cancel(lang: String) -> Promise(Options) {
 
 fn cleanup() {
   stdout.execute([command.ShowCursor, command.LeaveAlternateScreen])
-  let _ = terminal.exit_raw()
+  let _ = tty.exit_raw()
   Nil
 }
 
 // ── 메인 엔트리 ─────────────────────────────────────────────
 
 pub fn collect_options(cli_name: String) -> Promise(Options) {
-  // raw mode 진입 후 이벤트 서버 시작 (fire-and-forget: 내부 무한 루프)
-  let assert Ok(_) = terminal.enter_raw()
+  // Etch 1.4부터 JavaScript raw mode와 입력 처리는 etch_javascript가 담당한다.
+  let assert Ok(_) = tty.enter_raw()
   stdout.execute([command.EnterAlternateScreen, command.HideCursor])
-  let _ = event.init_event_server()
 
   // 1단계: 언어 선택
   let languages = ["English", "한국어", "日本語"]
@@ -306,7 +303,7 @@ pub fn collect_options(cli_name: String) -> Promise(Options) {
           use org_result <- promise.await(prompt.text_input(
             completed,
             t(lang, "org.title"),
-            "mendix",
+            "example",
             validate_org(lang, _),
             no_preview,
             t(lang, "hint.input"),
@@ -320,8 +317,7 @@ pub fn collect_options(cli_name: String) -> Promise(Options) {
 
               // 4단계: Copyright
               let year = get_current_year()
-              let default_copyright =
-                "© Mendix Technology BV " <> year <> ". All rights reserved."
+              let default_copyright = "© " <> year <> ". All rights reserved."
               use copyright_result <- promise.await(prompt.text_input(
                 completed,
                 t(lang, "copyright.title"),
