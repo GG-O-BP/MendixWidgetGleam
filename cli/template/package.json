@@ -8,7 +8,7 @@
 {{PACKAGE_MANAGER_FIELD}}  "engines": {
     "node": ">=22.18.0"
   },
-  "license": "{{LICENSE_ID}}",
+  "license": "MIT",
   "config": {
     "projectPath": {{PROJECT_PATH_JSON}},
     "mendixHost": "http://localhost:8080",
@@ -41,6 +41,20 @@
     "react-dom": "19.2.8",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5"
+  },
+  "dependenciesMeta": {
+    "@parcel/watcher": {
+      "built": true
+    },
+    "@swc/core": {
+      "built": true
+    },
+    "core-js": {
+      "built": true
+    },
+    "unrs-resolver": {
+      "built": true
+    }
   },
   "allowScripts": {
     "@parcel/watcher": true,

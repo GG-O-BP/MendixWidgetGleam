@@ -2,6 +2,7 @@ name = "tui"
 version = "1.0.0"
 gleam = ">= 1.17.0"
 target = "javascript"
+licences = ["MIT"]
 
 [javascript]
 typescript_declarations = false

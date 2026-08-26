@@ -11,6 +11,7 @@ MendrawでMendix runtime valueへ型安全にアクセスする。
 - Gleam 1.17以上
 - HexのGlendix 5.1.0 / Mendraw 2.x
 - Lustre 5.7 / Redraw 19.2
+- Gleam package・CLI・widget metadata の source release version はすべて 5.0.0
 - このリポジトリは Bun 1.4、生成 project は Node.js 22.18 以降・Deno 2.9・
   Yarn・pnpm も選択可能
 - Mendix Pluggable Widgets Tools 11.12 / React 19.2
@@ -33,9 +34,10 @@ manager へ転送する。各 command 後に shim を削除し、global tool は
 の widget build path は Node や npm を必要としない。
 
 generator は必要に応じて npm `allowScripts`、Bun `trustedDependencies`、
-Yarn の `node-modules` linker、pnpm の選択的 Babel public hoist と native
-build-script allowlist、Deno の permission/allowlist を生成する。dependency
-module は必ず選択した `--runtime` を明示して実行する。
+Yarn の `node-modules` linker と選択的 lifecycle-script allowlist、pnpm の
+選択的 Babel public hoist と native build-script allowlist、Deno の
+permission/allowlist を生成する。dependency module は必ず選択した
+`--runtime` を明示して実行する。
 
 ## パッケージ境界
 
@@ -96,6 +98,10 @@ Glendix 5.1.0の`binding.module`/`binding.resolve`は`Result`を返す。binding
 npx create-mendix-widget-gleam my-widget
 ```
 
+上の command は npm で公開済みの `latest` を install する。registry publish と
+Git tag は明示的な別 release step のため、`main` で同期した 5.0.0 source
+metadata より遅れる場合がある。
+
 CLIはwidget、test、`AGENTS.md`、project scoped `.codex/config.toml`を生成し、
 npm・Yarn・pnpm・Bun・Denoから選択した path で dependency install と MPK
 build まで確認する。install/package が失敗した場合は non-zero で終了する。
@@ -115,4 +121,4 @@ managed Mendix runtimeを検証する。このrouteが成功しない限りbrows
 
 ## License
 
-[Apache License 2.0](LICENSE)
+[MIT License](LICENSE)

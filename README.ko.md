@@ -11,6 +11,7 @@ Mendraw로 Mendix 런타임 값을 타입 안전하게 읽는다.
 - Gleam 1.17 이상
 - Hex의 Glendix 5.1.0 / Mendraw 2.x
 - Lustre 5.7 / Redraw 19.2
+- Gleam 패키지·CLI·위젯 메타데이터의 소스 릴리스 버전은 모두 5.0.0
 - 현재 저장소는 Bun 1.4, 생성 프로젝트는 Node.js 22.18 이상·Deno 2.9·Yarn·
   pnpm도 선택 가능
 - Mendix Pluggable Widgets Tools 11.12 / React 19.2
@@ -33,9 +34,9 @@ Node를 계속 사용하는 Yarn과 pnpm도 이 우회를 거치고, Bun과 Deno
 경로에는 Node나 npm이 필요하지 않다.
 
 생성기는 필요에 따라 npm `allowScripts`, Bun `trustedDependencies`, Yarn
-`node-modules` linker, pnpm의 선택적 Babel public hoist와 native build-script
-allowlist, Deno 권한/allowlist를 만든다. 의존 패키지 모듈은 항상 선택한
-`--runtime`을 명시해 실행한다.
+`node-modules` linker와 선택적 lifecycle-script allowlist, pnpm의 선택적 Babel
+public hoist와 native build-script allowlist, Deno 권한/allowlist를 만든다. 의존
+패키지 모듈은 항상 선택한 `--runtime`을 명시해 실행한다.
 
 ## 패키지 경계
 
@@ -96,6 +97,9 @@ Glendix 5.1.0의 `binding.module`/`binding.resolve`는 `Result`를 반환한다.
 npx create-mendix-widget-gleam my-widget
 ```
 
+위 명령은 npm에 게시된 `latest`를 설치한다. 레지스트리 게시와 Git tag는 명시적인
+별도 릴리스 단계이므로 `main`의 정렬된 5.0.0 소스 메타데이터보다 늦을 수 있다.
+
 CLI는 위젯, 테스트, `AGENTS.md`, 프로젝트 범위 `.codex/config.toml`을 만들고
 npm·Yarn·pnpm·Bun·Deno 중 선택한 경로로 의존성 설치와 MPK 빌드까지 검증한다.
 설치나 packaging이 실패하면 성공으로 보고하지 않고 non-zero로 종료한다.
@@ -115,4 +119,4 @@ Glendix Family 워크스페이스에서는 다음 경로를 사용한다.
 
 ## 라이선스
 
-[Apache License 2.0](LICENSE)
+[MIT License](LICENSE)

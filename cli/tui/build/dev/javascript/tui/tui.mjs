@@ -19,7 +19,7 @@ import {
 } from "./gleam.mjs";
 import * as $prompt from "./tui/prompt.mjs";
 import {
-  dir_exists,
+  target_dir_exists,
   detect_pm,
   process_exit,
   is_valid_name,
@@ -32,12 +32,11 @@ import {
 const FILEPATH = "src/tui.gleam";
 
 export class Options extends $CustomType {
-  constructor(project_name, organization, copyright, license, version, author, project_path, pm, lang) {
+  constructor(project_name, organization, copyright, version, author, project_path, pm, lang) {
     super();
     this.project_name = project_name;
     this.organization = organization;
     this.copyright = copyright;
-    this.license = license;
     this.version = version;
     this.author = author;
     this.project_path = project_path;
@@ -45,11 +44,10 @@ export class Options extends $CustomType {
     this.lang = lang;
   }
 }
-export const Options$Options = (project_name, organization, copyright, license, version, author, project_path, pm, lang) =>
+export const Options$Options = (project_name, organization, copyright, version, author, project_path, pm, lang) =>
   new Options(project_name,
   organization,
   copyright,
-  license,
   version,
   author,
   project_path,
@@ -62,18 +60,16 @@ export const Options$Options$organization = (value) => value.organization;
 export const Options$Options$1 = (value) => value.organization;
 export const Options$Options$copyright = (value) => value.copyright;
 export const Options$Options$2 = (value) => value.copyright;
-export const Options$Options$license = (value) => value.license;
-export const Options$Options$3 = (value) => value.license;
 export const Options$Options$version = (value) => value.version;
-export const Options$Options$4 = (value) => value.version;
+export const Options$Options$3 = (value) => value.version;
 export const Options$Options$author = (value) => value.author;
-export const Options$Options$5 = (value) => value.author;
+export const Options$Options$4 = (value) => value.author;
 export const Options$Options$project_path = (value) => value.project_path;
-export const Options$Options$6 = (value) => value.project_path;
+export const Options$Options$5 = (value) => value.project_path;
 export const Options$Options$pm = (value) => value.pm;
-export const Options$Options$7 = (value) => value.pm;
+export const Options$Options$6 = (value) => value.pm;
 export const Options$Options$lang = (value) => value.lang;
-export const Options$Options$8 = (value) => value.lang;
+export const Options$Options$7 = (value) => value.lang;
 
 function split_words(input) {
   let _pipe = split_words_ffi(input);
@@ -219,16 +215,6 @@ function t(lang, key) {
     } else {
       return key;
     }
-  } else if (key === "license.title") {
-    if (lang === "en") {
-      return "License";
-    } else if (lang === "ko") {
-      return "라이센스";
-    } else if (lang === "ja") {
-      return "ライセンス";
-    } else {
-      return key;
-    }
   } else if (key === "version.title") {
     if (lang === "en") {
       return "Version";
@@ -335,7 +321,7 @@ function validate_name(lang, value) {
   } else {
     let $ = is_valid_name(trimmed);
     if ($) {
-      let $1 = dir_exists(trimmed);
+      let $1 = target_dir_exists(trimmed);
       if ($1) {
         return new Some(t(lang, "name.exists"));
       } else {
@@ -411,7 +397,7 @@ function cancel(lang) {
   cleanup();
   $io.println("\n" + t(lang, "cancelled"));
   process_exit(0);
-  return $promise.resolve(new Options("", "", "", "", "", "", "", "", ""));
+  return $promise.resolve(new Options("", "", "", "", "", "", "", ""));
 }
 
 export function collect_options(cli_name) {
@@ -421,15 +407,15 @@ export function collect_options(cli_name) {
       "let_assert",
       FILEPATH,
       "tui",
-      263,
+      258,
       "collect_options",
       "Pattern match failed, no pattern matched the value.",
       {
         value: $,
-        start: 8763,
-        end: 8797,
-        pattern_start: 8774,
-        pattern_end: 8779
+        start: 8628,
+        end: 8662,
+        pattern_start: 8639,
+        pattern_end: 8644
       }
     )
   }
@@ -491,7 +477,7 @@ export function collect_options(cli_name) {
                       toList([[t(lang, "org.title"), org]]),
                     );
                     let year = get_current_year();
-                    let default_copyright = ("© " + year) + ". All rights reserved.";
+                    let default_copyright = year + " A.N. Other";
                     return $promise.await$(
                       $prompt.text_input(
                         completed$2,
@@ -514,191 +500,145 @@ export function collect_options(cli_name) {
                             completed$2,
                             toList([[t(lang, "copyright.title"), copyright]]),
                           );
-                          $stdout.execute(
-                            toList([$command.Command$HideCursor$const]),
-                          );
-                          let licenses = toList([
-                            "Apache-2.0",
-                            "BlueOak-1.0.0",
-                            "GPL-3.0-only",
-                            "GPL-2.0-only",
-                            "MIT",
-                            "MPL-2.0",
-                          ]);
                           return $promise.await$(
-                            $prompt.select(
+                            $prompt.text_input(
                               completed$3,
-                              t(lang, "license.title"),
-                              licenses,
-                              0,
-                              t(lang, "hint.select"),
+                              t(lang, "version.title"),
+                              "0.0.1",
+                              (_capture) => {
+                                return validate_version(lang, _capture);
+                              },
+                              no_preview,
+                              t(lang, "hint.input"),
                             ),
-                            (license_idx) => {
-                              let $2 = license_idx < 0;
-                              if ($2) {
-                                return cancel(lang);
-                              } else {
-                                let license = $result.unwrap(
-                                  list_at(licenses, license_idx),
-                                  "Apache-2.0",
-                                );
+                            (version_result) => {
+                              if (version_result instanceof Ok) {
+                                let version = version_result[0];
                                 let completed$4 = $list.append(
                                   completed$3,
-                                  toList([[t(lang, "license.title"), license]]),
-                                );
-                                $stdout.execute(
-                                  toList([$command.Command$ShowCursor$const]),
+                                  toList([[t(lang, "version.title"), version]]),
                                 );
                                 return $promise.await$(
                                   $prompt.text_input(
                                     completed$4,
-                                    t(lang, "version.title"),
-                                    "0.0.1",
+                                    t(lang, "author.title"),
+                                    "A.N. Other",
                                     (_capture) => {
-                                      return validate_version(lang, _capture);
+                                      return validate_not_empty(
+                                        lang,
+                                        "author.empty",
+                                        _capture,
+                                      );
                                     },
                                     no_preview,
                                     t(lang, "hint.input"),
                                   ),
-                                  (version_result) => {
-                                    if (version_result instanceof Ok) {
-                                      let version = version_result[0];
+                                  (author_result) => {
+                                    if (author_result instanceof Ok) {
+                                      let author = author_result[0];
                                       let completed$5 = $list.append(
                                         completed$4,
                                         toList([
-                                          [t(lang, "version.title"), version],
+                                          [t(lang, "author.title"), author],
                                         ]),
                                       );
                                       return $promise.await$(
                                         $prompt.text_input(
                                           completed$5,
-                                          t(lang, "author.title"),
-                                          "A.N. Other",
+                                          t(lang, "path.title"),
+                                          "./tests/testProject",
                                           (_capture) => {
                                             return validate_not_empty(
                                               lang,
-                                              "author.empty",
+                                              "path.empty",
                                               _capture,
                                             );
                                           },
                                           no_preview,
                                           t(lang, "hint.input"),
                                         ),
-                                        (author_result) => {
-                                          if (author_result instanceof Ok) {
-                                            let author = author_result[0];
+                                        (path_result) => {
+                                          if (path_result instanceof Ok) {
+                                            let project_path = path_result[0];
                                             let completed$6 = $list.append(
                                               completed$5,
                                               toList([
                                                 [
-                                                  t(lang, "author.title"),
-                                                  author,
+                                                  t(lang, "path.title"),
+                                                  project_path,
                                                 ],
                                               ]),
                                             );
-                                            return $promise.await$(
-                                              $prompt.text_input(
-                                                completed$6,
-                                                t(lang, "path.title"),
-                                                "./tests/testProject",
-                                                (_capture) => {
-                                                  return validate_not_empty(
+                                            $stdout.execute(
+                                              toList([
+                                                $command.Command$HideCursor$const,
+                                              ]),
+                                            );
+                                            let detected = detect_pm();
+                                            let pms = toList([
+                                              "npm",
+                                              "yarn",
+                                              "pnpm",
+                                              "bun",
+                                              "deno",
+                                            ]);
+                                            let _block;
+                                            if (detected === "yarn") {
+                                              _block = 1;
+                                            } else if (detected === "pnpm") {
+                                              _block = 2;
+                                            } else if (detected === "bun") {
+                                              _block = 3;
+                                            } else if (detected === "deno") {
+                                              _block = 4;
+                                            } else {
+                                              _block = 0;
+                                            }
+                                            let default_idx = _block;
+                                            let pm_labels = $list.map(
+                                              pms,
+                                              (pm) => {
+                                                let $2 = pm === detected;
+                                                if ($2) {
+                                                  return (pm + "  ← ") + t(
                                                     lang,
-                                                    "path.empty",
-                                                    _capture,
-                                                  );
-                                                },
-                                                no_preview,
-                                                t(lang, "hint.input"),
-                                              ),
-                                              (path_result) => {
-                                                if (path_result instanceof Ok) {
-                                                  let project_path = path_result[0];
-                                                  let completed$7 = $list.append(
-                                                    completed$6,
-                                                    toList([
-                                                      [
-                                                        t(lang, "path.title"),
-                                                        project_path,
-                                                      ],
-                                                    ]),
-                                                  );
-                                                  $stdout.execute(
-                                                    toList([
-                                                      $command.Command$HideCursor$const,
-                                                    ]),
-                                                  );
-                                                  let detected = detect_pm();
-                                                  let pms = toList([
-                                                    "npm",
-                                                    "yarn",
-                                                    "pnpm",
-                                                    "bun",
-                                                    "deno",
-                                                  ]);
-                                                  let _block;
-                                                  if (detected === "yarn") {
-                                                    _block = 1;
-                                                  } else if (detected === "pnpm") {
-                                                    _block = 2;
-                                                  } else if (detected === "bun") {
-                                                    _block = 3;
-                                                  } else if (detected === "deno") {
-                                                    _block = 4;
-                                                  } else {
-                                                    _block = 0;
-                                                  }
-                                                  let default_idx = _block;
-                                                  let pm_labels = $list.map(
-                                                    pms,
-                                                    (pm) => {
-                                                      let $3 = pm === detected;
-                                                      if ($3) {
-                                                        return (pm + "  ← ") + t(
-                                                          lang,
-                                                          "pm.detected",
-                                                        );
-                                                      } else {
-                                                        return pm;
-                                                      }
-                                                    },
-                                                  );
-                                                  return $promise.await$(
-                                                    $prompt.select(
-                                                      completed$7,
-                                                      t(lang, "pm.title"),
-                                                      pm_labels,
-                                                      default_idx,
-                                                      t(lang, "hint.select"),
-                                                    ),
-                                                    (pm_idx) => {
-                                                      let $3 = pm_idx < 0;
-                                                      if ($3) {
-                                                        return cancel(lang);
-                                                      } else {
-                                                        let pm = $result.unwrap(
-                                                          list_at(pms, pm_idx),
-                                                          "npm",
-                                                        );
-                                                        cleanup();
-                                                        return $promise.resolve(
-                                                          new Options(
-                                                            name,
-                                                            org,
-                                                            copyright,
-                                                            license,
-                                                            version,
-                                                            author,
-                                                            project_path,
-                                                            pm,
-                                                            lang,
-                                                          ),
-                                                        );
-                                                      }
-                                                    },
+                                                    "pm.detected",
                                                   );
                                                 } else {
+                                                  return pm;
+                                                }
+                                              },
+                                            );
+                                            return $promise.await$(
+                                              $prompt.select(
+                                                completed$6,
+                                                t(lang, "pm.title"),
+                                                pm_labels,
+                                                default_idx,
+                                                t(lang, "hint.select"),
+                                              ),
+                                              (pm_idx) => {
+                                                let $2 = pm_idx < 0;
+                                                if ($2) {
                                                   return cancel(lang);
+                                                } else {
+                                                  let pm = $result.unwrap(
+                                                    list_at(pms, pm_idx),
+                                                    "npm",
+                                                  );
+                                                  cleanup();
+                                                  return $promise.resolve(
+                                                    new Options(
+                                                      name,
+                                                      org,
+                                                      copyright,
+                                                      version,
+                                                      author,
+                                                      project_path,
+                                                      pm,
+                                                      lang,
+                                                    ),
+                                                  );
                                                 }
                                               },
                                             );
@@ -712,6 +652,8 @@ export function collect_options(cli_name) {
                                     }
                                   },
                                 );
+                              } else {
+                                return cancel(lang);
                               }
                             },
                           );

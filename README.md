@@ -11,6 +11,7 @@ React bridge, while Mendraw supplies typed access to Mendix runtime values.
 - Gleam 1.17 or newer
 - Glendix 5.1.0 and Mendraw 2.x from Hex
 - Lustre 5.7 and Redraw 19.2
+- Source release line 5.0.0 across the Gleam package, CLI, and widget metadata
 - Bun 1.4 for this checked-in project; generated projects may instead use
   Node.js 22.18 or newer, Deno 2.9, Yarn, or pnpm
 - Mendix Pluggable Widgets Tools 11.12 and React 19.2
@@ -34,8 +35,9 @@ though they still use Node; Bun and Deno do not require Node or npm for the
 widget build path.
 
 The generator emits npm's `allowScripts`, Bun's `trustedDependencies`, Yarn's
-`node-modules` linker configuration, pnpm's selective Babel public hoist and
-native build-script allowlist, and Deno permissions/allowlist as appropriate.
+`node-modules` linker and selective lifecycle-script allowlist, pnpm's selective
+Babel public hoist and native build-script allowlist, and Deno
+permissions/allowlist as appropriate.
 Dependency modules are always invoked with an explicit matching `--runtime`.
 
 ## Package boundaries
@@ -132,6 +134,10 @@ bindings.
 npx create-mendix-widget-gleam my-widget
 ```
 
+The command above installs npm's published `latest` release. Registry
+publication and Git tagging remain explicit release steps, so they may trail
+the synchronized 5.0.0 source metadata on `main`.
+
 The CLI generates the widget, tests, `AGENTS.md`, and project-scoped
 `.codex/config.toml`, then installs dependencies and proves that the generated
 project builds an MPK with the selected npm, Yarn, pnpm, Bun, or Deno path. It
@@ -152,4 +158,4 @@ Do not claim browser or Mendix compatibility unless that route passes.
 
 ## License
 
-[Apache License 2.0](LICENSE)
+[MIT License](LICENSE)

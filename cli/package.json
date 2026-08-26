@@ -3,7 +3,7 @@
   "version": "5.0.0",
   "description": "Scaffold a Mendix Pluggable Widget powered by Gleam",
   "type": "module",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/glendix-labs/MendixWidgetGleam.git",
@@ -24,7 +24,7 @@
   "scripts": {
     "build:tui": "cd tui && gleam build --target javascript",
     "test": "bun test test/*.test.mjs",
-    "test:e2e": "bun test/template.e2e.mjs"
+    "test:e2e": "node test/template.e2e.mjs"
   },
   "engines": {
     "node": ">=22.18.0"

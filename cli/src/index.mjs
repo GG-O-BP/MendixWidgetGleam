@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { execSync } from "node:child_process";
+import { stdin, stdout } from "node:process";
 import { collect_options } from "../tui/build/dev/javascript/tui/tui.mjs";
 import { collectOptions } from "./prompts.mjs";
 import { generateNames } from "./naming.mjs";
@@ -95,22 +96,28 @@ export async function main(args) {
   const cliProjectName = positional[0] || "";
 
   // Collect options — etch TUI (TTY) with readline fallback (non-TTY/pipe)
-  let projectName, pm, lang, organization, copyright, license, version, author, projectPath;
+  let projectName, pm, lang, organization, copyright, version, author, projectPath;
   let usedFallback = false;
-  try {
-    const options = await collect_options(cliProjectName);
-    projectName = options.project_name;
-    pm = options.pm;
-    lang = options.lang;
-    organization = options.organization;
-    copyright = options.copyright;
-    license = options.license;
-    version = options.version;
-    author = options.author;
-    projectPath = options.project_path;
-  } catch {
-    // Fallback: readline prompts (non-TTY, CI, pipe, etc.)
+  if (stdin.isTTY && stdout.isTTY) {
+    try {
+      const options = await collect_options(cliProjectName);
+      projectName = options.project_name;
+      pm = options.pm;
+      lang = options.lang;
+      organization = options.organization;
+      copyright = options.copyright;
+      version = options.version;
+      author = options.author;
+      projectPath = options.project_path;
+    } catch {
+      usedFallback = true;
+    }
+  } else {
     usedFallback = true;
+  }
+
+  if (usedFallback) {
+    // Readline for a terminal fallback; buffered answers for pipes and CI.
     console.log(header);
     const result = await collectOptions(cliProjectName || null);
     projectName = result.projectName;
@@ -118,13 +125,13 @@ export async function main(args) {
     lang = result.lang;
     organization = result.organization;
     copyright = result.copyright;
-    license = result.license;
     version = result.version;
     author = result.author;
     projectPath = result.projectPath;
   }
 
   if (!usedFallback) console.log(header);
+  const license = "MIT";
 
   // Name transformations
   const names = generateNames(projectName);
@@ -168,7 +175,6 @@ export async function main(args) {
   const scaffoldOptions = {
     organization,
     copyright,
-    license,
     version,
     author,
     projectPath,
@@ -190,7 +196,7 @@ export async function main(args) {
   // Generate LICENSE
   await writeFile(
     join(targetDir, "LICENSE"),
-    generateLicenseContent(license, copyright),
+    generateLicenseContent(copyright),
     "utf-8",
   );
   console.log(`${GREEN}✓${RESET} ${t(lang, "progress.licenseCreated")}`);
@@ -214,7 +220,7 @@ export async function main(args) {
   // Generate README.md
   await writeFile(
     join(targetDir, "README.md"),
-    generateReadmeContent(lang, names, pm, license),
+    generateReadmeContent(lang, names, pm),
     "utf-8",
   );
   console.log(`${GREEN}✓${RESET} ${t(lang, "progress.readmeCreated")}`);

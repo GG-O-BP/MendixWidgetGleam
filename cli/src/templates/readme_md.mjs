@@ -1,6 +1,6 @@
 /** README.md template for English, Korean, and Japanese projects. */
 
-export function generateReadmeContent(lang, names, pm, license) {
+export function generateReadmeContent(lang, names, pm) {
   const runtime = pm === "bun" || pm === "deno" ? pm : "node";
   const addCommand = {
     npm: "npm install recharts",
@@ -19,11 +19,11 @@ export function generateReadmeContent(lang, names, pm, license) {
 
   switch (lang) {
     case "ko":
-      return generateKo(names, addCommand, runtime, runtimeRequirement, license);
+      return generateKo(names, addCommand, runtime, runtimeRequirement);
     case "ja":
-      return generateJa(names, addCommand, runtime, runtimeRequirement, license);
+      return generateJa(names, addCommand, runtime, runtimeRequirement);
     default:
-      return generateEn(names, addCommand, runtime, runtimeRequirement, license);
+      return generateEn(names, addCommand, runtime, runtimeRequirement);
   }
 }
 
@@ -77,7 +77,7 @@ gleam run -m glendix/install --runtime ${runtime}
 \`\`\``;
 }
 
-function generateEn(names, addCommand, runtime, runtimeRequirement, license) {
+function generateEn(names, addCommand, runtime, runtimeRequirement) {
   return `# ${names.pascalCase}
 
 A Mendix Pluggable Widget written in Gleam. The starter renders an interactive
@@ -144,11 +144,11 @@ bridge consumed by Mendix Pluggable Widgets Tools.
 
 ## License
 
-${license}
+MIT
 `;
 }
 
-function generateKo(names, addCommand, runtime, runtimeRequirement, license) {
+function generateKo(names, addCommand, runtime, runtimeRequirement) {
   return `# ${names.pascalCase}
 
 Gleam으로 작성한 Mendix Pluggable Widget이다. 기본 예제는 Glendix의 React
@@ -215,11 +215,11 @@ JSX나 위젯 bridge 파일을 직접 작성하지 않는다. 소스 진입점�
 
 ## 라이선스
 
-${license}
+MIT
 `;
 }
 
-function generateJa(names, addCommand, runtime, runtimeRequirement, license) {
+function generateJa(names, addCommand, runtime, runtimeRequirement) {
   return `# ${names.pascalCase}
 
 Gleamで作成するMendix Pluggable Widget。スターターはGlendixのReactブリッジで
@@ -285,6 +285,6 @@ JSXやwidget bridgeファイルを手書きしない。ソースのentry point�
 
 ## ライセンス
 
-${license}
+MIT
 `;
 }

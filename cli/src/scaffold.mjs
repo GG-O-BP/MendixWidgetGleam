@@ -86,7 +86,6 @@ function replaceContent(content, names, templateComments, options) {
     result = result
       .replace(/\{\{ORGANIZATION\}\}/g, options.organization)
       .replace(/\{\{COPYRIGHT\}\}/g, options.copyright)
-      .replace(/\{\{LICENSE_ID\}\}/g, options.license)
       .replace(/\{\{VERSION\}\}/g, options.version)
       .replace(/\{\{AUTHOR\}\}/g, options.author)
       .replace(/\{\{PROJECT_PATH\}\}/g, options.projectPath)
@@ -110,7 +109,7 @@ function replaceContent(content, names, templateComments, options) {
  * @param {string} targetDir - 생성할 프로젝트 디렉토리 경로
  * @param {object} names - 이름 변환 결과
  * @param {object} [templateComments] - i18n 템플릿 주석 ({{I18N:*}} 치환용)
- * @param {object} [options] - 추가 옵션 (organization, copyright, license, version, author, projectPath)
+ * @param {object} [options] - 추가 옵션 (organization, copyright, version, author, projectPath)
  */
 export async function scaffold(templateDir, targetDir, names, templateComments, options) {
   const files = await walkDir(templateDir);

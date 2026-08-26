@@ -3,7 +3,7 @@ version = "5.0.0"
 gleam = ">= 1.17.0"
 target = "javascript"
 description = "Reference Mendix Pluggable Widget built with Gleam, Glendix, Mendraw, and Lustre"
-licences = ["Apache-2.0"]
+licences = ["MIT"]
 repository = { type = "github", user = "glendix-labs", repo = "MendixWidgetGleam" }
 
 [javascript]

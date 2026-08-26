@@ -14,8 +14,8 @@ import tui/prompt
 
 // ── FFI ─────────────────────────────────────────────────────
 
-@external(javascript, "./tui_ffi.mjs", "dir_exists")
-fn dir_exists(name: String) -> Bool
+@external(javascript, "./tui_ffi.mjs", "target_dir_exists")
+fn target_dir_exists(name: String) -> Bool
 
 @external(javascript, "./tui_ffi.mjs", "detect_pm")
 fn detect_pm() -> String
@@ -53,7 +53,6 @@ pub type Options {
     project_name: String,
     organization: String,
     copyright: String,
-    license: String,
     version: String,
     author: String,
     project_path: String,
@@ -130,10 +129,6 @@ fn t(lang: String, key: String) -> String {
     "ko", "copyright.empty" -> "저작권 문구를 입력해주세요."
     "ja", "copyright.empty" -> "著作権テキストを入力してください。"
 
-    "en", "license.title" -> "License"
-    "ko", "license.title" -> "라이센스"
-    "ja", "license.title" -> "ライセンス"
-
     "en", "version.title" -> "Version"
     "ko", "version.title" -> "버전"
     "ja", "version.title" -> "バージョン"
@@ -187,7 +182,7 @@ fn validate_name(lang: String, value: String) -> Option(String) {
       case is_valid_name(trimmed) {
         False -> Some(t(lang, "name.invalid"))
         True ->
-          case dir_exists(trimmed) {
+          case target_dir_exists(trimmed) {
             True -> Some(t(lang, "name.exists"))
             False -> None
           }
@@ -247,7 +242,7 @@ fn cancel(lang: String) -> Promise(Options) {
   io.println("\n" <> t(lang, "cancelled"))
   process_exit(0)
   // unreachable — process_exit 이후 도달하지 않음
-  promise.resolve(Options("", "", "", "", "", "", "", "", ""))
+  promise.resolve(Options("", "", "", "", "", "", "", ""))
 }
 
 fn cleanup() {
@@ -317,7 +312,7 @@ pub fn collect_options(cli_name: String) -> Promise(Options) {
 
               // 4단계: Copyright
               let year = get_current_year()
-              let default_copyright = "© " <> year <> ". All rights reserved."
+              let default_copyright = year <> " A.N. Other"
               use copyright_result <- promise.await(prompt.text_input(
                 completed,
                 t(lang, "copyright.title"),
@@ -334,147 +329,105 @@ pub fn collect_options(cli_name: String) -> Promise(Options) {
                     list.append(completed, [
                       #(t(lang, "copyright.title"), copyright),
                     ])
-                  stdout.execute([command.HideCursor])
 
-                  // 5단계: License 선택
-                  let licenses = [
-                    "Apache-2.0", "BlueOak-1.0.0", "GPL-3.0-only",
-                    "GPL-2.0-only", "MIT", "MPL-2.0",
-                  ]
-                  use license_idx <- promise.await(prompt.select(
+                  // 5단계: Version
+                  use version_result <- promise.await(prompt.text_input(
                     completed,
-                    t(lang, "license.title"),
-                    licenses,
-                    0,
-                    t(lang, "hint.select"),
+                    t(lang, "version.title"),
+                    "0.0.1",
+                    validate_version(lang, _),
+                    no_preview,
+                    t(lang, "hint.input"),
                   ))
 
-                  case license_idx < 0 {
-                    True -> cancel(lang)
-                    False -> {
-                      let license =
-                        result.unwrap(
-                          list_at(licenses, license_idx),
-                          "Apache-2.0",
-                        )
+                  case version_result {
+                    Error(_) -> cancel(lang)
+                    Ok(version) -> {
                       let completed =
                         list.append(completed, [
-                          #(t(lang, "license.title"), license),
+                          #(t(lang, "version.title"), version),
                         ])
-                      stdout.execute([command.ShowCursor])
 
-                      // 6단계: Version
-                      use version_result <- promise.await(prompt.text_input(
+                      // 6단계: Author
+                      use author_result <- promise.await(prompt.text_input(
                         completed,
-                        t(lang, "version.title"),
-                        "0.0.1",
-                        validate_version(lang, _),
+                        t(lang, "author.title"),
+                        "A.N. Other",
+                        validate_not_empty(lang, "author.empty", _),
                         no_preview,
                         t(lang, "hint.input"),
                       ))
 
-                      case version_result {
+                      case author_result {
                         Error(_) -> cancel(lang)
-                        Ok(version) -> {
+                        Ok(author) -> {
                           let completed =
                             list.append(completed, [
-                              #(t(lang, "version.title"), version),
+                              #(t(lang, "author.title"), author),
                             ])
 
-                          // 7단계: Author
-                          use author_result <- promise.await(prompt.text_input(
+                          // 7단계: Project Path
+                          use path_result <- promise.await(prompt.text_input(
                             completed,
-                            t(lang, "author.title"),
-                            "A.N. Other",
-                            validate_not_empty(lang, "author.empty", _),
+                            t(lang, "path.title"),
+                            "./tests/testProject",
+                            validate_not_empty(lang, "path.empty", _),
                             no_preview,
                             t(lang, "hint.input"),
                           ))
 
-                          case author_result {
+                          case path_result {
                             Error(_) -> cancel(lang)
-                            Ok(author) -> {
+                            Ok(project_path) -> {
                               let completed =
                                 list.append(completed, [
-                                  #(t(lang, "author.title"), author),
+                                  #(t(lang, "path.title"), project_path),
                                 ])
+                              stdout.execute([command.HideCursor])
 
-                              // 8단계: Project Path
-                              use path_result <- promise.await(
-                                prompt.text_input(
-                                  completed,
-                                  t(lang, "path.title"),
-                                  "./tests/testProject",
-                                  validate_not_empty(lang, "path.empty", _),
-                                  no_preview,
-                                  t(lang, "hint.input"),
-                                ),
-                              )
-
-                              case path_result {
-                                Error(_) -> cancel(lang)
-                                Ok(project_path) -> {
-                                  let completed =
-                                    list.append(completed, [
-                                      #(t(lang, "path.title"), project_path),
-                                    ])
-                                  stdout.execute([command.HideCursor])
-
-                                  // 9단계: 패키지 매니저
-                                  let detected = detect_pm()
-                                  let pms = [
-                                    "npm",
-                                    "yarn",
-                                    "pnpm",
-                                    "bun",
-                                    "deno",
-                                  ]
-                                  let default_idx = case detected {
-                                    "yarn" -> 1
-                                    "pnpm" -> 2
-                                    "bun" -> 3
-                                    "deno" -> 4
-                                    _ -> 0
+                              // 8단계: 패키지 매니저
+                              let detected = detect_pm()
+                              let pms = ["npm", "yarn", "pnpm", "bun", "deno"]
+                              let default_idx = case detected {
+                                "yarn" -> 1
+                                "pnpm" -> 2
+                                "bun" -> 3
+                                "deno" -> 4
+                                _ -> 0
+                              }
+                              let pm_labels =
+                                list.map(pms, fn(pm) {
+                                  case pm == detected {
+                                    True ->
+                                      pm <> "  ← " <> t(lang, "pm.detected")
+                                    False -> pm
                                   }
-                                  let pm_labels =
-                                    list.map(pms, fn(pm) {
-                                      case pm == detected {
-                                        True ->
-                                          pm <> "  ← " <> t(lang, "pm.detected")
-                                        False -> pm
-                                      }
-                                    })
+                                })
 
-                                  use pm_idx <- promise.await(prompt.select(
-                                    completed,
-                                    t(lang, "pm.title"),
-                                    pm_labels,
-                                    default_idx,
-                                    t(lang, "hint.select"),
+                              use pm_idx <- promise.await(prompt.select(
+                                completed,
+                                t(lang, "pm.title"),
+                                pm_labels,
+                                default_idx,
+                                t(lang, "hint.select"),
+                              ))
+
+                              case pm_idx < 0 {
+                                True -> cancel(lang)
+                                False -> {
+                                  let pm =
+                                    result.unwrap(list_at(pms, pm_idx), "npm")
+                                  cleanup()
+                                  promise.resolve(Options(
+                                    project_name: name,
+                                    organization: org,
+                                    copyright: copyright,
+                                    version: version,
+                                    author: author,
+                                    project_path: project_path,
+                                    pm: pm,
+                                    lang: lang,
                                   ))
-
-                                  case pm_idx < 0 {
-                                    True -> cancel(lang)
-                                    False -> {
-                                      let pm =
-                                        result.unwrap(
-                                          list_at(pms, pm_idx),
-                                          "npm",
-                                        )
-                                      cleanup()
-                                      promise.resolve(Options(
-                                        project_name: name,
-                                        organization: org,
-                                        copyright: copyright,
-                                        license: license,
-                                        version: version,
-                                        author: author,
-                                        project_path: project_path,
-                                        pm: pm,
-                                        lang: lang,
-                                      ))
-                                    }
-                                  }
                                 }
                               }
                             }

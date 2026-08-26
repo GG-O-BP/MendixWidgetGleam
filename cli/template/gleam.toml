@@ -2,6 +2,7 @@ name = "{{SNAKE_CASE}}"
 version = "{{VERSION}}"
 gleam = ">= 1.17.0"
 target = "javascript"
+licences = ["MIT"]
 
 [javascript]
 typescript_declarations = false

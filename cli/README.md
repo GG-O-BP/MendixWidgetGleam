@@ -2,6 +2,9 @@
 
 Gleam으로 Mendix Pluggable Widget 프로젝트를 만드는 대화형 CLI다.
 
+`main`의 CLI·Gleam 패키지·위젯 릴리스 메타데이터는 5.0.0으로 맞춘다. npm 게시와
+Git tag는 별도 릴리스 단계이며, 아래 실행 명령은 npm에 게시된 `latest`를 사용한다.
+
 ```sh
 npx create-mendix-widget-gleam my-widget
 ```
@@ -31,9 +34,10 @@ Glendix의 임시 프로세스 범위 `node`/`npm`/`npx` shim은 Mendix Tools의
 검사를 만족시키고 지원하는 호출을 선택한 매니저로 돌려보낸 뒤 제거된다. Yarn과
 pnpm도 이 우회를 사용하지만 실제 실행 런타임은 Node다. Bun/Deno 경로는 Node나
 npm 없이 빌드할 수 있다. 생성기는 npm `allowScripts`, Bun
-`trustedDependencies`, Yarn용 `.yarnrc.yml`, pnpm용 `pnpm-workspace.yaml`,
-Deno용 Gleam 권한/설치 allowlist를 함께 만든다. pnpm 설정은 Mendix Tools의
-Babel plugin 해석을 위한 선택적 `@babel/*` public hoist도 포함한다.
+`trustedDependencies`, Yarn용 `.yarnrc.yml`과 선택적 lifecycle-script
+allowlist, pnpm용 `pnpm-workspace.yaml`, Deno용 Gleam 권한/설치 allowlist를 함께
+만든다. pnpm 설정은 Mendix Tools의 Babel plugin 해석을 위한 선택적 `@babel/*`
+public hoist도 포함한다.
 
 생성 기준은 다음과 같다.
 
@@ -91,4 +95,4 @@ recharts = ["PieChart", "Pie", "Tooltip"]
 
 ## 라이선스
 
-Apache-2.0
+MIT

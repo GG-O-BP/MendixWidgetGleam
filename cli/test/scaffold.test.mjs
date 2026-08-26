@@ -37,7 +37,6 @@ function options(overrides = {}) {
   return {
     organization: "example",
     copyright: '© 2026 "Quoted" contributors.',
-    license: "Apache-2.0",
     version: "0.1.0",
     author: 'A "Quoted" Author',
     projectPath: "./tests/a\\b",
@@ -75,6 +74,7 @@ test("template scaffolding is ordered, escaped, current, and docs-free", async (
   assert.equal(packageJson.author, 'A "Quoted" Author');
   assert.equal(packageJson.copyright, '© 2026 "Quoted" contributors.');
   assert.equal(packageJson.config.projectPath, "./tests/a\\b");
+  assert.equal(packageJson.license, "MIT");
   assert.equal(packageJson.engines.node, ">=22.18.0");
   assert.equal(packageJson.devDependencies["@mendix/pluggable-widgets-tools"], "^11.12.1");
   assert.equal(packageJson.dependencies.react, "19.2.8");
@@ -89,8 +89,15 @@ test("template scaffolding is ordered, escaped, current, and docs-free", async (
     "core-js",
     "unrs-resolver",
   ]);
+  assert.deepEqual(packageJson.dependenciesMeta, {
+    "@parcel/watcher": { built: true },
+    "@swc/core": { built: true },
+    "core-js": { built: true },
+    "unrs-resolver": { built: true },
+  });
 
   const gleamToml = await readFile(join(target, "gleam.toml"), "utf8");
+  assert.match(gleamToml, /^licences = \["MIT"\]$/m);
   assert.match(gleamToml, /glendix = ">= 5\.1\.0 and < 6\.0\.0"/);
   assert.match(gleamToml, /mendraw = ">= 2\.0\.0 and < 3\.0\.0"/);
   assert.match(gleamToml, /pm = "bun"/);
@@ -136,12 +143,7 @@ test("each package manager selects its native runtime and compatibility files", 
       packageManager,
       "example",
     );
-    const readme = generateReadmeContent(
-      "en",
-      names,
-      packageManager,
-      "Apache-2.0",
-    );
+    const readme = generateReadmeContent("en", names, packageManager);
     assert.match(gleamToml, new RegExp(`runtime = "${runtime}"`));
     assert.match(gleamToml, new RegExp(`pm = "${packageManager}"`));
     assert.match(gleamToml, /compatibility = "experimental-native"/);
@@ -160,7 +162,7 @@ test("each package manager selects its native runtime and compatibility files", 
     if (packageManager === "yarn") {
       assert.equal(
         await readFile(join(target, ".yarnrc.yml"), "utf8"),
-        "nodeLinker: node-modules\nenableScripts: true\n",
+        "nodeLinker: node-modules\nenableScripts: false\n",
       );
       assert.equal(packageJson.packageManager, "yarn@4.18.0");
     } else {
@@ -186,7 +188,7 @@ test("generated agent guidance uses current boundaries and completion gates", ()
   const names = generateNames("Agent_Widget");
   const agents = generateAgentsMdContent("en", names, "pnpm", "example");
   const claude = generateClaudeMdContent("en", names, "pnpm", "example");
-  const readme = generateReadmeContent("en", names, "pnpm", "Apache-2.0");
+  const readme = generateReadmeContent("en", names, "pnpm");
 
   assert.equal(agents, claude);
   assert.match(agents, /\[tools\.glendix\]\.pm = "pnpm"/);

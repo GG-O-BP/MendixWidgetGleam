@@ -1,8 +1,12 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
-export function dir_exists(name) {
-  return existsSync(resolve(process.cwd(), name));
+export function target_directory_name(name) {
+  return split_words(name).join("-");
+}
+
+export function target_dir_exists(name) {
+  return existsSync(resolve(process.cwd(), target_directory_name(name)));
 }
 
 export function detect_pm() {
