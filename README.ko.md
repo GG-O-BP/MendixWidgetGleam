@@ -12,8 +12,8 @@ Mendraw로 Mendix 런타임 값을 타입 안전하게 읽는다.
 - Hex의 Glendix 5.1.0 / Mendraw 2.x
 - Lustre 5.7 / Redraw 19.2
 - Gleam 패키지·CLI·위젯 메타데이터의 소스 릴리스 버전은 모두 5.0.0
-- 현재 저장소는 Bun 1.4, 생성 프로젝트는 Node.js 22.18 이상·Deno 2.9·Yarn·
-  pnpm도 선택 가능
+- 현재 저장소는 Bun 1.4, 생성 프로젝트는 Node.js 22.x의 22.20 이상·24.12 이상·
+  25 이상 또는 Deno 2.9·Yarn·pnpm도 선택 가능
 - Mendix Pluggable Widgets Tools 11.12 / React 19.2
 
 ## 실험적 네이티브 호환

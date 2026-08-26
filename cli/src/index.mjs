@@ -237,9 +237,13 @@ export async function main(args) {
   // and generates external npm bindings in one authoritative install step.
   console.log(`\n${BOLD}${t(lang, "progress.glendixInstalling")}${RESET}\n`);
   try {
+    const installEnvironment = pm === "yarn"
+      ? { ...process.env, YARN_ENABLE_IMMUTABLE_INSTALLS: "false" }
+      : process.env;
     execSync(`gleam run -m glendix/install --runtime ${runtime}`, {
       cwd: targetDir,
       stdio: "inherit",
+      env: installEnvironment,
     });
     console.log(`\n${GREEN}✓${RESET} ${t(lang, "progress.glendixInstalled")}`);
   } catch {

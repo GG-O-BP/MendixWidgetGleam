@@ -32,6 +32,8 @@ test("release metadata is synchronized at 5.0.0 under MIT", async () => {
 
   assert.equal(rootPackage.version, "5.0.0");
   assert.equal(cliPackage.version, rootPackage.version);
+  assert.equal(rootPackage.engines.node, "^22.20.0 || ^24.12.0 || >=25.0.0");
+  assert.equal(cliPackage.engines.node, rootPackage.engines.node);
   assert.match(gleamToml, /^version = "5\.0\.0"$/m);
   assert.match(packageXml, /clientModule name="MendixWidget" version="5\.0\.0"/);
   assert.equal(rootPackage.license, "MIT");

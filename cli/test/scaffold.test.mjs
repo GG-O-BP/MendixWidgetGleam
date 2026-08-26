@@ -75,7 +75,10 @@ test("template scaffolding is ordered, escaped, current, and docs-free", async (
   assert.equal(packageJson.copyright, '© 2026 "Quoted" contributors.');
   assert.equal(packageJson.config.projectPath, "./tests/a\\b");
   assert.equal(packageJson.license, "MIT");
-  assert.equal(packageJson.engines.node, ">=22.18.0");
+  assert.equal(
+    packageJson.engines.node,
+    "^22.20.0 || ^24.12.0 || >=25.0.0",
+  );
   assert.equal(packageJson.devDependencies["@mendix/pluggable-widgets-tools"], "^11.12.1");
   assert.equal(packageJson.dependencies.react, "19.2.8");
   assert.equal(packageJson.dependencies["react-dom"], "19.2.8");

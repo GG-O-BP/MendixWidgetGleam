@@ -21,7 +21,8 @@ deno x -A -p create-mendix-widget-gleam create-mendix-widget-gleam my-widget
 ## 요구사항
 
 - Gleam 1.17 이상
-- npm은 Node.js 22.18 이상, Yarn/pnpm은 Node.js 22.18 이상과 해당 매니저
+- npm·Yarn·pnpm은 Node.js 22.x의 22.20 이상, 24.12 이상 또는 25 이상과 해당
+  매니저
 - 또는 Bun 1.4 이상, Deno 2.9 이상
 
 CLI는 npm, Yarn, pnpm, Bun, Deno 중 선택한 패키지 매니저를

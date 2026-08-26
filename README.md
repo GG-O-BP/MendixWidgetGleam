@@ -13,7 +13,7 @@ React bridge, while Mendraw supplies typed access to Mendix runtime values.
 - Lustre 5.7 and Redraw 19.2
 - Source release line 5.0.0 across the Gleam package, CLI, and widget metadata
 - Bun 1.4 for this checked-in project; generated projects may instead use
-  Node.js 22.18 or newer, Deno 2.9, Yarn, or pnpm
+  Node.js 22.20+ on 22.x, 24.12+, or 25+, Deno 2.9, Yarn, or pnpm
 - Mendix Pluggable Widgets Tools 11.12 and React 19.2
 
 ## Experimental native compatibility

@@ -6,7 +6,7 @@
   "copyright": {{COPYRIGHT_JSON}},
   "author": {{AUTHOR_JSON}},
 {{PACKAGE_MANAGER_FIELD}}  "engines": {
-    "node": ">=22.18.0"
+    "node": "^22.20.0 || ^24.12.0 || >=25.0.0"
   },
   "license": "MIT",
   "config": {

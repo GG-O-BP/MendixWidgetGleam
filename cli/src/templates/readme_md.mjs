@@ -10,12 +10,12 @@ export function generateReadmeContent(lang, names, pm) {
     deno: "deno add npm:recharts",
   }[pm] ?? "npm install recharts";
   const runtimeRequirement = {
-    npm: "Node.js 22.18 or newer and npm",
-    yarn: "Node.js 22.18 or newer and Yarn",
-    pnpm: "Node.js 22.18 or newer and pnpm",
+    npm: "Node.js 22.20+ on 22.x, 24.12+, or 25+, and npm",
+    yarn: "Node.js 22.20+ on 22.x, 24.12+, or 25+, and Yarn",
+    pnpm: "Node.js 22.20+ on 22.x, 24.12+, or 25+, and pnpm",
     bun: "Bun 1.4 or newer",
     deno: "Deno 2.9 or newer",
-  }[pm] ?? "Node.js 22.18 or newer and npm";
+  }[pm] ?? "Node.js 22.20+ on 22.x, 24.12+, or 25+, and npm";
 
   switch (lang) {
     case "ko":

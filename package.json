@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/glendix-labs/MendixWidgetGleam#readme",
   "engines": {
-    "node": ">=22.18.0"
+    "node": "^22.20.0 || ^24.12.0 || >=25.0.0"
   },
   "packageManager": "bun@1.4.0",
   "license": "MIT",

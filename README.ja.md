@@ -12,8 +12,8 @@ MendrawでMendix runtime valueへ型安全にアクセスする。
 - HexのGlendix 5.1.0 / Mendraw 2.x
 - Lustre 5.7 / Redraw 19.2
 - Gleam package・CLI・widget metadata の source release version はすべて 5.0.0
-- このリポジトリは Bun 1.4、生成 project は Node.js 22.18 以降・Deno 2.9・
-  Yarn・pnpm も選択可能
+- このリポジトリは Bun 1.4、生成 project は Node.js 22.x の 22.20 以降・
+  24.12 以降・25 以降、または Deno 2.9・Yarn・pnpm も選択可能
 - Mendix Pluggable Widgets Tools 11.12 / React 19.2
 
 ## 実験的ネイティブ互換

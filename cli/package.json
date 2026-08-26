@@ -27,7 +27,7 @@
     "test:e2e": "node test/template.e2e.mjs"
   },
   "engines": {
-    "node": ">=22.18.0"
+    "node": "^22.20.0 || ^24.12.0 || >=25.0.0"
   },
   "packageManager": "bun@1.4.0",
   "keywords": [
